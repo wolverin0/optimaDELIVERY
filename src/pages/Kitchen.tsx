@@ -1,4 +1,4 @@
-import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck } from 'lucide-react';
+import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck, XCircle, Settings } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { OrderCard } from '@/components/OrderCard';
 import { Link } from 'react-router-dom';
@@ -8,10 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const Kitchen = () => {
   const { orders } = useOrders();
 
+  const activeOrders = orders.filter(o => o.status !== 'cancelled');
   const pendingOrders = orders.filter(o => o.status === 'pending');
   const preparingOrders = orders.filter(o => o.status === 'preparing');
   const readyOrders = orders.filter(o => o.status === 'ready');
   const dispatchedOrders = orders.filter(o => o.status === 'dispatched');
+  const cancelledOrders = orders.filter(o => o.status === 'cancelled');
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,12 +29,20 @@ const Kitchen = () => {
               <p className="text-xs text-muted-foreground">Gestión de pedidos</p>
             </div>
           </div>
-          <Link to="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Ver Menú
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/admin">
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
+            <Link to="/">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Ver Menú
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -60,6 +70,13 @@ const Kitchen = () => {
               <span className="font-semibold">{dispatchedOrders.length}</span>
               <span className="text-sm text-muted-foreground">Despachados</span>
             </div>
+            {cancelledOrders.length > 0 && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-destructive/20 rounded-lg">
+                <XCircle className="h-5 w-5 text-destructive" />
+                <span className="font-semibold">{cancelledOrders.length}</span>
+                <span className="text-sm text-muted-foreground">Cancelados</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -76,9 +93,9 @@ const Kitchen = () => {
           </div>
         ) : (
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="w-full justify-start mb-6 h-12">
+            <TabsList className="w-full justify-start mb-6 h-12 overflow-x-auto">
               <TabsTrigger value="all" className="px-6">
-                Todos ({orders.length})
+                Activos ({activeOrders.length})
               </TabsTrigger>
               <TabsTrigger value="pending" className="px-6">
                 Pendientes ({pendingOrders.length})
@@ -89,11 +106,16 @@ const Kitchen = () => {
               <TabsTrigger value="ready" className="px-6">
                 Listos ({readyOrders.length})
               </TabsTrigger>
+              {cancelledOrders.length > 0 && (
+                <TabsTrigger value="cancelled" className="px-6">
+                  Cancelados ({cancelledOrders.length})
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="all" className="mt-0">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {orders.map(order => (
+                {activeOrders.map(order => (
                   <OrderCard key={order.id} order={order} />
                 ))}
               </div>
@@ -118,6 +140,14 @@ const Kitchen = () => {
             <TabsContent value="ready" className="mt-0">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {readyOrders.map(order => (
+                  <OrderCard key={order.id} order={order} />
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="cancelled" className="mt-0">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {cancelledOrders.map(order => (
                   <OrderCard key={order.id} order={order} />
                 ))}
               </div>

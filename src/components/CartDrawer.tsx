@@ -1,4 +1,4 @@
-import { Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, Trash2, Scale } from 'lucide-react';
 import { useState } from 'react';
 import { useOrders } from '@/context/OrderContext';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
 export const CartDrawer = () => {
-  const { cart, cartTotal, updateQuantity, removeFromCart, submitOrder, clearCart } = useOrders();
+  const { cart, cartTotal, updateQuantity, updateWeight, removeFromCart, submitOrder, clearCart } = useOrders();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -51,14 +51,21 @@ export const CartDrawer = () => {
 
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  const getItemTotal = (item: typeof cart[0]) => {
+    if (item.soldByWeight && item.weight) {
+      return item.price * item.weight;
+    }
+    return item.price * item.quantity;
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button size="lg" className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-xl z-50">
           <ShoppingCart className="h-7 w-7" />
-          {itemCount > 0 && (
+          {cart.length > 0 && (
             <Badge className="absolute -top-2 -right-2 h-7 w-7 flex items-center justify-center p-0 text-sm">
-              {itemCount}
+              {cart.length}
             </Badge>
           )}
         </Button>
@@ -89,25 +96,45 @@ export const CartDrawer = () => {
                     />
                     <div className="flex-1">
                       <h4 className="font-semibold">{item.name}</h4>
-                      <p className="text-primary font-bold">{formatPrice(item.price)}</p>
+                      <p className="text-primary font-bold">
+                        {formatPrice(item.price)}
+                        {item.soldByWeight && <span className="text-muted-foreground font-normal text-sm">/{item.weightUnit}</span>}
+                      </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-9 w-9"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="w-8 text-center font-bold">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-9 w-9"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                        {item.soldByWeight ? (
+                          <>
+                            <Scale className="h-4 w-4 text-muted-foreground" />
+                            <Input
+                              type="number"
+                              step="0.1"
+                              min="0.1"
+                              value={item.weight || 1}
+                              onChange={(e) => updateWeight(item.id, parseFloat(e.target.value) || 0)}
+                              className="h-9 w-20 text-center"
+                            />
+                            <span className="text-sm text-muted-foreground">{item.weightUnit}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-9 w-9"
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="w-8 text-center font-bold">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-9 w-9"
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -117,6 +144,9 @@ export const CartDrawer = () => {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Subtotal: {formatPrice(getItemTotal(item))}
+                      </p>
                     </div>
                   </div>
                 ))
