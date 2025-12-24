@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Settings, ArrowLeft, Plus, Trash2, Edit, Save, X, Image } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Settings, ArrowLeft, Plus, Trash2, Edit, Save, Image, Camera, PackageX, Package } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { MenuItem, MenuCategory } from '@/types/order';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Dialog,
   DialogContent,
@@ -31,10 +32,12 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Admin = () => {
-  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem } = useOrders();
+  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, toggleSoldOut } = useOrders();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -123,6 +126,14 @@ const Admin = () => {
     toast({ title: 'Producto eliminado' });
   };
 
+  const handleToggleSoldOut = (item: MenuItem) => {
+    toggleSoldOut(item.id);
+    toast({ 
+      title: item.soldOut ? 'Producto disponible' : 'Producto agotado',
+      description: item.soldOut ? `${item.name} está disponible nuevamente` : `${item.name} marcado como agotado`
+    });
+  };
+
   const categoryLabels: Record<MenuCategory, string> = {
     comida: 'Comida',
     postre: 'Postre',
@@ -144,6 +155,7 @@ const Admin = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Link to="/cocina">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -167,12 +179,12 @@ const Admin = () => {
         {/* Products Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {menuItems.map(item => (
-            <Card key={item.id} className="overflow-hidden">
+            <Card key={item.id} className={`overflow-hidden ${item.soldOut ? 'opacity-60' : ''}`}>
               <div className="aspect-video relative">
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover ${item.soldOut ? 'grayscale' : ''}`}
                 />
                 <Badge className="absolute top-2 left-2">
                   {categoryLabels[item.category]}
@@ -182,6 +194,14 @@ const Admin = () => {
                     Por {item.weightUnit}
                   </Badge>
                 )}
+                {item.soldOut && (
+                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                    <Badge variant="destructive" className="text-lg px-4 py-2">
+                      <PackageX className="h-5 w-5 mr-2" />
+                      AGOTADO
+                    </Badge>
+                  </div>
+                )}
               </div>
               <CardContent className="p-4">
                 <h3 className="font-bold text-lg">{item.name}</h3>
@@ -190,7 +210,28 @@ const Admin = () => {
                   ${item.price.toLocaleString()}
                   {item.soldByWeight && <span className="text-sm font-normal">/{item.weightUnit}</span>}
                 </p>
-                <div className="flex gap-2 mt-4">
+                
+                {/* Sold Out Toggle */}
+                <Button
+                  variant={item.soldOut ? 'default' : 'outline'}
+                  size="sm"
+                  className={`w-full mt-3 ${item.soldOut ? 'bg-accent hover:bg-accent/90' : 'border-destructive text-destructive hover:bg-destructive/10'}`}
+                  onClick={() => handleToggleSoldOut(item)}
+                >
+                  {item.soldOut ? (
+                    <>
+                      <Package className="h-4 w-4 mr-2" />
+                      Marcar Disponible
+                    </>
+                  ) : (
+                    <>
+                      <PackageX className="h-4 w-4 mr-2" />
+                      Marcar Agotado
+                    </>
+                  )}
+                </Button>
+
+                <div className="flex gap-2 mt-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -256,11 +297,42 @@ const Admin = () => {
                   </div>
                 )}
                 <div className="flex-1 space-y-2">
-                  <Input
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => cameraInputRef.current?.click()}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Cámara
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Image className="h-4 w-4 mr-2" />
+                      Galería
+                    </Button>
+                  </div>
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    className="cursor-pointer"
+                    className="hidden"
                   />
                   <p className="text-xs text-muted-foreground">
                     O ingresa una URL:

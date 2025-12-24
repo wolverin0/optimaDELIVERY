@@ -1,6 +1,7 @@
 import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck, XCircle, Settings } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { OrderCard } from '@/components/OrderCard';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,6 +31,7 @@ const Kitchen = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Link to="/admin">
               <Button variant="outline" size="sm">
                 <Settings className="h-4 w-4 mr-2" />

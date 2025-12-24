@@ -51,7 +51,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
   const isCancelled = order.status === 'cancelled';
 
   return (
-    <Card className={`overflow-hidden ${isPending ? 'animate-pulse-border' : ''} ${isCancelled ? 'opacity-60' : ''}`}>
+    <Card className={`overflow-hidden ${isPending ? 'animate-blink-pending' : ''} ${isCancelled ? 'opacity-60' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
