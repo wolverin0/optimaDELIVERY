@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Settings, ArrowLeft, Plus, Trash2, Edit, Save, Image, Camera, PackageX, Package } from 'lucide-react';
+import { Settings, ArrowLeft, Plus, Trash2, Edit, Save, Image, Camera, PackageX, Package, RotateCcw } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Admin = () => {
-  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, toggleSoldOut } = useOrders();
+  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, toggleSoldOut, resetMenuItems } = useOrders();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -75,14 +75,60 @@ const Admin = () => {
     setShowForm(true);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress and resize image to reduce storage size
+  const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+
+          // Scale down if larger than maxWidth
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Compress image to reduce localStorage usage
+        const compressedImage = await compressImage(file);
+        setFormData(prev => ({ ...prev, image: compressedImage }));
+        toast({ title: 'Imagen cargada', description: 'La imagen se comprimió para optimizar almacenamiento' });
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        // Fallback to original if compression fails
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFormData(prev => ({ ...prev, image: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -170,10 +216,39 @@ const Admin = () => {
         {/* Add Product Button */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Productos ({menuItems.length})</h2>
-          <Button onClick={() => { resetForm(); setShowForm(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar Producto
-          </Button>
+          <div className="flex gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Restaurar
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Restaurar menú original?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esto eliminará todos los productos personalizados y restaurará el menú de ejemplo.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      resetMenuItems();
+                      toast({ title: 'Menú restaurado', description: 'Se restauró el menú original' });
+                    }}
+                  >
+                    Restaurar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Button onClick={() => { resetForm(); setShowForm(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Producto
+            </Button>
+          </div>
         </div>
 
         {/* Products Grid */}
@@ -334,6 +409,9 @@ const Admin = () => {
                     onChange={handleImageUpload}
                     className="hidden"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    En móvil abre la cámara, en PC selecciona archivo
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     O ingresa una URL:
                   </p>

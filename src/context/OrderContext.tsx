@@ -1,6 +1,34 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { CartItem, Order, MenuItem, CustomerData, OrderStatus, MenuCategory } from '@/types/order';
 import { menuItems as defaultMenuItems } from '@/data/menuItems';
+
+const MENU_STORAGE_KEY = 'elbraserito_menu_items';
+
+// Load menu items from localStorage or use defaults
+const loadMenuItems = (): MenuItem[] => {
+  try {
+    const stored = localStorage.getItem(MENU_STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Error loading menu items from localStorage:', e);
+  }
+  return defaultMenuItems;
+};
+
+// Save menu items to localStorage
+const saveMenuItems = (items: MenuItem[]) => {
+  try {
+    localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(items));
+  } catch (e) {
+    console.error('Error saving menu items to localStorage:', e);
+    // If storage is full (likely due to base64 images), warn user
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      alert('Almacenamiento local lleno. Considera usar URLs de imágenes en lugar de fotos.');
+    }
+  }
+};
 
 interface OrderContextType {
   cart: CartItem[];
@@ -19,6 +47,7 @@ interface OrderContextType {
   updateMenuItem: (item: MenuItem) => void;
   deleteMenuItem: (itemId: string) => void;
   toggleSoldOut: (itemId: string) => void;
+  resetMenuItems: () => void;
   cartTotal: number;
 }
 
@@ -27,7 +56,12 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultMenuItems);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(loadMenuItems);
+
+  // Persist menu items to localStorage whenever they change
+  useEffect(() => {
+    saveMenuItems(menuItems);
+  }, [menuItems]);
 
   const addToCart = useCallback((item: MenuItem, weight?: number) => {
     setCart(prev => {
@@ -132,9 +166,14 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const toggleSoldOut = useCallback((itemId: string) => {
-    setMenuItems(prev => prev.map(i => 
+    setMenuItems(prev => prev.map(i =>
       i.id === itemId ? { ...i, soldOut: !i.soldOut } : i
     ));
+  }, []);
+
+  const resetMenuItems = useCallback(() => {
+    localStorage.removeItem(MENU_STORAGE_KEY);
+    setMenuItems(defaultMenuItems);
   }, []);
 
   return (
@@ -155,6 +194,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       updateMenuItem,
       deleteMenuItem,
       toggleSoldOut,
+      resetMenuItems,
       cartTotal,
     }}>
       {children}
