@@ -31,8 +31,8 @@ const Kitchen = () => {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link to="/admin" className="hidden sm:block">
-              <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary hover:text-white">
+            <Link to="/admin">
+              <Button variant="outline" size="icon" className="sm:w-auto sm:px-3 border-primary/30 text-primary hover:bg-primary hover:text-white">
                 <Settings className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Admin</span>
               </Button>
