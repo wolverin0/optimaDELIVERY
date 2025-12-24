@@ -1,4 +1,6 @@
-export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'dispatched';
+export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'dispatched' | 'cancelled';
+
+export type MenuCategory = 'comida' | 'postre' | 'bebidas';
 
 export interface MenuItem {
   id: string;
@@ -6,10 +8,14 @@ export interface MenuItem {
   description: string;
   price: number;
   image: string;
+  category: MenuCategory;
+  soldByWeight?: boolean;
+  weightUnit?: string;
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  weight?: number;
 }
 
 export interface CustomerData {

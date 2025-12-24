@@ -1,11 +1,21 @@
+import { useState } from 'react';
 import { Utensils } from 'lucide-react';
-import { menuItems } from '@/data/menuItems';
+import { useOrders } from '@/context/OrderContext';
 import { MenuCard } from '@/components/MenuCard';
 import { CartDrawer } from '@/components/CartDrawer';
+import { CategoryFilter } from '@/components/CategoryFilter';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { MenuCategory } from '@/types/order';
 
 const Menu = () => {
+  const { menuItems } = useOrders();
+  const [selectedCategory, setSelectedCategory] = useState<MenuCategory | 'all'>('all');
+
+  const filteredItems = selectedCategory === 'all' 
+    ? menuItems 
+    : menuItems.filter(item => item.category === selectedCategory);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -36,13 +46,26 @@ const Menu = () => {
         </div>
       </section>
 
+      {/* Category Filter */}
+      <section className="sticky top-[73px] z-30 bg-background/95 backdrop-blur border-b">
+        <div className="container mx-auto px-4 py-3">
+          <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} />
+        </div>
+      </section>
+
       {/* Menu Grid */}
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {menuItems.map(item => (
-            <MenuCard key={item.id} item={item} />
-          ))}
-        </div>
+        {filteredItems.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <p>No hay productos en esta categoría</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {filteredItems.map(item => (
+              <MenuCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Cart FAB */}

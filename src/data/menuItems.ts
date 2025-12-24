@@ -15,6 +15,7 @@ export const menuItems: MenuItem[] = [
     description: 'Tortilla casera de papas con huevo, dorada y jugosa',
     price: 2500,
     image: tortilla,
+    category: 'comida',
   },
   {
     id: '2',
@@ -22,6 +23,7 @@ export const menuItems: MenuItem[] = [
     description: 'Corte de carne a la brasa con vegetales',
     price: 4500,
     image: carneAsada,
+    category: 'comida',
   },
   {
     id: '3',
@@ -29,6 +31,7 @@ export const menuItems: MenuItem[] = [
     description: 'Costillas de cerdo con salsa BBQ casera y hierbas',
     price: 5000,
     image: costillas,
+    category: 'comida',
   },
   {
     id: '4',
@@ -36,6 +39,7 @@ export const menuItems: MenuItem[] = [
     description: 'Ñoquis caseros con salsa bolognesa y queso',
     price: 3500,
     image: noquis,
+    category: 'comida',
   },
   {
     id: '5',
@@ -43,6 +47,7 @@ export const menuItems: MenuItem[] = [
     description: 'Pollo asado entero con papas fritas crujientes',
     price: 4000,
     image: polloPapas,
+    category: 'comida',
   },
   {
     id: '6',
@@ -50,6 +55,7 @@ export const menuItems: MenuItem[] = [
     description: 'Mix de brócoli, espárragos, zanahorias y pimientos',
     price: 2000,
     image: verduras,
+    category: 'comida',
   },
   {
     id: '7',
@@ -57,5 +63,8 @@ export const menuItems: MenuItem[] = [
     description: 'Lechón asado crocante, precio por kilo',
     price: 6500,
     image: lechon,
+    category: 'comida',
+    soldByWeight: true,
+    weightUnit: 'kg',
   },
 ];
