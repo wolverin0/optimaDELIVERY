@@ -1,19 +1,22 @@
-import { Minus, Plus, ShoppingCart, Trash2, Scale } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Trash2, Scale, Crown, ArrowLeft, Send, MapPin, Store, Truck, CreditCard, Banknote, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useOrders } from '@/context/OrderContext';
-import { Button } from '@/components/ui/button';
+import { DeliveryType, PaymentMethod } from '@/types/order';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
+type CheckoutStep = 'cart' | 'delivery-type' | 'customer-info' | 'payment' | 'success';
+
 export const CartDrawer = () => {
-  const { cart, cartTotal, updateQuantity, updateWeight, removeFromCart, submitOrder, clearCart } = useOrders();
+  const { cart, cartTotal, updateQuantity, updateWeight, removeFromCart, submitOrder } = useOrders();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [step, setStep] = useState<CheckoutStep>('cart');
+  const [deliveryType, setDeliveryType] = useState<DeliveryType | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [customerData, setCustomerData] = useState({
     name: '',
     phone: '',
@@ -29,27 +32,60 @@ export const CartDrawer = () => {
     }).format(price);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const resetCheckout = () => {
+    setStep('cart');
+    setDeliveryType(null);
+    setPaymentMethod(null);
+    setCustomerData({ name: '', phone: '', address: '', notes: '' });
+  };
+
+  const handleSelectDeliveryType = (type: DeliveryType) => {
+    setDeliveryType(type);
+    setStep('customer-info');
+  };
+
+  const handleCustomerInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerData.name || !customerData.phone || !customerData.address) {
+    if (!customerData.name || !customerData.phone) {
       toast({
         title: 'Datos incompletos',
-        description: 'Por favor completa todos los campos requeridos',
+        description: 'Por favor completa nombre y teléfono',
         variant: 'destructive',
       });
       return;
     }
-    submitOrder(customerData);
-    setCustomerData({ name: '', phone: '', address: '', notes: '' });
-    setShowCheckout(false);
-    setIsOpen(false);
-    toast({
-      title: '¡Pedido enviado!',
-      description: 'Tu pedido fue recibido y está siendo procesado',
-    });
+    if (deliveryType === 'delivery' && !customerData.address) {
+      toast({
+        title: 'Dirección requerida',
+        description: 'Por favor ingresa tu dirección de entrega',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setStep('payment');
   };
 
-  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const handleSelectPayment = (method: PaymentMethod) => {
+    setPaymentMethod(method);
+
+    if (!deliveryType) return;
+
+    // Submit order
+    submitOrder({
+      ...customerData,
+      address: deliveryType === 'pickup' ? 'Retira en sucursal' : customerData.address,
+      deliveryType,
+      paymentMethod: method,
+    });
+
+    setStep('success');
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    // Reset after animation
+    setTimeout(resetCheckout, 300);
+  };
 
   const getItemTotal = (item: typeof cart[0]) => {
     if (item.soldByWeight && item.weight) {
@@ -58,94 +94,114 @@ export const CartDrawer = () => {
     return item.price * item.quantity;
   };
 
+  const getStepTitle = () => {
+    switch (step) {
+      case 'cart': return 'Tu Carrito';
+      case 'delivery-type': return '¿Cómo lo querés?';
+      case 'customer-info': return 'Tus Datos';
+      case 'payment': return 'Método de Pago';
+      case 'success': return '¡Pedido Confirmado!';
+      default: return 'Checkout';
+    }
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) setTimeout(resetCheckout, 300);
+    }}>
       <SheetTrigger asChild>
-        <Button size="lg" className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-xl z-50">
-          <ShoppingCart className="h-7 w-7" />
+        <button className="gold-fab">
+          <ShoppingBag className="h-7 w-7" strokeWidth={1.5} />
           {cart.length > 0 && (
-            <Badge className="absolute -top-2 -right-2 h-7 w-7 flex items-center justify-center p-0 text-sm">
+            <span className="absolute -top-1 -right-1 w-6 h-6 bg-white text-primary text-xs font-bold rounded-full flex items-center justify-center border-2 border-primary shadow-md">
               {cart.length}
-            </Badge>
+            </span>
           )}
-        </Button>
+        </button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="text-2xl flex items-center gap-2">
-            <ShoppingCart className="h-6 w-6" />
-            {showCheckout ? 'Finalizar Pedido' : 'Tu Carrito'}
+      <SheetContent className="w-full sm:max-w-lg flex flex-col bg-background border-l border-border">
+        <SheetHeader className="border-b border-border pb-4">
+          <SheetTitle className="text-3xl tracking-wide flex items-center gap-3">
+            <div className="w-10 h-10 bg-gold-gradient rounded-full flex items-center justify-center text-white">
+              {step === 'success' ? (
+                <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
+              ) : (
+                <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
+              )}
+            </div>
+            {getStepTitle()}
           </SheetTitle>
         </SheetHeader>
 
-        {!showCheckout ? (
+        {/* CART STEP */}
+        {step === 'cart' && (
           <>
-            <div className="flex-1 overflow-y-auto py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto py-6 space-y-4 scrollbar-luxury">
               {cart.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-                  <ShoppingCart className="h-16 w-16 mb-4 opacity-30" />
-                  <p>Tu carrito está vacío</p>
+                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                  <ShoppingBag className="h-20 w-20 mb-5 opacity-20 text-primary" />
+                  <p className="text-[15px] italic">Tu carrito esta vacio</p>
+                  <p className="text-[13px] mt-1">Agrega platos deliciosos del menu</p>
                 </div>
               ) : (
                 cart.map(item => (
-                  <div key={item.id} className="flex gap-3 p-3 bg-secondary/50 rounded-lg">
+                  <div key={item.id} className="flex gap-4 p-4 bg-card rounded-xl border border-border shadow-sm animate-fade-in-up">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-20 h-20 object-cover rounded-md"
+                      className="w-24 h-24 object-cover rounded-lg"
                     />
                     <div className="flex-1">
-                      <h4 className="font-semibold">{item.name}</h4>
-                      <p className="text-primary font-bold">
+                      <div className="flex items-start justify-between">
+                        <h4 className="font-semibold text-lg tracking-wide">{item.name}</h4>
+                        <button
+                          className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-full hover:bg-destructive/10"
+                          onClick={() => removeFromCart(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <p className="text-primary font-bold text-lg mt-0.5">
                         {formatPrice(item.price)}
-                        {item.soldByWeight && <span className="text-muted-foreground font-normal text-sm">/{item.weightUnit}</span>}
+                        {item.soldByWeight && (
+                          <span className="text-muted-foreground font-normal text-sm ml-0.5">/{item.weightUnit}</span>
+                        )}
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-3 mt-3">
                         {item.soldByWeight ? (
                           <>
-                            <Scale className="h-4 w-4 text-muted-foreground" />
+                            <Scale className="h-4 w-4 text-primary" />
                             <Input
                               type="number"
                               step="0.1"
                               min="0.1"
                               value={item.weight || 1}
                               onChange={(e) => updateWeight(item.id, parseFloat(e.target.value) || 0)}
-                              className="h-9 w-20 text-center"
+                              className="h-9 w-20 text-center border-primary/30 focus:border-primary font-semibold"
                             />
                             <span className="text-sm text-muted-foreground">{item.weightUnit}</span>
                           </>
                         ) : (
                           <>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-9 w-9"
+                            <button
+                              className="qty-btn"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <span className="w-8 text-center font-bold">{item.quantity}</span>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-9 w-9"
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="w-8 text-center font-bold text-lg">{item.quantity}</span>
+                            <button
+                              className="qty-btn"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             >
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
                           </>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 ml-auto text-destructive"
-                          onClick={() => removeFromCart(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Subtotal: {formatPrice(getItemTotal(item))}
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Subtotal: <span className="text-foreground font-semibold">{formatPrice(getItemTotal(item))}</span>
                       </p>
                     </div>
                   </div>
@@ -154,88 +210,266 @@ export const CartDrawer = () => {
             </div>
 
             {cart.length > 0 && (
-              <div className="border-t pt-4 space-y-4">
-                <div className="flex justify-between text-xl font-bold">
-                  <span>Total</span>
-                  <span className="text-primary">{formatPrice(cartTotal)}</span>
+              <div className="border-t border-border pt-6 space-y-5">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg text-muted-foreground">Total</span>
+                  <span className="text-3xl font-bold text-primary">{formatPrice(cartTotal)}</span>
                 </div>
-                <Button
-                  size="lg"
-                  className="w-full h-14 text-lg"
-                  onClick={() => setShowCheckout(true)}
+                <button
+                  className="checkout-btn flex items-center justify-center gap-3"
+                  onClick={() => setStep('delivery-type')}
                 >
+                  <Crown className="h-5 w-5" />
                   Continuar al Checkout
-                </Button>
+                </button>
               </div>
             )}
           </>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-y-auto py-4 space-y-4">
+        )}
+
+        {/* DELIVERY TYPE STEP */}
+        {step === 'delivery-type' && (
+          <div className="flex-1 flex flex-col py-6">
+            <div className="flex-1 space-y-4">
+              {/* Pickup Option */}
+              <button
+                className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-primary transition-all flex items-center gap-5 group"
+                onClick={() => handleSelectDeliveryType('pickup')}
+              >
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Store className="h-8 w-8 text-primary" />
+                </div>
+                <div className="text-left flex-1">
+                  <h3 className="text-xl font-semibold tracking-wide">PARA RETIRAR</h3>
+                  <p className="text-muted-foreground text-sm mt-1">Retirá tu pedido en nuestra sucursal</p>
+                </div>
+              </button>
+
+              {/* Delivery Option */}
+              <button
+                className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-primary transition-all flex items-center gap-5 group"
+                onClick={() => handleSelectDeliveryType('delivery')}
+              >
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Truck className="h-8 w-8 text-primary" />
+                </div>
+                <div className="text-left flex-1">
+                  <h3 className="text-xl font-semibold tracking-wide">PARA ENVÍO</h3>
+                  <p className="text-muted-foreground text-sm mt-1">Te lo llevamos a tu domicilio</p>
+                </div>
+              </button>
+            </div>
+
+            <div className="border-t border-border pt-6">
+              <button
+                type="button"
+                className="w-full h-14 rounded-xl border-2 border-border bg-transparent text-foreground font-semibold tracking-wide uppercase text-sm flex items-center justify-center gap-2 transition-all hover:border-primary hover:text-primary"
+                onClick={() => setStep('cart')}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver al Carrito
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* CUSTOMER INFO STEP */}
+        {step === 'customer-info' && (
+          <form onSubmit={handleCustomerInfoSubmit} className="flex-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto py-6 space-y-5 scrollbar-luxury">
+              {/* Delivery type badge */}
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+                deliveryType === 'pickup'
+                  ? 'bg-green-500/10 text-green-600 border border-green-500/30'
+                  : 'bg-blue-500/10 text-blue-600 border border-blue-500/30'
+              }`}>
+                {deliveryType === 'pickup' ? <Store className="h-4 w-4" /> : <Truck className="h-4 w-4" />}
+                {deliveryType === 'pickup' ? 'Retiro en Sucursal' : 'Envío a Domicilio'}
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-base">Nombre *</Label>
+                <Label htmlFor="name" className="text-sm font-medium tracking-wide uppercase text-muted-foreground">
+                  Nombre *
+                </Label>
                 <Input
                   id="name"
                   placeholder="Tu nombre completo"
-                  className="h-12 text-base"
+                  className="h-12 text-base border-primary/20 focus:border-primary bg-card"
                   value={customerData.name}
                   onChange={e => setCustomerData(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-base">Teléfono *</Label>
+                <Label htmlFor="phone" className="text-sm font-medium tracking-wide uppercase text-muted-foreground">
+                  Telefono *
+                </Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Tu número de teléfono"
-                  className="h-12 text-base"
+                  placeholder="Tu numero de telefono"
+                  className="h-12 text-base border-primary/20 focus:border-primary bg-card"
                   value={customerData.phone}
                   onChange={e => setCustomerData(prev => ({ ...prev, phone: e.target.value }))}
                 />
               </div>
+
+              {deliveryType === 'delivery' && (
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="text-sm font-medium tracking-wide uppercase text-muted-foreground">
+                    Direccion de Entrega *
+                  </Label>
+                  <Textarea
+                    id="address"
+                    placeholder="Calle, numero, piso, depto..."
+                    className="min-h-24 text-base border-primary/20 focus:border-primary bg-card resize-none"
+                    value={customerData.address}
+                    onChange={e => setCustomerData(prev => ({ ...prev, address: e.target.value }))}
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-base">Dirección de entrega *</Label>
-                <Textarea
-                  id="address"
-                  placeholder="Calle, número, piso, depto..."
-                  className="min-h-24 text-base"
-                  value={customerData.address}
-                  onChange={e => setCustomerData(prev => ({ ...prev, address: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes" className="text-base">Notas adicionales</Label>
+                <Label htmlFor="notes" className="text-sm font-medium tracking-wide uppercase text-muted-foreground">
+                  Notas Adicionales
+                </Label>
                 <Textarea
                   id="notes"
                   placeholder="Instrucciones especiales, alergias, etc."
-                  className="min-h-20 text-base"
+                  className="min-h-20 text-base border-primary/20 focus:border-primary bg-card resize-none"
                   value={customerData.notes}
                   onChange={e => setCustomerData(prev => ({ ...prev, notes: e.target.value }))}
                 />
               </div>
             </div>
 
-            <div className="border-t pt-4 space-y-4">
-              <div className="flex justify-between text-xl font-bold">
-                <span>Total a Pagar</span>
-                <span className="text-primary">{formatPrice(cartTotal)}</span>
+            <div className="border-t border-border pt-6 space-y-5">
+              <div className="flex justify-between items-center">
+                <span className="text-lg text-muted-foreground">Total</span>
+                <span className="text-3xl font-bold text-primary">{formatPrice(cartTotal)}</span>
               </div>
               <div className="flex gap-3">
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  size="lg"
-                  className="flex-1 h-14"
-                  onClick={() => setShowCheckout(false)}
+                  className="flex-1 h-14 rounded-xl border-2 border-border bg-transparent text-foreground font-semibold tracking-wide uppercase text-sm flex items-center justify-center gap-2 transition-all hover:border-primary hover:text-primary"
+                  onClick={() => setStep('delivery-type')}
                 >
+                  <ArrowLeft className="h-4 w-4" />
                   Volver
-                </Button>
-                <Button type="submit" size="lg" className="flex-1 h-14 text-lg">
-                  Enviar Pedido
-                </Button>
+                </button>
+                <button type="submit" className="checkout-btn flex-1 flex items-center justify-center gap-2">
+                  Continuar
+                </button>
               </div>
             </div>
           </form>
+        )}
+
+        {/* PAYMENT STEP */}
+        {step === 'payment' && (
+          <div className="flex-1 flex flex-col py-6">
+            <div className="flex-1 space-y-4">
+              <p className="text-muted-foreground text-center mb-6">Seleccioná cómo querés pagar</p>
+
+              {/* MercadoPago Option */}
+              <button
+                className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-[#009ee3] transition-all flex items-center gap-5 group"
+                onClick={() => handleSelectPayment('mercadopago')}
+              >
+                <div className="w-16 h-16 bg-[#009ee3]/10 rounded-full flex items-center justify-center group-hover:bg-[#009ee3]/20 transition-colors">
+                  <CreditCard className="h-8 w-8 text-[#009ee3]" />
+                </div>
+                <div className="text-left flex-1">
+                  <h3 className="text-xl font-semibold tracking-wide">MercadoPago</h3>
+                  <p className="text-muted-foreground text-sm mt-1">Tarjeta de crédito, débito o dinero en cuenta</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Visa</span>
+                    <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Mastercard</span>
+                    <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Mercado Crédito</span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Cash Option - Only for pickup */}
+              {deliveryType === 'pickup' && (
+                <button
+                  className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-green-500 transition-all flex items-center gap-5 group"
+                  onClick={() => handleSelectPayment('cash')}
+                >
+                  <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                    <Banknote className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="text-xl font-semibold tracking-wide">Pago en Sucursal</h3>
+                    <p className="text-muted-foreground text-sm mt-1">Pagás en efectivo cuando retirás tu pedido</p>
+                  </div>
+                </button>
+              )}
+
+              {/* Order Summary */}
+              <div className="mt-6 p-4 bg-secondary/50 rounded-xl space-y-3">
+                <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Resumen</h4>
+                <div className="flex justify-between text-sm">
+                  <span>Entrega:</span>
+                  <span className="font-medium">
+                    {deliveryType === 'pickup' ? 'Retiro en sucursal' : customerData.address}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Cliente:</span>
+                  <span className="font-medium">{customerData.name}</span>
+                </div>
+                <div className="border-t border-border pt-3 flex justify-between font-bold text-lg">
+                  <span>Total:</span>
+                  <span className="text-primary">{formatPrice(cartTotal)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border pt-6">
+              <button
+                type="button"
+                className="w-full h-14 rounded-xl border-2 border-border bg-transparent text-foreground font-semibold tracking-wide uppercase text-sm flex items-center justify-center gap-2 transition-all hover:border-primary hover:text-primary"
+                onClick={() => setStep('customer-info')}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SUCCESS STEP */}
+        {step === 'success' && (
+          <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
+            <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6 animate-fade-in-up">
+              <CheckCircle2 className="h-12 w-12 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-semibold mb-2">¡Gracias por tu pedido!</h2>
+            <p className="text-muted-foreground mb-6 max-w-sm">
+              {paymentMethod === 'mercadopago'
+                ? 'Serás redirigido a MercadoPago para completar el pago. (Demo)'
+                : deliveryType === 'pickup'
+                  ? 'Tu pedido está siendo preparado. Te esperamos en nuestra sucursal.'
+                  : 'Tu pedido está siendo preparado y te lo enviaremos pronto.'
+              }
+            </p>
+
+            {paymentMethod === 'mercadopago' && (
+              <div className="w-full max-w-xs mb-6 p-4 bg-[#009ee3]/10 rounded-xl border border-[#009ee3]/30">
+                <p className="text-sm text-[#009ee3] font-medium">Demo MercadoPago</p>
+                <p className="text-xs text-muted-foreground mt-1">En producción, aquí se mostraría el checkout de MP</p>
+              </div>
+            )}
+
+            <div className="flex gap-3 w-full max-w-sm">
+              <button
+                className="checkout-btn flex-1 flex items-center justify-center gap-2"
+                onClick={handleClose}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         )}
       </SheetContent>
     </Sheet>

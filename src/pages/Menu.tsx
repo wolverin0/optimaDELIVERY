@@ -15,77 +15,86 @@ const Menu = () => {
 
   const availableItems = menuItems.filter(item => !item.soldOut);
   const soldOutItems = menuItems.filter(item => item.soldOut);
-  
-  const filteredAvailable = selectedCategory === 'all' 
-    ? availableItems 
+
+  const filteredAvailable = selectedCategory === 'all'
+    ? availableItems
     : availableItems.filter(item => item.category === selectedCategory);
-    
+
   const filteredSoldOut = selectedCategory === 'all'
     ? soldOutItems
     : soldOutItems.filter(item => item.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary p-2 rounded-lg">
-              <Utensils className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="font-bold text-xl">El Nuevo Braserito</h1>
-              <p className="text-xs text-muted-foreground">Comida casera con amor</p>
-            </div>
+    <div className="min-h-screen bg-background relative z-10">
+      {/* Luxury Header */}
+      <header className="luxury-header">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img
+              src="/braseritologo.jpeg"
+              alt="El Nuevo Braserito"
+              className="w-[52px] h-[52px] rounded-full object-cover shadow-gold"
+            />
+            <h1 className="text-2xl font-semibold tracking-wide">El Nuevo Braserito</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link to="/cocina">
-              <Button variant="outline" size="sm">
-                Ver Cocina
+              <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary hover:text-white">
+                <Utensils className="h-4 w-4 mr-2" />
+                Cocina
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/10 via-secondary to-background py-8">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-2">Nuestro Menú</h2>
-          <p className="text-muted-foreground">Selecciona tus platos favoritos</p>
+      {/* Hero Section with Decorations */}
+      <section className="py-14 text-center max-w-[700px] mx-auto px-6">
+        <div className="hero-decoration">
+          <div className="decorative-line"></div>
+          <div className="decorative-diamond"></div>
+          <div className="decorative-line"></div>
         </div>
+        <h2 className="text-5xl font-semibold tracking-wide mb-3">La Carta</h2>
+        <p className="text-muted-foreground text-[15px] tracking-wide">
+          Sabores artesanales que cuentan una historia en cada bocado
+        </p>
       </section>
 
       {/* Category Filter */}
-      <section className="sticky top-[73px] z-30 bg-background/95 backdrop-blur border-b">
-        <div className="container mx-auto px-4 py-3">
+      <section className="sticky top-[85px] z-30 bg-secondary/90 backdrop-blur-xl border-b border-border">
+        <div className="container mx-auto px-6 py-5">
           <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} />
         </div>
       </section>
 
       {/* Menu Grid */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-10 pb-32">
         {filteredAvailable.length === 0 && filteredSoldOut.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No hay productos en esta categoría</p>
+          <div className="text-center py-16 text-muted-foreground">
+            <Utensils className="w-[72px] h-[72px] mx-auto mb-5 opacity-25 text-primary" />
+            <p className="text-[15px] italic">No hay platos disponibles en esta categoria</p>
           </div>
         ) : (
           <>
             {filteredAvailable.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {filteredAvailable.map(item => (
-                  <MenuCard key={item.id} item={item} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {filteredAvailable.map((item, index) => (
+                  <MenuCard key={item.id} item={item} index={index} />
                 ))}
               </div>
             )}
-            
+
             {filteredSoldOut.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-muted-foreground mb-4">Agotados</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                  {filteredSoldOut.map(item => (
-                    <MenuCard key={item.id} item={item} />
+              <div className="mt-12">
+                <h3 className="text-xl font-medium text-muted-foreground mb-6 text-center relative">
+                  <span className="relative z-10 bg-background px-6">No Disponible</span>
+                  <span className="absolute left-0 right-0 top-1/2 h-px bg-border -z-0"></span>
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {filteredSoldOut.map((item, index) => (
+                    <MenuCard key={item.id} item={item} index={index} />
                   ))}
                 </div>
               </div>

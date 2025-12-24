@@ -9,6 +9,11 @@ import Kitchen from "./pages/Kitchen";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
+// Luxury Design Variants
+import MenuTest1 from "./test1/Menu";
+import MenuTest2 from "./test2/Menu";
+import MenuTest3 from "./test3/Menu";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -22,6 +27,12 @@ const App = () => (
             <Route path="/" element={<Menu />} />
             <Route path="/cocina" element={<Kitchen />} />
             <Route path="/admin" element={<Admin />} />
+
+            {/* Luxury Design Test Variants */}
+            <Route path="/test1" element={<MenuTest1 />} />
+            <Route path="/test2" element={<MenuTest2 />} />
+            <Route path="/test3" element={<MenuTest3 />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

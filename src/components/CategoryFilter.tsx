@@ -1,6 +1,5 @@
-import { Utensils, Cake, Coffee } from 'lucide-react';
+import { Utensils, Cake, Coffee, Sparkles } from 'lucide-react';
 import { MenuCategory } from '@/types/order';
-import { Button } from '@/components/ui/button';
 
 interface CategoryFilterProps {
   selected: MenuCategory | 'all';
@@ -8,7 +7,7 @@ interface CategoryFilterProps {
 }
 
 const categories: { id: MenuCategory | 'all'; label: string; icon: React.ReactNode }[] = [
-  { id: 'all', label: 'Todos', icon: <Utensils className="h-4 w-4" /> },
+  { id: 'all', label: 'Todos', icon: <Sparkles className="h-4 w-4" /> },
   { id: 'comida', label: 'Comida', icon: <Utensils className="h-4 w-4" /> },
   { id: 'postre', label: 'Postres', icon: <Cake className="h-4 w-4" /> },
   { id: 'bebidas', label: 'Bebidas', icon: <Coffee className="h-4 w-4" /> },
@@ -16,18 +15,16 @@ const categories: { id: MenuCategory | 'all'; label: string; icon: React.ReactNo
 
 export const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-center sm:gap-3">
       {categories.map((cat) => (
-        <Button
+        <button
           key={cat.id}
-          variant={selected === cat.id ? 'default' : 'outline'}
-          size="lg"
-          className="flex items-center gap-2 whitespace-nowrap"
+          className={`category-tab ${selected === cat.id ? 'active' : ''}`}
           onClick={() => onSelect(cat.id)}
         >
           {cat.icon}
           {cat.label}
-        </Button>
+        </button>
       ))}
     </div>
   );

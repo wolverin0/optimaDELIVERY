@@ -1,4 +1,5 @@
-import { Clock, ChefHat, CheckCircle, Truck, Phone, MapPin, User, XCircle, AlertTriangle, Scale } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, ChefHat, CheckCircle, Truck, Phone, MapPin, User, XCircle, AlertTriangle, Scale, Bell, BellOff, Timer, Store, CreditCard, Banknote } from 'lucide-react';
 import { Order, OrderStatus } from '@/types/order';
 import { useOrders } from '@/context/OrderContext';
 import { Button } from '@/components/ui/button';
@@ -20,16 +21,66 @@ interface OrderCardProps {
   order: Order;
 }
 
-const statusConfig: Record<OrderStatus, { label: string; icon: React.ReactNode; color: string }> = {
-  pending: { label: 'Pendiente', icon: <Clock className="h-5 w-5" />, color: 'bg-muted text-muted-foreground' },
-  preparing: { label: 'Preparando', icon: <ChefHat className="h-5 w-5" />, color: 'bg-status-preparing text-foreground' },
-  ready: { label: 'Listo', icon: <CheckCircle className="h-5 w-5" />, color: 'bg-status-ready text-primary-foreground' },
-  dispatched: { label: 'Despachado', icon: <Truck className="h-5 w-5" />, color: 'bg-status-dispatched text-primary-foreground' },
-  cancelled: { label: 'Cancelado', icon: <XCircle className="h-5 w-5" />, color: 'bg-destructive text-destructive-foreground' },
+const ALERT_TIME_SECONDS = 180; // 3 minutes
+
+const statusConfig: Record<OrderStatus, { label: string; icon: React.ReactNode; color: string; breatheClass: string; alertClass: string }> = {
+  pending: {
+    label: 'Pendiente',
+    icon: <Clock className="h-5 w-5" />,
+    color: 'bg-muted text-muted-foreground',
+    breatheClass: 'animate-breathe-pending',
+    alertClass: 'animate-breathe-pending-alert',
+  },
+  preparing: {
+    label: 'Preparando',
+    icon: <ChefHat className="h-5 w-5" />,
+    color: 'bg-status-preparing text-foreground',
+    breatheClass: 'animate-breathe-preparing',
+    alertClass: 'animate-breathe-preparing-alert',
+  },
+  ready: {
+    label: 'Listo',
+    icon: <CheckCircle className="h-5 w-5" />,
+    color: 'bg-status-ready text-primary-foreground',
+    breatheClass: 'animate-breathe-ready',
+    alertClass: 'animate-breathe-ready-alert',
+  },
+  dispatched: {
+    label: 'Despachado',
+    icon: <Truck className="h-5 w-5" />,
+    color: 'bg-status-dispatched text-primary-foreground',
+    breatheClass: '',
+    alertClass: '',
+  },
+  cancelled: {
+    label: 'Cancelado',
+    icon: <XCircle className="h-5 w-5" />,
+    color: 'bg-destructive text-destructive-foreground',
+    breatheClass: '',
+    alertClass: '',
+  },
 };
 
 export const OrderCard = ({ order }: OrderCardProps) => {
-  const { updateOrderStatus, cancelOrder } = useOrders();
+  const { updateOrderStatus, cancelOrder, snoozeOrder } = useOrders();
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  // Calculate elapsed time since status changed
+  useEffect(() => {
+    const calculateElapsed = () => {
+      const statusTime = new Date(order.statusChangedAt).getTime();
+      const now = Date.now();
+      return Math.floor((now - statusTime) / 1000);
+    };
+
+    setElapsedSeconds(calculateElapsed());
+
+    const interval = setInterval(() => {
+      setElapsedSeconds(calculateElapsed());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [order.statusChangedAt]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -43,15 +94,66 @@ export const OrderCard = ({ order }: OrderCardProps) => {
     return new Intl.DateTimeFormat('es-AR', {
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date);
+    }).format(new Date(date));
+  };
+
+  const formatElapsed = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const status = statusConfig[order.status];
-  const isPending = order.status === 'pending';
   const isCancelled = order.status === 'cancelled';
+  const isDispatched = order.status === 'dispatched';
+  const isActiveStatus = !isCancelled && !isDispatched;
+
+  // Check if snoozed
+  const isSnoozed = order.snoozedUntil && new Date(order.snoozedUntil).getTime() > Date.now();
+
+  // Check if alert should show (3+ minutes and not snoozed)
+  const isAlert = isActiveStatus && elapsedSeconds >= ALERT_TIME_SECONDS && !isSnoozed;
+
+  // Determine animation class
+  const getAnimationClass = () => {
+    if (!isActiveStatus) return '';
+    if (isAlert) return status.alertClass;
+    return status.breatheClass;
+  };
 
   return (
-    <Card className={`overflow-hidden ${isPending ? 'animate-blink-pending' : ''} ${isCancelled ? 'opacity-60' : ''}`}>
+    <Card className={`overflow-hidden relative ${getAnimationClass()} ${isCancelled ? 'opacity-60' : ''}`}>
+      {/* Alert Overlay */}
+      {isAlert && (
+        <div className="absolute inset-0 z-10 bg-black/60 flex flex-col items-center justify-center gap-4 rounded-lg">
+          <div className="flex items-center gap-2 text-white animate-pulse">
+            <Bell className="h-8 w-8 text-red-400" />
+            <span className="text-2xl font-bold">¡ALERTA!</span>
+          </div>
+          <p className="text-white/90 text-center px-4">
+            Este pedido lleva <span className="font-bold text-red-400">{formatElapsed(elapsedSeconds)}</span> en estado "{status.label}"
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+              onClick={() => snoozeOrder(order.id, 3)}
+            >
+              <BellOff className="h-4 w-4 mr-2" />
+              Snooze 3min
+            </Button>
+            <Button
+              variant="outline"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+              onClick={() => snoozeOrder(order.id, 5)}
+            >
+              <BellOff className="h-4 w-4 mr-2" />
+              Snooze 5min
+            </Button>
+          </div>
+        </div>
+      )}
+
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -63,14 +165,43 @@ export const OrderCard = ({ order }: OrderCardProps) => {
               {formatTime(order.createdAt)}
             </span>
           </div>
-          <span className="font-mono text-sm text-muted-foreground">
-            #{order.id.slice(-4)}
-          </span>
+          <div className="flex items-center gap-2">
+            {isActiveStatus && (
+              <div className={`flex items-center gap-1 text-xs font-mono px-2 py-1 rounded ${
+                elapsedSeconds >= ALERT_TIME_SECONDS ? 'bg-red-500/20 text-red-500' : 'bg-muted text-muted-foreground'
+              }`}>
+                <Timer className="h-3 w-3" />
+                {formatElapsed(elapsedSeconds)}
+              </div>
+            )}
+            <span className="font-mono text-sm text-muted-foreground">
+              #{order.id.slice(-4)}
+            </span>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Customer Info */}
         <div className="bg-secondary/50 rounded-lg p-4 space-y-2">
+          {/* Delivery & Payment Badges */}
+          <div className="flex flex-wrap gap-2 pb-2 mb-2 border-b border-border/50">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+              order.customer.deliveryType === 'pickup'
+                ? 'bg-green-500/15 text-green-600 border border-green-500/30'
+                : 'bg-blue-500/15 text-blue-600 border border-blue-500/30'
+            }`}>
+              {order.customer.deliveryType === 'pickup' ? <Store className="h-3 w-3" /> : <Truck className="h-3 w-3" />}
+              {order.customer.deliveryType === 'pickup' ? 'Retira' : 'Envío'}
+            </span>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+              order.customer.paymentMethod === 'cash'
+                ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                : 'bg-[#009ee3]/15 text-[#009ee3] border border-[#009ee3]/30'
+            }`}>
+              {order.customer.paymentMethod === 'cash' ? <Banknote className="h-3 w-3" /> : <CreditCard className="h-3 w-3" />}
+              {order.customer.paymentMethod === 'cash' ? 'Efectivo' : 'MercadoPago'}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
             <span className="font-semibold">{order.customer.name}</span>

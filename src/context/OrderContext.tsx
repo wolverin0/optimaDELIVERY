@@ -14,6 +14,7 @@ interface OrderContextType {
   submitOrder: (customer: CustomerData) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   cancelOrder: (orderId: string) => void;
+  snoozeOrder: (orderId: string, minutes: number) => void;
   addMenuItem: (item: MenuItem) => void;
   updateMenuItem: (item: MenuItem) => void;
   deleteMenuItem: (itemId: string) => void;
@@ -81,27 +82,40 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   }, 0);
 
   const submitOrder = useCallback((customer: CustomerData) => {
+    const now = new Date();
     const newOrder: Order = {
       id: Date.now().toString(),
       customer,
       items: [...cart],
       total: cartTotal,
       status: 'pending',
-      createdAt: new Date(),
+      createdAt: now,
+      statusChangedAt: now,
     };
     setOrders(prev => [newOrder, ...prev]);
     clearCart();
   }, [cart, cartTotal, clearCart]);
 
   const updateOrderStatus = useCallback((orderId: string, status: OrderStatus) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status } : order
+    setOrders(prev => prev.map(order =>
+      order.id === orderId
+        ? { ...order, status, statusChangedAt: new Date(), snoozedUntil: undefined }
+        : order
     ));
   }, []);
 
   const cancelOrder = useCallback((orderId: string) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status: 'cancelled' as OrderStatus } : order
+    setOrders(prev => prev.map(order =>
+      order.id === orderId
+        ? { ...order, status: 'cancelled' as OrderStatus, statusChangedAt: new Date() }
+        : order
+    ));
+  }, []);
+
+  const snoozeOrder = useCallback((orderId: string, minutes: number) => {
+    const snoozedUntil = new Date(Date.now() + minutes * 60 * 1000);
+    setOrders(prev => prev.map(order =>
+      order.id === orderId ? { ...order, snoozedUntil } : order
     ));
   }, []);
 
@@ -136,6 +150,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       submitOrder,
       updateOrderStatus,
       cancelOrder,
+      snoozeOrder,
       addMenuItem,
       updateMenuItem,
       deleteMenuItem,

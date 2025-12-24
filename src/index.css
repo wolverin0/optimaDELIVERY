@@ -1,99 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* PREMIUM GOLD DESIGN SYSTEM
+   Champagne/cream background with gold accents
+   Elegant serif typography and sophisticated palette
 */
 
 @layer base {
   :root {
-    --background: 30 25% 97%;
-    --foreground: 20 20% 15%;
+    /* Premium Gold Light Theme */
+    --background: 40 33% 96%;
+    --foreground: 30 33% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 20% 15%;
+    --card-foreground: 30 33% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 20% 15%;
+    --popover-foreground: 30 33% 14%;
 
-    --primary: 24 80% 50%;
+    --primary: 43 72% 46%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 60% 92%;
-    --secondary-foreground: 20 20% 15%;
+    --secondary: 35 30% 91%;
+    --secondary-foreground: 30 33% 14%;
 
-    --muted: 30 20% 94%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 40 20% 94%;
+    --muted-foreground: 30 15% 50%;
 
-    --accent: 142 50% 45%;
+    --accent: 43 72% 46%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 50% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 20% 88%;
-    --input: 30 20% 88%;
-    --ring: 24 80% 50%;
+    --border: 35 25% 88%;
+    --input: 35 25% 88%;
+    --ring: 43 72% 46%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Status colors */
     --status-preparing: 45 93% 47%;
     --status-ready: 142 71% 45%;
     --status-dispatched: 221 83% 53%;
 
-    --sidebar-background: 30 25% 95%;
-    --sidebar-foreground: 20 20% 25%;
-    --sidebar-primary: 24 80% 50%;
+    /* Premium Gold specific */
+    --gold: 43 72% 46%;
+    --gold-light: 43 72% 56%;
+    --gold-dark: 43 72% 38%;
+    --cream: 40 33% 96%;
+    --cream-dark: 35 30% 91%;
+    --burgundy: 348 50% 33%;
+
+    --sidebar-background: 40 33% 96%;
+    --sidebar-foreground: 30 33% 20%;
+    --sidebar-primary: 43 72% 46%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 60% 92%;
-    --sidebar-accent-foreground: 20 20% 15%;
-    --sidebar-border: 30 20% 88%;
-    --sidebar-ring: 24 80% 50%;
+    --sidebar-accent: 35 30% 91%;
+    --sidebar-accent-foreground: 30 33% 14%;
+    --sidebar-border: 35 25% 88%;
+    --sidebar-ring: 43 72% 46%;
   }
 
   .dark {
-    --background: 20 15% 10%;
-    --foreground: 30 20% 95%;
+    /* Premium Gold Dark Theme */
+    --background: 30 20% 8%;
+    --foreground: 40 20% 95%;
 
-    --card: 20 15% 13%;
-    --card-foreground: 30 20% 95%;
+    --card: 30 20% 11%;
+    --card-foreground: 40 20% 95%;
 
-    --popover: 20 15% 13%;
-    --popover-foreground: 30 20% 95%;
+    --popover: 30 20% 11%;
+    --popover-foreground: 40 20% 95%;
 
-    --primary: 24 80% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 72% 50%;
+    --primary-foreground: 30 20% 8%;
 
-    --secondary: 20 20% 20%;
-    --secondary-foreground: 30 20% 95%;
+    --secondary: 30 15% 18%;
+    --secondary-foreground: 40 20% 95%;
 
-    --muted: 20 15% 18%;
-    --muted-foreground: 30 15% 60%;
+    --muted: 30 15% 15%;
+    --muted-foreground: 40 15% 55%;
 
-    --accent: 142 50% 40%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 43 72% 50%;
+    --accent-foreground: 30 20% 8%;
 
-    --destructive: 0 62% 40%;
+    --destructive: 0 50% 40%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 20 15% 20%;
-    --input: 20 15% 20%;
-    --ring: 24 80% 55%;
+    --border: 30 15% 18%;
+    --input: 30 15% 18%;
+    --ring: 43 72% 50%;
 
     --status-preparing: 45 93% 47%;
     --status-ready: 142 71% 45%;
     --status-dispatched: 221 83% 53%;
 
-    --sidebar-background: 20 15% 8%;
-    --sidebar-foreground: 30 20% 90%;
-    --sidebar-primary: 24 80% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 20 20% 18%;
-    --sidebar-accent-foreground: 30 20% 95%;
-    --sidebar-border: 20 15% 18%;
-    --sidebar-ring: 24 80% 55%;
+    --gold: 43 72% 50%;
+    --gold-light: 43 72% 60%;
+    --gold-dark: 43 72% 42%;
+    --cream: 30 20% 8%;
+    --cream-dark: 30 15% 12%;
+    --burgundy: 348 50% 40%;
+
+    --sidebar-background: 30 20% 6%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-primary: 43 72% 50%;
+    --sidebar-primary-foreground: 30 20% 8%;
+    --sidebar-accent: 30 15% 15%;
+    --sidebar-accent-foreground: 40 20% 95%;
+    --sidebar-border: 30 15% 15%;
+    --sidebar-ring: 43 72% 50%;
   }
 }
 
@@ -102,25 +122,373 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Elegant serif for headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+}
+
+/* Subtle texture overlay for luxury feel */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A227' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
 }
 
 @layer utilities {
-  @keyframes blink-border {
-    0%, 100% {
-      border-color: hsl(var(--primary));
-      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+  /* Gold gradient text */
+  .text-gold-gradient {
+    background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-light)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gold button gradient */
+  .bg-gold-gradient {
+    background: linear-gradient(145deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
+  }
+
+  /* Gold shadow */
+  .shadow-gold {
+    box-shadow: 0 8px 30px hsla(var(--gold), 0.25);
+  }
+
+  .shadow-gold-lg {
+    box-shadow: 0 12px 40px hsla(var(--gold), 0.35);
+  }
+
+  /* Decorative line */
+  .decorative-line {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold)), transparent);
+  }
+
+  /* Decorative diamond */
+  .decorative-diamond {
+    width: 8px;
+    height: 8px;
+    background: hsl(var(--gold));
+    transform: rotate(45deg);
+  }
+
+  /* Premium card hover */
+  .premium-card-hover {
+    @apply transition-all duration-300;
+  }
+
+  .premium-card-hover:hover {
+    @apply -translate-y-1;
+    box-shadow: 0 12px 40px rgba(44, 36, 25, 0.1);
+    border-color: hsla(var(--gold), 0.3);
+  }
+
+  /* Gold border on focus */
+  .gold-focus:focus {
+    @apply ring-2 ring-offset-2;
+    --tw-ring-color: hsl(var(--gold));
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-luxury::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-luxury::-webkit-scrollbar-track {
+    background: hsl(var(--cream-dark));
+    border-radius: 3px;
+  }
+
+  .scrollbar-luxury::-webkit-scrollbar-thumb {
+    background: hsl(var(--gold));
+    border-radius: 3px;
+  }
+
+  .scrollbar-luxury::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--gold-dark));
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Animation keyframes */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
     }
-    50% {
-      border-color: hsl(var(--destructive));
-      box-shadow: 0 0 20px 4px hsl(var(--destructive) / 0.3);
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
-  .animate-blink-pending {
-    animation: blink-border 1s ease-in-out infinite;
-    border: 3px solid hsl(var(--primary));
+  @keyframes fade-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Breathing animations for order cards */
+  @keyframes breathe-pending {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(var(--gold), 0.4);
+      background-color: hsla(var(--gold), 0.05);
+    }
+    50% {
+      box-shadow: 0 0 20px 8px hsla(var(--gold), 0.3);
+      background-color: hsla(var(--gold), 0.1);
+    }
+  }
+
+  @keyframes breathe-pending-alert {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(0, 70%, 50%, 0.5);
+      background-color: hsla(0, 70%, 50%, 0.08);
+      border-color: hsla(0, 70%, 50%, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 30px 12px hsla(0, 70%, 50%, 0.4);
+      background-color: hsla(0, 70%, 50%, 0.15);
+      border-color: hsla(0, 70%, 50%, 0.8);
+    }
+  }
+
+  @keyframes breathe-preparing {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(45, 93%, 47%, 0.4);
+      background-color: hsla(45, 93%, 47%, 0.05);
+    }
+    50% {
+      box-shadow: 0 0 20px 8px hsla(45, 93%, 47%, 0.3);
+      background-color: hsla(45, 93%, 47%, 0.1);
+    }
+  }
+
+  @keyframes breathe-preparing-alert {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(25, 90%, 50%, 0.5);
+      background-color: hsla(25, 90%, 50%, 0.08);
+      border-color: hsla(25, 90%, 50%, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 30px 12px hsla(25, 90%, 50%, 0.4);
+      background-color: hsla(25, 90%, 50%, 0.15);
+      border-color: hsla(25, 90%, 50%, 0.8);
+    }
+  }
+
+  @keyframes breathe-ready {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(142, 71%, 45%, 0.4);
+      background-color: hsla(142, 71%, 45%, 0.05);
+    }
+    50% {
+      box-shadow: 0 0 20px 8px hsla(142, 71%, 45%, 0.3);
+      background-color: hsla(142, 71%, 45%, 0.1);
+    }
+  }
+
+  @keyframes breathe-ready-alert {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(142, 71%, 35%, 0.5);
+      background-color: hsla(142, 71%, 35%, 0.08);
+      border-color: hsla(142, 71%, 35%, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 30px 12px hsla(142, 71%, 35%, 0.4);
+      background-color: hsla(142, 71%, 35%, 0.15);
+      border-color: hsla(142, 71%, 35%, 0.8);
+    }
+  }
+
+  .animate-breathe-pending {
+    animation: breathe-pending 2s ease-in-out infinite;
+    border: 2px solid hsla(var(--gold), 0.5);
+  }
+
+  .animate-breathe-pending-alert {
+    animation: breathe-pending-alert 0.8s ease-in-out infinite;
+    border: 3px solid hsla(0, 70%, 50%, 0.7);
+  }
+
+  .animate-breathe-preparing {
+    animation: breathe-preparing 2s ease-in-out infinite;
+    border: 2px solid hsla(45, 93%, 47%, 0.5);
+  }
+
+  .animate-breathe-preparing-alert {
+    animation: breathe-preparing-alert 0.8s ease-in-out infinite;
+    border: 3px solid hsla(25, 90%, 50%, 0.7);
+  }
+
+  .animate-breathe-ready {
+    animation: breathe-ready 2s ease-in-out infinite;
+    border: 2px solid hsla(142, 71%, 45%, 0.5);
+  }
+
+  .animate-breathe-ready-alert {
+    animation: breathe-ready-alert 0.8s ease-in-out infinite;
+    border: 3px solid hsla(142, 71%, 35%, 0.7);
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease forwards;
+  }
+
+  .animate-fade-in-left {
+    animation: fade-in-left 0.5s ease forwards;
+  }
+
+  /* Staggered animation delays */
+  .stagger-1 { animation-delay: 0s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.2s; }
+  .stagger-4 { animation-delay: 0.3s; }
+  .stagger-5 { animation-delay: 0.4s; }
+  .stagger-6 { animation-delay: 0.5s; }
+  .stagger-7 { animation-delay: 0.6s; }
+  .stagger-8 { animation-delay: 0.7s; }
+}
+
+/* Premium Gold specific component styles */
+@layer components {
+  /* Luxury header */
+  .luxury-header {
+    @apply bg-card/95 backdrop-blur-xl border-b border-border sticky top-0 z-50;
+  }
+
+  /* Hero decoration */
+  .hero-decoration {
+    @apply flex items-center justify-center gap-4 mb-5;
+  }
+
+  /* Premium category tab */
+  .category-tab {
+    @apply flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-transparent;
+    @apply bg-transparent text-muted-foreground text-[11px] font-medium tracking-wider uppercase;
+    @apply cursor-pointer transition-all duration-300;
+  }
+
+  @media (min-width: 640px) {
+    .category-tab {
+      @apply gap-2.5 px-7 py-3.5 text-[13px];
+    }
+  }
+
+  .category-tab:hover {
+    @apply text-primary;
+  }
+
+  .category-tab.active {
+    @apply bg-card border-primary/30 text-primary shadow-md;
+  }
+
+  /* Luxury menu card - horizontal layout */
+  .luxury-card {
+    @apply bg-card rounded-2xl overflow-hidden shadow-sm border border-border;
+    @apply flex flex-row h-40 cursor-pointer;
+    @apply transition-all duration-300;
+  }
+
+  .luxury-card:hover {
+    @apply -translate-y-1 shadow-lg;
+    border-color: hsla(var(--gold), 0.3);
+  }
+
+  @media (max-width: 700px) {
+    .luxury-card {
+      @apply flex-col h-auto;
+    }
+  }
+
+  /* Gold floating action button */
+  .gold-fab {
+    @apply fixed bottom-8 right-8 w-16 h-16 rounded-full;
+    @apply border-2 border-primary flex items-center justify-center;
+    @apply text-white cursor-pointer z-50;
+    @apply transition-all duration-300;
+    background: linear-gradient(145deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
+    box-shadow: 0 8px 30px hsla(var(--gold), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .gold-fab:hover {
+    @apply scale-105;
+    box-shadow: 0 12px 40px hsla(var(--gold), 0.45);
+  }
+
+  .gold-fab:active {
+    @apply scale-95;
+  }
+
+  /* Premium checkout button */
+  .checkout-btn {
+    @apply w-full h-14 rounded-xl border-none text-white;
+    @apply text-sm font-semibold tracking-widest uppercase;
+    @apply cursor-pointer transition-all duration-300;
+    background: linear-gradient(145deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
+    box-shadow: 0 8px 24px hsla(var(--gold), 0.35);
+  }
+
+  .checkout-btn:hover {
+    @apply -translate-y-0.5;
+    box-shadow: 0 12px 36px hsla(var(--gold), 0.45);
+  }
+
+  /* Quantity button */
+  .qty-btn {
+    @apply w-8 h-8 rounded-full border border-border bg-card;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply transition-all duration-200;
+  }
+
+  .qty-btn:hover {
+    @apply border-primary text-primary;
+  }
+
+  /* Add to cart button (circular, gold outline) */
+  .add-btn {
+    @apply w-11 h-11 rounded-full border-2 border-primary bg-transparent;
+    @apply text-primary flex items-center justify-center cursor-pointer;
+    @apply transition-all duration-300;
+  }
+
+  .add-btn:hover {
+    @apply bg-primary text-white rotate-90;
+    box-shadow: 0 8px 24px hsla(var(--gold), 0.35);
+  }
+
+  .add-btn:active {
+    transform: scale(0.92) rotate(90deg);
   }
 }

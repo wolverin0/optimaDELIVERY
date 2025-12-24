@@ -19,11 +19,16 @@ export interface CartItem extends MenuItem {
   weight?: number;
 }
 
+export type DeliveryType = 'pickup' | 'delivery';
+export type PaymentMethod = 'cash' | 'mercadopago';
+
 export interface CustomerData {
   name: string;
   phone: string;
   address: string;
   notes?: string;
+  deliveryType: DeliveryType;
+  paymentMethod: PaymentMethod;
 }
 
 export interface Order {
@@ -33,4 +38,6 @@ export interface Order {
   total: number;
   status: OrderStatus;
   createdAt: Date;
+  statusChangedAt: Date;
+  snoozedUntil?: Date;
 }
