@@ -11,6 +11,7 @@ export interface MenuItem {
   category: MenuCategory;
   soldByWeight?: boolean;
   weightUnit?: string;
+  soldOut?: boolean;
 }
 
 export interface CartItem extends MenuItem {

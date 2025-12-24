@@ -4,6 +4,7 @@ import { useOrders } from '@/context/OrderContext';
 import { MenuCard } from '@/components/MenuCard';
 import { CartDrawer } from '@/components/CartDrawer';
 import { CategoryFilter } from '@/components/CategoryFilter';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MenuCategory } from '@/types/order';
@@ -12,9 +13,16 @@ const Menu = () => {
   const { menuItems } = useOrders();
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | 'all'>('all');
 
-  const filteredItems = selectedCategory === 'all' 
-    ? menuItems 
-    : menuItems.filter(item => item.category === selectedCategory);
+  const availableItems = menuItems.filter(item => !item.soldOut);
+  const soldOutItems = menuItems.filter(item => item.soldOut);
+  
+  const filteredAvailable = selectedCategory === 'all' 
+    ? availableItems 
+    : availableItems.filter(item => item.category === selectedCategory);
+    
+  const filteredSoldOut = selectedCategory === 'all'
+    ? soldOutItems
+    : soldOutItems.filter(item => item.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,11 +38,14 @@ const Menu = () => {
               <p className="text-xs text-muted-foreground">Comida casera con amor</p>
             </div>
           </div>
-          <Link to="/cocina">
-            <Button variant="outline" size="sm">
-              Ver Cocina
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/cocina">
+              <Button variant="outline" size="sm">
+                Ver Cocina
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -55,16 +66,31 @@ const Menu = () => {
 
       {/* Menu Grid */}
       <main className="container mx-auto px-4 py-8">
-        {filteredItems.length === 0 ? (
+        {filteredAvailable.length === 0 && filteredSoldOut.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <p>No hay productos en esta categoría</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {filteredItems.map(item => (
-              <MenuCard key={item.id} item={item} />
-            ))}
-          </div>
+          <>
+            {filteredAvailable.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {filteredAvailable.map(item => (
+                  <MenuCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
+            
+            {filteredSoldOut.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-muted-foreground mb-4">Agotados</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                  {filteredSoldOut.map(item => (
+                    <MenuCard key={item.id} item={item} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
 

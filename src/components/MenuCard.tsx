@@ -1,4 +1,4 @@
-import { Plus, Scale } from 'lucide-react';
+import { Plus, Scale, PackageX } from 'lucide-react';
 import { useState } from 'react';
 import { MenuItem } from '@/types/order';
 import { useOrders } from '@/context/OrderContext';
@@ -32,6 +32,7 @@ export const MenuCard = ({ item }: MenuCardProps) => {
   };
 
   const handleAdd = () => {
+    if (item.soldOut) return;
     if (item.soldByWeight) {
       setShowWeightDialog(true);
     } else {
@@ -50,31 +51,40 @@ export const MenuCard = ({ item }: MenuCardProps) => {
 
   return (
     <>
-      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 touch-manipulation">
+      <Card className={`overflow-hidden group hover:shadow-lg transition-all duration-300 touch-manipulation ${item.soldOut ? 'opacity-70' : ''}`}>
         <div className="relative aspect-square overflow-hidden">
           <img
             src={item.image}
             alt={item.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${item.soldOut ? 'grayscale' : ''}`}
           />
-          {item.soldByWeight && (
+          {item.soldByWeight && !item.soldOut && (
             <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">
               <Scale className="h-3 w-3 mr-1" />
               Por {item.weightUnit}
             </Badge>
           )}
-          <Button
-            onClick={handleAdd}
-            size="lg"
-            className="absolute bottom-3 right-3 h-14 w-14 rounded-full shadow-lg"
-          >
-            <Plus className="h-7 w-7" />
-          </Button>
+          {item.soldOut ? (
+            <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+              <Badge variant="destructive" className="text-base px-4 py-2">
+                <PackageX className="h-4 w-4 mr-2" />
+                AGOTADO
+              </Badge>
+            </div>
+          ) : (
+            <Button
+              onClick={handleAdd}
+              size="lg"
+              className="absolute bottom-3 right-3 h-14 w-14 rounded-full shadow-lg"
+            >
+              <Plus className="h-7 w-7" />
+            </Button>
+          )}
         </div>
         <CardContent className="p-4">
           <h3 className="font-bold text-lg leading-tight">{item.name}</h3>
           <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{item.description}</p>
-          <p className="text-primary font-bold text-xl mt-2">
+          <p className={`font-bold text-xl mt-2 ${item.soldOut ? 'text-muted-foreground' : 'text-primary'}`}>
             {formatPrice(item.price)}
             {item.soldByWeight && <span className="text-sm font-normal text-muted-foreground">/{item.weightUnit}</span>}
           </p>

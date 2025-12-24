@@ -17,6 +17,7 @@ interface OrderContextType {
   addMenuItem: (item: MenuItem) => void;
   updateMenuItem: (item: MenuItem) => void;
   deleteMenuItem: (itemId: string) => void;
+  toggleSoldOut: (itemId: string) => void;
   cartTotal: number;
 }
 
@@ -116,6 +117,12 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     setMenuItems(prev => prev.filter(i => i.id !== itemId));
   }, []);
 
+  const toggleSoldOut = useCallback((itemId: string) => {
+    setMenuItems(prev => prev.map(i => 
+      i.id === itemId ? { ...i, soldOut: !i.soldOut } : i
+    ));
+  }, []);
+
   return (
     <OrderContext.Provider value={{
       cart,
@@ -132,6 +139,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       addMenuItem,
       updateMenuItem,
       deleteMenuItem,
+      toggleSoldOut,
       cartTotal,
     }}>
       {children}
