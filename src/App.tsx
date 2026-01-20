@@ -19,6 +19,8 @@ import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import Demo from "./pages/Demo";
 import KitchenPin from "./pages/KitchenPin";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 // Protected pages
 import Kitchen from "./pages/Kitchen";
@@ -53,6 +55,8 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/terminos" element={<Terms />} />
+                <Route path="/privacidad" element={<Privacy />} />
 
                 {/* Tenant Menu (public) - /t/{tenant-slug} */}
                 <Route path="/t/:tenantSlug" element={<Menu />} />

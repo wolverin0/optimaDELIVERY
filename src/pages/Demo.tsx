@@ -672,7 +672,7 @@ const Demo = () => {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 relative overflow-hidden bg-white shadow-2xl rounded-l-3xl">
+            <main className="flex-1 relative overflow-hidden bg-white shadow-2xl">
                 {viewMode === 'consumer' && (
                     <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-4 overflow-hidden">
                         {/* Phone Mockup Frame - Matching RegisterSetup style */}
@@ -681,7 +681,7 @@ const Demo = () => {
                                 {/* Notch */}
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30" />
                                 {/* Screen Content */}
-                                <div className="w-full h-full overflow-y-auto overflow-x-hidden bg-white scrollbar-hide">
+                                <div className="w-full h-full overflow-y-auto overflow-x-hidden bg-white scrollbar-hide pt-8">
                                     <TenantContext.Provider value={{
                                         tenant: dynamicTenant,
                                         categories: DEMO_CATEGORIES,

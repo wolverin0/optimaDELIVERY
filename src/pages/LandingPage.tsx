@@ -203,7 +203,7 @@ const LandingPage = () => {
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30" />
                                         {/* Screen Content - LIVE Menu Component */}
-                                        <div className="w-full h-full overflow-y-auto bg-white scrollbar-hide">
+                                        <div className="w-full h-full overflow-y-auto overflow-x-hidden bg-white scrollbar-hide pt-8">
                                             <TenantContext.Provider value={{
                                                 tenant: previewTenant,
                                                 categories: PREVIEW_CATEGORIES,
@@ -281,7 +281,7 @@ const LandingPage = () => {
                             {/* Notch */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-b-xl z-30" />
                             {/* Screen Content - Scaled Menu */}
-                            <div className="w-full h-full overflow-hidden bg-white">
+                            <div className="w-full h-full overflow-hidden bg-white pt-5">
                                 <div className="transform-gpu origin-top-left" style={{ transform: 'scale(0.587)', width: '375px', height: '812px' }}>
                                     <TenantContext.Provider value={{
                                         tenant: previewTenant,
@@ -500,7 +500,7 @@ const LandingPage = () => {
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-800 rounded-b-xl z-30" />
                                         {/* Screen Content - LIVE Menu synced with activeFeature */}
-                                        <div className="w-full h-full overflow-hidden bg-white">
+                                        <div className="w-full h-full overflow-hidden bg-white pt-6">
                                             <TenantContext.Provider value={{
                                                 tenant: {
                                                     ...BASE_TENANT,
@@ -718,13 +718,20 @@ const LandingPage = () => {
                             </div>
                             <span className="text-lg font-bold">optimaDELIVERY</span>
                         </div>
-                        <div className="flex gap-8 text-sm text-slate-400">
-                            <a href="#" className="hover:text-white transition-colors cursor-pointer">Privacidad</a>
-                            <a href="#" className="hover:text-white transition-colors cursor-pointer">Términos</a>
-                            <a href="#" className="hover:text-white transition-colors cursor-pointer">Contacto</a>
+                        <div className="flex flex-wrap justify-center gap-6 sm:gap-8 text-sm text-slate-400">
+                            <Link to="/terminos" className="hover:text-white transition-colors cursor-pointer">Términos y Condiciones</Link>
+                            <Link to="/privacidad" className="hover:text-white transition-colors cursor-pointer">Políticas de Privacidad</Link>
+                            <a
+                                href="https://wa.me/5492477509998?text=Hola!%20Me%20interesa%20OptimaDelivery."
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-white transition-colors cursor-pointer"
+                            >
+                                Contacto
+                            </a>
                         </div>
                         <p className="text-sm text-slate-500">
-                            © 2024 optimaDELIVERY. Hecho en Argentina.
+                            © 2026 optimaDELIVERY. Hecho en Argentina.
                         </p>
                     </div>
                 </div>

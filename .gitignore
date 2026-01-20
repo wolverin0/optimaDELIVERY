@@ -69,3 +69,5 @@ nul
 # Temporary files
 handoff.md
 roadmap.md
+
+.vercel

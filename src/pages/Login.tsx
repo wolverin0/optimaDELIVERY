@@ -130,9 +130,9 @@ const Login = () => {
 
                     <p className="text-center text-xs text-slate-400 mt-8">
                         Al continuar, aceptas nuestros{' '}
-                        <a href="#" className="text-slate-500 hover:text-orange-600 underline">Términos de Servicio</a>
+                        <Link to="/terminos" className="text-slate-500 hover:text-orange-600 underline">Términos y Condiciones</Link>
                         {' '}y{' '}
-                        <a href="#" className="text-slate-500 hover:text-orange-600 underline">Política de Privacidad</a>
+                        <Link to="/privacidad" className="text-slate-500 hover:text-orange-600 underline">Políticas de Privacidad</Link>
                     </p>
                 </div>
             </main>

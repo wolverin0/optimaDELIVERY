@@ -47,21 +47,21 @@ export const TemplateClassic = ({ tenant, menuItems }: TemplateProps) => {
             </header>
 
             {/* Hero Section with Enhanced Decorations */}
-            <section className="py-16 text-center max-w-[700px] mx-auto px-6">
-                <div className="hero-decoration mb-6">
+            <section className="py-8 sm:py-12 text-center max-w-[700px] mx-auto px-6">
+                <div className="hero-decoration mb-4">
                     <div className="flex items-center justify-center gap-4">
                         <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/40" />
                         <Sparkles className="w-5 h-5 text-primary/60" />
                         <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/40" />
                     </div>
                 </div>
-                <h2 className="text-5xl md:text-6xl font-semibold tracking-wide mb-4 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-wide mb-3 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
                     La Carta
                 </h2>
-                <p className="text-muted-foreground text-base tracking-wide leading-relaxed max-w-md mx-auto">
+                <p className="text-muted-foreground text-sm sm:text-base tracking-wide leading-relaxed max-w-md mx-auto">
                     Sabores artesanales que cuentan una historia en cada bocado
                 </p>
-                <div className="mt-8 flex items-center justify-center gap-3">
+                <div className="mt-4 flex items-center justify-center gap-3">
                     <span className="px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                         {availableItems.length} platos disponibles
                     </span>
