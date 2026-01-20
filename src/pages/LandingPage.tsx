@@ -40,16 +40,17 @@ const LandingPage = () => {
                             optimaDELIVERY
                         </span>
                     </Link>
-                    <div className="flex items-center gap-4">
-                        <Link to="/demo" className="hidden md:block text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <Link to="/demo" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors cursor-pointer">
                             Ver Demo
                         </Link>
                         <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors cursor-pointer">
                             Ingresar
                         </Link>
                         <Link to="/register/setup">
-                            <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl px-6 font-semibold shadow-lg shadow-orange-500/25 transition-all duration-200 cursor-pointer">
-                                Empezar Gratis
+                            <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl px-3 sm:px-6 font-semibold shadow-lg shadow-orange-500/25 transition-all duration-200 cursor-pointer">
+                                <span className="hidden sm:inline">Empezar Gratis</span>
+                                <span className="sm:hidden">Empezar</span>
                             </Button>
                         </Link>
                     </div>
@@ -65,13 +66,13 @@ const LandingPage = () => {
                 <div className="max-w-6xl mx-auto px-6">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         {/* Left - Copy */}
-                        <div className="text-left">
+                        <div className="text-center lg:text-left">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 border border-green-200 text-green-700 text-sm font-semibold mb-6">
                                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                 +500 restaurantes ya confian en nosotros
                             </div>
 
-                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
+                            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
                                 <span className="text-slate-900">Tu carta digital</span>
                                 <br />
                                 <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent">
@@ -79,12 +80,12 @@ const LandingPage = () => {
                                 </span>
                             </h1>
 
-                            <p className="text-xl text-slate-600 mb-8 leading-relaxed max-w-lg">
+                            <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
                                 Crea tu menú QR profesional, recibe pedidos por WhatsApp y cobra online.
                                 <span className="font-semibold text-slate-900"> Sin comisiones ocultas.</span>
                             </p>
 
-                            <div className="flex flex-col sm:flex-row gap-4 mb-10">
+                            <div className="flex flex-col sm:flex-row gap-4 mb-10 justify-center lg:justify-start">
                                 <Link to="/register/setup">
                                     <Button size="lg" className="h-14 px-8 text-lg rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-xl shadow-orange-500/30 w-full sm:w-auto transition-all duration-200 cursor-pointer">
                                         Crear mi Menú Gratis
@@ -100,7 +101,7 @@ const LandingPage = () => {
                             </div>
 
                             {/* Trust badges */}
-                            <div className="flex items-center gap-6 text-sm text-slate-500">
+                            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-sm text-slate-500 justify-center lg:justify-start">
                                 <div className="flex items-center gap-2">
                                     <Check className="w-5 h-5 text-green-500" />
                                     <span>Sin tarjeta requerida</span>
@@ -112,34 +113,38 @@ const LandingPage = () => {
                             </div>
                         </div>
 
-                        {/* Right - Product Mockup */}
-                        <div className="relative lg:pl-8">
-                            <div className="relative">
-                                {/* Phone mockup */}
-                                <div className="relative mx-auto w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl shadow-slate-900/40 rotate-3 hover:rotate-0 transition-transform duration-500">
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-slate-900 rounded-b-2xl z-20" />
-                                    <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden">
-                                        {/* Mock menu content */}
-                                        <div className="bg-gradient-to-br from-orange-500 to-red-600 p-6 text-white">
-                                            <h3 className="font-bold text-lg">El Nuevo Braserito</h3>
-                                            <p className="text-white/80 text-sm">Hamburguesas Artesanales</p>
-                                        </div>
-                                        <div className="p-4 space-y-3">
-                                            {['Clásica con Queso', 'Bacon Royale', 'La Braserita'].map((item, i) => (
-                                                <div key={i} className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl">
-                                                    <div className="w-12 h-12 bg-gradient-to-br from-orange-200 to-orange-300 rounded-lg" />
-                                                    <div className="flex-1">
-                                                        <p className="font-semibold text-slate-900 text-sm">{item}</p>
-                                                        <p className="text-orange-600 font-bold text-sm">${(4500 + i * 2000).toLocaleString()}</p>
+                        {/* Right - Product Mockup - Hidden on mobile */}
+                        <div className="relative lg:pl-8 hidden lg:block">
+                            <div className="relative flex items-center justify-center">
+                                {/* Phone mockup - matching RegisterSetup style */}
+                                <div className="relative scale-[0.7] xl:scale-[0.75] origin-center">
+                                    <div className="w-[375px] h-[812px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10 rotate-3 hover:rotate-0 transition-transform duration-500">
+                                        {/* Notch */}
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30" />
+                                        {/* Screen Content */}
+                                        <div className="w-full h-full overflow-hidden bg-white">
+                                            {/* Mock menu content */}
+                                            <div className="bg-gradient-to-br from-orange-500 to-red-600 p-6 pt-10 text-white">
+                                                <h3 className="font-bold text-xl">El Nuevo Braserito</h3>
+                                                <p className="text-white/80 text-sm mt-1">Hamburguesas Artesanales</p>
+                                            </div>
+                                            <div className="p-4 space-y-3">
+                                                {['Clásica con Queso', 'Bacon Royale', 'La Braserita', 'Veggie Deluxe'].map((item, i) => (
+                                                    <div key={i} className="flex items-center gap-4 p-4 bg-orange-50 rounded-2xl">
+                                                        <div className="w-16 h-16 bg-gradient-to-br from-orange-200 to-orange-300 rounded-xl shrink-0" />
+                                                        <div className="flex-1">
+                                                            <p className="font-semibold text-slate-900">{item}</p>
+                                                            <p className="text-orange-600 font-bold">${(4500 + i * 2000).toLocaleString()}</p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Floating elements */}
-                                <div className="absolute -top-4 -left-4 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float">
+                                <div className="absolute top-8 -left-8 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float z-10">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                                             <Bell className="w-5 h-5 text-green-600" />
@@ -151,7 +156,7 @@ const LandingPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float-delayed">
+                                <div className="absolute bottom-16 -right-4 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float-delayed z-10">
                                     <div className="flex items-center gap-2">
                                         <QrCode className="w-8 h-8 text-orange-500" />
                                         <div>
@@ -182,51 +187,91 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* How it Works */}
-            <section className="py-24">
-                <div className="max-w-6xl mx-auto px-6">
+            {/* How it Works - Redesigned */}
+            <section className="py-24 relative overflow-hidden">
+                {/* Subtle background pattern */}
+                <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(249 115 22) 1px, transparent 0)', backgroundSize: '40px 40px'}} />
+
+                <div className="max-w-6xl mx-auto px-6 relative">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 border border-orange-200 text-orange-700 text-sm font-semibold mb-6">
+                            <Clock className="w-4 h-4" />
+                            Configuración rápida
+                        </div>
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-slate-900">
                             Así de fácil funciona
                         </h2>
-                        <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                        <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
                             En solo 3 pasos tu restaurante estará vendiendo online
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
                         {[
                             {
                                 step: '01',
-                                icon: <Utensils className="w-8 h-8" />,
+                                icon: <Utensils className="w-7 h-7" />,
                                 title: 'Crea tu menú',
-                                description: 'Agrega tus productos, precios y fotos. Elige entre 5 diseños profesionales.'
+                                description: 'Agrega tus productos, precios y fotos. Elige entre 5 diseños profesionales.',
+                                gradient: 'from-orange-500 to-amber-500',
+                                bgGradient: 'from-orange-50 to-amber-50',
+                                shadowColor: 'shadow-orange-500/20',
+                                borderColor: 'border-orange-200',
+                                iconBg: 'bg-gradient-to-br from-orange-100 to-amber-100',
+                                iconHover: 'group-hover:from-orange-500 group-hover:to-amber-500'
                             },
                             {
                                 step: '02',
-                                icon: <QrCode className="w-8 h-8" />,
+                                icon: <QrCode className="w-7 h-7" />,
                                 title: 'Comparte tu QR',
-                                description: 'Genera tu código QR único. Imprímelo para mesas o comparte el link.'
+                                description: 'Genera tu código QR único. Imprímelo para mesas o comparte el link.',
+                                gradient: 'from-red-500 to-rose-500',
+                                bgGradient: 'from-red-50 to-rose-50',
+                                shadowColor: 'shadow-red-500/20',
+                                borderColor: 'border-red-200',
+                                iconBg: 'bg-gradient-to-br from-red-100 to-rose-100',
+                                iconHover: 'group-hover:from-red-500 group-hover:to-rose-500'
                             },
                             {
                                 step: '03',
-                                icon: <CreditCard className="w-8 h-8" />,
+                                icon: <CreditCard className="w-7 h-7" />,
                                 title: 'Recibe pedidos',
-                                description: 'Los pedidos llegan a WhatsApp y al panel. Cobra online con MercadoPago.'
+                                description: 'Los pedidos llegan a WhatsApp y al panel. Cobra online con MercadoPago.',
+                                gradient: 'from-emerald-500 to-green-500',
+                                bgGradient: 'from-emerald-50 to-green-50',
+                                shadowColor: 'shadow-emerald-500/20',
+                                borderColor: 'border-emerald-200',
+                                iconBg: 'bg-gradient-to-br from-emerald-100 to-green-100',
+                                iconHover: 'group-hover:from-emerald-500 group-hover:to-green-500'
                             }
                         ].map((item, i) => (
                             <div
                                 key={i}
-                                className="relative bg-white rounded-3xl p-8 border border-orange-100 shadow-xl shadow-orange-900/5 hover:shadow-2xl hover:shadow-orange-900/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                                className={`relative bg-gradient-to-br ${item.bgGradient} rounded-3xl p-8 border ${item.borderColor} shadow-xl ${item.shadowColor} hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer group overflow-hidden`}
                             >
-                                <span className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30">
+                                {/* Decorative corner accent */}
+                                <div className={`absolute -top-12 -right-12 w-24 h-24 bg-gradient-to-br ${item.gradient} rounded-full opacity-20 group-hover:scale-150 transition-transform duration-500`} />
+                                <div className={`absolute -bottom-8 -left-8 w-16 h-16 bg-gradient-to-br ${item.gradient} rounded-full opacity-10 group-hover:scale-125 transition-transform duration-700`} />
+
+                                {/* Step badge with rotation on hover */}
+                                <span className={`absolute -top-3 -left-3 w-14 h-14 bg-gradient-to-br ${item.gradient} rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg ${item.shadowColor} group-hover:rotate-6 transition-transform duration-300 z-10`}>
                                     {item.step}
                                 </span>
-                                <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 mb-6 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
-                                    {item.icon}
+
+                                {/* Icon with gradient border effect */}
+                                <div className={`relative w-16 h-16 ${item.iconBg} ${item.iconHover} rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:text-white`}>
+                                    <div className="text-current group-hover:scale-110 transition-transform duration-300">
+                                        {item.icon}
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 text-slate-900">{item.title}</h3>
-                                <p className="text-slate-600 leading-relaxed">{item.description}</p>
+
+                                <h3 className="text-xl font-bold mb-3 text-slate-900 relative z-10">{item.title}</h3>
+                                <p className="text-slate-600 leading-relaxed relative z-10">{item.description}</p>
+
+                                {/* Connecting line (hidden on mobile, shown between cards on desktop) */}
+                                {i < 2 && (
+                                    <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-slate-200 to-transparent z-0" />
+                                )}
                             </div>
                         ))}
                     </div>

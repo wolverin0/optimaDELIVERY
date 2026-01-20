@@ -5,6 +5,7 @@ import { OrderContext } from '@/context/OrderContext';
 import Menu from '@/pages/Menu';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     LayoutDashboard,
     ChefHat,
@@ -17,7 +18,16 @@ import {
     ShoppingBag,
     Utensils,
     ArrowLeft,
-    Sparkles
+    Sparkles,
+    Clock,
+    CheckCircle,
+    Truck,
+    Settings,
+    Palette,
+    UtensilsCrossed,
+    CreditCard,
+    Play,
+    Pause
 } from 'lucide-react';
 import { Tenant, MenuItem, Category } from '@/lib/supabase';
 import { THEMES } from '@/lib/themes';
@@ -140,142 +150,384 @@ const MockOrderProvider = ({ children, onNewOrder }: { children: ReactNode, onNe
 
 // --- VIEW COMPONENTS ---
 
-const KitchenView = ({ orders }: { orders: MockOrder[] }) => (
-    <div className="p-6 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-full">
-        <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
-                    <ChefHat className="w-5 h-5 text-white" />
+// Demo Order Card Component (simplified version matching real OrderCard)
+const DemoOrderCard = ({ order, onStatusChange }: { order: MockOrder, onStatusChange: (id: string, status: MockOrder['status']) => void }) => {
+    const statusColors = {
+        pending: 'bg-slate-100 text-slate-700',
+        preparing: 'bg-yellow-100 text-yellow-700',
+        ready: 'bg-green-100 text-green-700',
+        delivered: 'bg-blue-100 text-blue-700'
+    };
+
+    const statusLabels = {
+        pending: 'Pendiente',
+        preparing: 'Preparando',
+        ready: 'Listo',
+        delivered: 'Despachado'
+    };
+
+    const nextStatus: Record<MockOrder['status'], MockOrder['status'] | null> = {
+        pending: 'preparing',
+        preparing: 'ready',
+        ready: 'delivered',
+        delivered: null
+    };
+
+    const nextAction = nextStatus[order.status];
+
+    return (
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-xl transition-shadow">
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-slate-800">#{order.id}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                        {statusLabels[order.status]}
+                    </span>
                 </div>
-                Monitor de Cocina
-            </h2>
-            <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm font-mono text-sm border border-white/50">
-                Tiempo Promedio: <span className="font-bold text-green-600">12m</span>
+                <span className="text-xs text-slate-400 font-mono">{order.time}</span>
             </div>
-        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-            {['pending', 'preparing', 'ready', 'delivered'].map((status) => {
-                const label = status === 'pending' ? 'Pendiente' :
-                    status === 'preparing' ? 'En Preparación' :
-                        status === 'ready' ? 'Listo' : 'Entregado';
-                const colors = {
-                    pending: 'from-orange-500 to-red-500',
-                    preparing: 'from-amber-500 to-orange-500',
-                    ready: 'from-green-500 to-emerald-500',
-                    delivered: 'from-slate-400 to-slate-500'
-                };
+            {/* Content */}
+            <div className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        {order.customer.charAt(0)}
+                    </div>
+                    <span className="font-medium text-slate-700">{order.customer}</span>
+                </div>
 
-                return (
-                    <div key={status} className="bg-white/60 backdrop-blur-xl rounded-2xl p-4 flex flex-col border border-white/50 shadow-lg shadow-orange-900/5">
-                        <h3 className="uppercase text-xs font-bold text-slate-500 mb-4 tracking-wider flex justify-between items-center">
-                            {label}
-                            <span className={`bg-gradient-to-r ${colors[status as keyof typeof colors]} text-white px-2 py-0.5 rounded-full text-xs`}>
-                                {orders.filter(o => o.status === status).length}
-                            </span>
-                        </h3>
-                        <div className="space-y-3 flex-1">
-                            {orders.filter(o => o.status === status).map(order => (
-                                <div key={order.id} className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500 animate-in fade-in slide-in-from-bottom-2">
-                                    <div className="flex justify-between mb-2">
-                                        <span className="font-bold text-lg text-slate-800">#{order.id}</span>
-                                        <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2 py-1 rounded">{order.time}</span>
-                                    </div>
-                                    <p className="text-sm font-medium text-slate-700 mb-3">{order.customer}</p>
-                                    <ul className="text-xs text-slate-500 space-y-1 pt-2 border-t border-slate-100">
-                                        {order.items.map((item, idx) => (
-                                            <li key={idx} className="flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                            {orders.filter(o => o.status === status).length === 0 && (
-                                <div className="flex-1 flex items-center justify-center py-8 text-slate-400 text-sm">
-                                    Sin pedidos
-                                </div>
-                            )}
+                <ul className="space-y-1.5 mb-4">
+                    {order.items.map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-sm text-slate-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+                            {item}
+                        </li>
+                    ))}
+                </ul>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <span className="font-bold text-lg text-slate-800">${order.total.toLocaleString()}</span>
+                    {nextAction && (
+                        <Button
+                            size="sm"
+                            onClick={() => onStatusChange(order.id, nextAction)}
+                            className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg text-xs"
+                        >
+                            {nextAction === 'preparing' && 'Preparar'}
+                            {nextAction === 'ready' && 'Marcar Listo'}
+                            {nextAction === 'delivered' && 'Despachar'}
+                        </Button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const KitchenView = ({ orders, onStatusChange }: { orders: MockOrder[], onStatusChange: (id: string, status: MockOrder['status']) => void }) => {
+    const pendingOrders = orders.filter(o => o.status === 'pending');
+    const preparingOrders = orders.filter(o => o.status === 'preparing');
+    const readyOrders = orders.filter(o => o.status === 'ready');
+    const deliveredOrders = orders.filter(o => o.status === 'delivered');
+    const activeOrders = orders.filter(o => o.status !== 'delivered');
+
+    return (
+        <div className="min-h-full bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
+            {/* Header - Matching Kitchen.tsx style */}
+            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-orange-100">
+                <div className="px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-orange-500/25">
+                            B
+                        </div>
+                        <h1 className="text-2xl font-semibold tracking-wide text-slate-800">Cocina</h1>
+                    </div>
+                    <Button variant="outline" size="sm" className="border-orange-200 text-orange-600 hover:bg-orange-50">
+                        <Settings className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Admin</span>
+                    </Button>
+                </div>
+            </header>
+
+            {/* Stats Bar - Matching Kitchen.tsx */}
+            <div className="bg-white/50 border-b border-orange-100">
+                <div className="px-4 py-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-sm">
+                            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400 shrink-0" />
+                            <span className="font-semibold">{pendingOrders.length}</span>
+                            <span className="text-xs sm:text-sm text-slate-500 truncate">Pendientes</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 rounded-lg">
+                            <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 shrink-0" />
+                            <span className="font-semibold">{preparingOrders.length}</span>
+                            <span className="text-xs sm:text-sm text-slate-500 truncate">Preparando</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg">
+                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 shrink-0" />
+                            <span className="font-semibold">{readyOrders.length}</span>
+                            <span className="text-xs sm:text-sm text-slate-500 truncate">Listos</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg">
+                            <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 shrink-0" />
+                            <span className="font-semibold">{deliveredOrders.length}</span>
+                            <span className="text-xs sm:text-sm text-slate-500 truncate">Despachados</span>
                         </div>
                     </div>
-                );
-            })}
+                </div>
+            </div>
+
+            {/* Orders with Tabs - Matching Kitchen.tsx */}
+            <main className="px-4 py-6">
+                {orders.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-[50vh] text-slate-400">
+                        <ChefHat className="h-20 w-20 mb-4 opacity-20 text-orange-500" />
+                        <h2 className="text-xl font-semibold mb-2">Sin pedidos aun</h2>
+                        <p className="text-center max-w-sm text-sm">
+                            Los pedidos apareceran aqui automaticamente
+                        </p>
+                    </div>
+                ) : (
+                    <Tabs defaultValue="all" className="w-full">
+                        <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full mb-6 h-auto gap-1 bg-white/50 p-1 rounded-xl">
+                            <TabsTrigger value="all" className="px-3 py-2 text-xs sm:text-sm rounded-lg data-[state=active]:bg-white data-[state=active]:shadow">
+                                Activos ({activeOrders.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="pending" className="px-3 py-2 text-xs sm:text-sm rounded-lg data-[state=active]:bg-white data-[state=active]:shadow">
+                                Pendientes ({pendingOrders.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="preparing" className="px-3 py-2 text-xs sm:text-sm rounded-lg data-[state=active]:bg-white data-[state=active]:shadow">
+                                Preparando ({preparingOrders.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="ready" className="px-3 py-2 text-xs sm:text-sm rounded-lg data-[state=active]:bg-white data-[state=active]:shadow">
+                                Listos ({readyOrders.length})
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="all" className="mt-0">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {activeOrders.map(order => (
+                                    <DemoOrderCard key={order.id} order={order} onStatusChange={onStatusChange} />
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="pending" className="mt-0">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {pendingOrders.map(order => (
+                                    <DemoOrderCard key={order.id} order={order} onStatusChange={onStatusChange} />
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="preparing" className="mt-0">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {preparingOrders.map(order => (
+                                    <DemoOrderCard key={order.id} order={order} onStatusChange={onStatusChange} />
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="ready" className="mt-0">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {readyOrders.map(order => (
+                                    <DemoOrderCard key={order.id} order={order} onStatusChange={onStatusChange} />
+                                ))}
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                )}
+            </main>
         </div>
-    </div>
-);
+    );
+};
 
-const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }) => (
-    <div className="p-6 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-full">
-        <header className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
-                    <LayoutDashboard className="w-5 h-5 text-white" />
-                </div>
-                Panel de Administración
-            </h2>
-        </header>
+const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }) => {
+    const [activeAdminTab, setActiveAdminTab] = useState('overview');
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-            <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-slate-500">Ingresos Totales</h3>
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <DollarSign className="w-4 h-4 text-green-600" />
+    const navItems = [
+        { id: 'overview', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Resumen' },
+        { id: 'menu', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Menu' },
+        { id: 'orders', icon: <CreditCard className="w-5 h-5" />, label: 'Pedidos' },
+        { id: 'design', icon: <Palette className="w-5 h-5" />, label: 'Diseño' },
+        { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Config' },
+    ];
+
+    return (
+        <div className="min-h-full bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex">
+            {/* Sidebar - Matching Dashboard.tsx style */}
+            <aside className="w-16 md:w-56 bg-white/70 backdrop-blur-xl border-r border-orange-100/50 flex-shrink-0 flex flex-col">
+                <div className="p-4 md:p-6 border-b border-orange-100/50">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                            <Utensils className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="hidden md:block">
+                            <span className="font-bold text-lg text-slate-800">optima</span>
+                            <span className="font-light text-orange-600">DELIVERY</span>
+                        </div>
                     </div>
                 </div>
-                <p className="text-3xl font-bold text-slate-800">${revenue.toLocaleString()}</p>
-                <p className="text-xs text-green-600 flex items-center mt-2 font-medium">
-                    <TrendingUp className="w-3 h-3 mr-1" /> +12.5% vs ayer
-                </p>
-            </div>
-            <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-slate-500">Pedidos Activos</h3>
-                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <ShoppingBag className="w-4 h-4 text-orange-600" />
-                    </div>
-                </div>
-                <p className="text-3xl font-bold text-slate-800">{orders.filter(o => o.status !== 'delivered').length}</p>
-            </div>
-            <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-slate-500">Clientes Nuevos</h3>
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <Users className="w-4 h-4 text-purple-600" />
-                    </div>
-                </div>
-                <p className="text-3xl font-bold text-slate-800">24</p>
-            </div>
-        </div>
 
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 font-semibold text-slate-800">Actividad Reciente</div>
-            <div className="divide-y divide-slate-100">
-                {orders.slice().reverse().map(order => (
-                    <div key={order.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-2.5 h-2.5 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-orange-500'}`} />
-                            <div>
-                                <p className="font-medium text-sm text-slate-800">Pedido #{order.id}</p>
-                                <p className="text-xs text-slate-500">{order.customer}</p>
+                <nav className="flex-1 p-2 md:p-4 space-y-1">
+                    {navItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveAdminTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                                activeAdminTab === item.id
+                                    ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
+                                    : 'text-slate-600 hover:bg-orange-50 hover:text-slate-800'
+                            }`}
+                        >
+                            {item.icon}
+                            <span className="hidden md:inline font-medium text-sm">{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
+
+                {/* User Profile */}
+                <div className="p-4 border-t border-orange-100/50">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                            A
+                        </div>
+                        <div className="hidden md:block flex-1">
+                            <p className="font-medium text-sm text-slate-800">Admin Demo</p>
+                            <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">Owner</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 p-4 md:p-6 overflow-auto">
+                {activeAdminTab === 'overview' && (
+                    <div className="space-y-6">
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-white/80 backdrop-blur-xl p-5 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-medium text-slate-500">Ingresos Hoy</h3>
+                                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <DollarSign className="w-4 h-4 text-green-600" />
+                                    </div>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-800">${revenue.toLocaleString()}</p>
+                                <p className="text-xs text-green-600 flex items-center mt-2 font-medium">
+                                    <TrendingUp className="w-3 h-3 mr-1" /> +12.5% vs ayer
+                                </p>
+                            </div>
+                            <div className="bg-white/80 backdrop-blur-xl p-5 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-medium text-slate-500">Pedidos Activos</h3>
+                                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <ShoppingBag className="w-4 h-4 text-orange-600" />
+                                    </div>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-800">{orders.filter(o => o.status !== 'delivered').length}</p>
+                            </div>
+                            <div className="bg-white/80 backdrop-blur-xl p-5 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-medium text-slate-500">Clientes Nuevos</h3>
+                                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <Users className="w-4 h-4 text-purple-600" />
+                                    </div>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-800">24</p>
+                            </div>
+                            <div className="bg-white/80 backdrop-blur-xl p-5 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-medium text-slate-500">Tiempo Promedio</h3>
+                                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <Clock className="w-4 h-4 text-blue-600" />
+                                    </div>
+                                </div>
+                                <p className="text-2xl font-bold text-slate-800">12min</p>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <p className="font-medium text-sm text-slate-800">${order.total.toLocaleString()}</p>
-                            <p className="text-xs text-slate-500">{order.time}</p>
+
+                        {/* Menu Online Banner */}
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <CheckCircle className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg">Tu menú está online</h3>
+                                    <p className="text-white/80 text-sm">demo-burger.optimadelivery.com</p>
+                                </div>
+                            </div>
+                            <Button variant="secondary" size="sm" className="bg-white text-green-600 hover:bg-green-50">
+                                Ver Menú
+                            </Button>
+                        </div>
+
+                        {/* Recent Activity */}
+                        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50 overflow-hidden">
+                            <div className="px-6 py-4 border-b border-slate-100 font-semibold text-slate-800">Actividad Reciente</div>
+                            <div className="divide-y divide-slate-100">
+                                {orders.slice().reverse().slice(0, 5).map(order => (
+                                    <div key={order.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-2.5 h-2.5 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-orange-500'}`} />
+                                            <div>
+                                                <p className="font-medium text-sm text-slate-800">Pedido #{order.id}</p>
+                                                <p className="text-xs text-slate-500">{order.customer}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-medium text-sm text-slate-800">${order.total.toLocaleString()}</p>
+                                            <p className="text-xs text-slate-500">{order.time}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                {orders.length === 0 && (
+                                    <div className="px-6 py-12 text-center text-slate-400">
+                                        No hay actividad reciente
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                ))}
-                {orders.length === 0 && (
-                    <div className="px-6 py-12 text-center text-slate-400">
-                        No hay actividad reciente
+                )}
+
+                {activeAdminTab === 'menu' && (
+                    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/50 text-center">
+                        <UtensilsCrossed className="w-16 h-16 mx-auto mb-4 text-orange-300" />
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Gestión de Menú</h3>
+                        <p className="text-slate-500">Aquí podrás agregar, editar y organizar tus productos y categorías.</p>
                     </div>
                 )}
-            </div>
+
+                {activeAdminTab === 'orders' && (
+                    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/50 text-center">
+                        <CreditCard className="w-16 h-16 mx-auto mb-4 text-orange-300" />
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Historial de Pedidos</h3>
+                        <p className="text-slate-500">Revisa y gestiona todos los pedidos de tu negocio.</p>
+                    </div>
+                )}
+
+                {activeAdminTab === 'design' && (
+                    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/50 text-center">
+                        <Palette className="w-16 h-16 mx-auto mb-4 text-orange-300" />
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Personalización</h3>
+                        <p className="text-slate-500">Personaliza colores, fuentes y el aspecto de tu menú digital.</p>
+                    </div>
+                )}
+
+                {activeAdminTab === 'settings' && (
+                    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/50 text-center">
+                        <Settings className="w-16 h-16 mx-auto mb-4 text-orange-300" />
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Configuración</h3>
+                        <p className="text-slate-500">Configura pagos, horarios, equipo y más opciones de tu negocio.</p>
+                    </div>
+                )}
+            </main>
         </div>
-    </div>
-);
+    );
+};
 
 // --- MAIN DEMO PAGE ---
 const Demo = () => {
@@ -310,6 +562,13 @@ const Demo = () => {
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         handleNewOrder(newOrder);
+    };
+
+    const handleStatusChange = (orderId: string, newStatus: MockOrder['status']) => {
+        setOrders(prev => prev.map(order =>
+            order.id === orderId ? { ...order, status: newStatus } : order
+        ));
+        toast.success(`Pedido #${orderId} actualizado`, { position: 'top-center' });
     };
 
     return (
@@ -415,26 +674,43 @@ const Demo = () => {
             {/* Main Content Area */}
             <main className="flex-1 relative overflow-hidden bg-white shadow-2xl rounded-l-3xl">
                 {viewMode === 'consumer' && (
-                    <div className="h-full overflow-y-auto w-full">
-                        <TenantContext.Provider value={{
-                            tenant: dynamicTenant,
-                            categories: DEMO_CATEGORIES,
-                            menuItems: DEMO_ITEMS,
-                            isLoading: false,
-                            error: null,
-                            tenantSlug: 'demo',
-                            refreshTenant: async () => { },
-                            refreshMenu: async () => { }
-                        }}>
-                            <MockOrderProvider onNewOrder={handleNewOrder}>
-                                <Menu />
-                            </MockOrderProvider>
-                        </TenantContext.Provider>
+                    <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-4 overflow-hidden">
+                        {/* Phone Mockup Frame - Matching RegisterSetup style */}
+                        <div className="relative scale-[0.85] sm:scale-90 md:scale-95 lg:scale-100 origin-center">
+                            <div className="w-[375px] h-[812px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10">
+                                {/* Notch */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30" />
+                                {/* Screen Content */}
+                                <div className="w-full h-full overflow-y-auto bg-white scrollbar-hide">
+                                    <TenantContext.Provider value={{
+                                        tenant: dynamicTenant,
+                                        categories: DEMO_CATEGORIES,
+                                        menuItems: DEMO_ITEMS,
+                                        isLoading: false,
+                                        error: null,
+                                        tenantSlug: 'demo',
+                                        refreshTenant: async () => { },
+                                        refreshMenu: async () => { }
+                                    }}>
+                                        <MockOrderProvider onNewOrder={handleNewOrder}>
+                                            <Menu />
+                                        </MockOrderProvider>
+                                    </TenantContext.Provider>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Phone label */}
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-2 rounded-full shadow-xl flex items-center gap-2 text-sm font-medium backdrop-blur z-10">
+                            <Smartphone className="w-4 h-4" />
+                            Vista del Cliente
+                        </div>
                     </div>
                 )}
 
                 {viewMode === 'kitchen' && (
-                    <KitchenView orders={orders} />
+                    <div className="h-full overflow-auto">
+                        <KitchenView orders={orders} onStatusChange={handleStatusChange} />
+                    </div>
                 )}
 
                 {viewMode === 'admin' && (
