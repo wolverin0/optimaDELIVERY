@@ -355,54 +355,40 @@ const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }
     ];
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex">
-            {/* Sidebar - Matching Dashboard.tsx style */}
-            <aside className="w-16 md:w-56 bg-white/70 backdrop-blur-xl border-r border-orange-100/50 flex-shrink-0 flex flex-col">
-                <div className="p-4 md:p-6 border-b border-orange-100/50">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
-                            <Utensils className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="hidden md:block">
-                            <span className="font-bold text-lg text-slate-800">optima</span>
-                            <span className="font-light text-orange-600">DELIVERY</span>
-                        </div>
-                    </div>
-                </div>
-
-                <nav className="flex-1 p-2 md:p-4 space-y-1">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveAdminTab(item.id)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                                activeAdminTab === item.id
-                                    ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
-                                    : 'text-slate-600 hover:bg-orange-50 hover:text-slate-800'
-                            }`}
-                        >
-                            {item.icon}
-                            <span className="hidden md:inline font-medium text-sm">{item.label}</span>
-                        </button>
-                    ))}
-                </nav>
-
-                {/* User Profile */}
-                <div className="p-4 border-t border-orange-100/50">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
-                            A
-                        </div>
-                        <div className="hidden md:block flex-1">
-                            <p className="font-medium text-sm text-slate-800">Admin Demo</p>
-                            <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">Owner</span>
+        <div className="min-h-full bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
+            {/* Top Navigation Bar for Admin Tabs */}
+            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-orange-100">
+                <div className="px-4 md:px-6 py-3">
+                    <div className="flex items-center justify-between mb-3">
+                        <h1 className="text-xl font-semibold text-slate-800">Panel de Administración</h1>
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                A
+                            </div>
+                            <span className="hidden sm:inline text-sm text-slate-600">Admin Demo</span>
                         </div>
                     </div>
+                    <nav className="flex gap-1 overflow-x-auto pb-1">
+                        {navItems.map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveAdminTab(item.id)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                                    activeAdminTab === item.id
+                                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
+                                        : 'text-slate-600 hover:bg-orange-50 hover:text-slate-800'
+                                }`}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </nav>
                 </div>
-            </aside>
+            </header>
 
             {/* Main Content */}
-            <main className="flex-1 p-4 md:p-6 overflow-auto">
+            <main className="p-4 md:p-6 overflow-auto">
                 {activeAdminTab === 'overview' && (
                     <div className="space-y-6">
                         {/* Stats Grid */}
