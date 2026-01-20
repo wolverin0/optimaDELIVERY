@@ -13,12 +13,70 @@ import {
     Play,
     Utensils,
     Bell,
-    BarChart3
+    BarChart3,
+    Eye
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
+import { TenantContext } from '@/context/TenantContext';
+import { OrderContext } from '@/context/OrderContext';
+import Menu from '@/pages/Menu';
+import { THEMES } from '@/lib/themes';
+import { Tenant, MenuItem, Category } from '@/lib/supabase';
+
+// Mock data for the live preview
+const PREVIEW_CATEGORIES: Category[] = [
+    { id: 'c1', tenant_id: 'preview', name: 'Hamburguesas', slug: 'hamburguesas', sort_order: 1, is_active: true, created_at: '', updated_at: '', description: '', image_url: '' },
+    { id: 'c2', tenant_id: 'preview', name: 'Acompañamientos', slug: 'acompanamientos', sort_order: 2, is_active: true, created_at: '', updated_at: '', description: '', image_url: '' },
+    { id: 'c3', tenant_id: 'preview', name: 'Bebidas', slug: 'bebidas', sort_order: 3, is_active: true, created_at: '', updated_at: '', description: '', image_url: '' },
+];
+
+const PREVIEW_ITEMS: MenuItem[] = [
+    { id: 'm1', tenant_id: 'preview', category_id: 'c1', name: 'Clásica con Queso', description: 'Doble carne smash, queso cheddar, cebolla caramelizada.', price: 8500, is_available: true, sort_order: 1, image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80', created_at: '', updated_at: '', sold_by_weight: false, weight_unit: 'un' },
+    { id: 'm2', tenant_id: 'preview', category_id: 'c1', name: 'Bacon Royale', description: 'Panceta crocante, queso azul, rúcula fresca.', price: 9500, is_available: true, sort_order: 2, image_url: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80', created_at: '', updated_at: '', sold_by_weight: false, weight_unit: 'un' },
+    { id: 'm3', tenant_id: 'preview', category_id: 'c2', name: 'Papas Rústicas', description: 'Cortadas a mano con sal marina.', price: 3500, is_available: true, sort_order: 3, image_url: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80', created_at: '', updated_at: '', sold_by_weight: false, weight_unit: 'un' },
+    { id: 'm4', tenant_id: 'preview', category_id: 'c3', name: 'Limonada Casera', description: 'Refrescante limonada con menta.', price: 2500, is_available: true, sort_order: 4, image_url: 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=800&q=80', created_at: '', updated_at: '', sold_by_weight: false, weight_unit: 'un' },
+];
+
+const BASE_TENANT: Tenant = {
+    id: 'preview-tenant',
+    name: 'Mi Restaurante',
+    slug: 'preview',
+    logo_url: null,
+    theme: THEMES[0],
+    business_phone: '+1234567890',
+    business_email: 'demo@restaurant.com',
+    business_address: 'Av. Principal 123',
+    is_active: true,
+    created_at: '',
+    updated_at: '',
+    settings: {},
+    mercadopago_access_token: null,
+    mercadopago_public_key: null
+};
+
+// Mock Order Provider for the preview
+const MockOrderProvider = ({ children }: { children: ReactNode }) => {
+    const value = {
+        cart: [],
+        orders: [],
+        isLoadingOrders: false,
+        addToCart: () => {},
+        removeFromCart: () => {},
+        updateQuantity: () => {},
+        updateWeight: () => {},
+        clearCart: () => {},
+        submitOrder: async () => ({ success: false, orderNumber: 0 }),
+        updateOrderStatus: async () => {},
+        cancelOrder: async () => {},
+        refreshOrders: async () => {},
+        cartTotal: 0
+    };
+    return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;
+};
 
 const LandingPage = () => {
     const [activeFeature, setActiveFeature] = useState(0);
+    const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -26,6 +84,11 @@ const LandingPage = () => {
         }, 4000);
         return () => clearInterval(interval);
     }, []);
+
+    const previewTenant = {
+        ...BASE_TENANT,
+        theme: THEMES[currentThemeIndex]
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-orange-50 text-slate-900 font-sans selection:bg-orange-500/20">
@@ -116,30 +179,46 @@ const LandingPage = () => {
                         {/* Right - Product Mockup - Hidden on mobile */}
                         <div className="relative lg:pl-8 hidden lg:block">
                             <div className="relative flex items-center justify-center">
-                                {/* Phone mockup - matching RegisterSetup style */}
+                                {/* Phone mockup - matching RegisterSetup style with LIVE Menu */}
                                 <div className="relative scale-[0.7] xl:scale-[0.75] origin-center">
                                     <div className="w-[375px] h-[812px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10 rotate-3 hover:rotate-0 transition-transform duration-500">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30" />
-                                        {/* Screen Content */}
-                                        <div className="w-full h-full overflow-hidden bg-white">
-                                            {/* Mock menu content */}
-                                            <div className="bg-gradient-to-br from-orange-500 to-red-600 p-6 pt-10 text-white">
-                                                <h3 className="font-bold text-xl">El Nuevo Braserito</h3>
-                                                <p className="text-white/80 text-sm mt-1">Hamburguesas Artesanales</p>
-                                            </div>
-                                            <div className="p-4 space-y-3">
-                                                {['Clásica con Queso', 'Bacon Royale', 'La Braserita', 'Veggie Deluxe'].map((item, i) => (
-                                                    <div key={i} className="flex items-center gap-4 p-4 bg-orange-50 rounded-2xl">
-                                                        <div className="w-16 h-16 bg-gradient-to-br from-orange-200 to-orange-300 rounded-xl shrink-0" />
-                                                        <div className="flex-1">
-                                                            <p className="font-semibold text-slate-900">{item}</p>
-                                                            <p className="text-orange-600 font-bold">${(4500 + i * 2000).toLocaleString()}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                        {/* Screen Content - LIVE Menu Component */}
+                                        <div className="w-full h-full overflow-y-auto bg-white scrollbar-hide">
+                                            <TenantContext.Provider value={{
+                                                tenant: previewTenant,
+                                                categories: PREVIEW_CATEGORIES,
+                                                menuItems: PREVIEW_ITEMS,
+                                                isLoading: false,
+                                                error: null,
+                                                tenantSlug: 'preview',
+                                                refreshTenant: async () => {},
+                                                refreshMenu: async () => {}
+                                            }}>
+                                                <MockOrderProvider>
+                                                    <Menu isPreview={true} />
+                                                </MockOrderProvider>
+                                            </TenantContext.Provider>
                                         </div>
+                                    </div>
+
+                                    {/* Theme Switcher Buttons - Below phone */}
+                                    <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full shadow-lg border border-orange-100">
+                                        <span className="text-xs font-medium text-slate-500 mr-1">Diseños:</span>
+                                        {THEMES.map((theme, idx) => (
+                                            <button
+                                                key={theme.templateId}
+                                                onClick={() => setCurrentThemeIndex(idx)}
+                                                className={`w-7 h-7 rounded-full border-2 transition-all duration-200 ${
+                                                    currentThemeIndex === idx
+                                                        ? 'border-slate-900 scale-110 shadow-lg'
+                                                        : 'border-white shadow hover:scale-105'
+                                                }`}
+                                                style={{ backgroundColor: theme.primaryColor }}
+                                                title={theme.name}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
 
@@ -156,7 +235,7 @@ const LandingPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="absolute bottom-16 -right-4 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float-delayed z-10">
+                                <div className="absolute bottom-24 -right-4 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float-delayed z-10">
                                     <div className="flex items-center gap-2">
                                         <QrCode className="w-8 h-8 text-orange-500" />
                                         <div>
