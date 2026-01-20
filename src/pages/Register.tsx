@@ -152,7 +152,7 @@ const Register = () => {
 
                                 <Button
                                     onClick={handleGoogleSignIn}
-                                    disabled={isSigningIn || isLoading || isAuthenticated}
+                                    disabled={isSigningIn || isAuthenticated}
                                     className="w-full h-14 text-base gap-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 transition-all rounded-xl border-0"
                                 >
                                     {isSigningIn ? (

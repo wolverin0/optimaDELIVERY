@@ -86,7 +86,7 @@ const Login = () => {
 
                             <Button
                                 onClick={handleGoogleSignIn}
-                                disabled={isSigningIn || isLoading}
+                                disabled={isSigningIn}
                                 className="w-full h-14 text-base gap-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow transition-all rounded-xl"
                                 variant="outline"
                             >
