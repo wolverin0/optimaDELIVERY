@@ -16,31 +16,31 @@ export const TemplateClassic = ({ tenant, menuItems }: TemplateProps) => {
         <div className="min-h-screen bg-background relative z-10 transition-colors duration-500">
             {/* Luxury Header with improved styling */}
             <header className="luxury-header sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/40 shadow-sm">
-                <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="relative group cursor-pointer">
+                <div className="max-w-full mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                        <div className="relative group cursor-pointer flex-shrink-0">
                             <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <img
                                 src={tenant?.logo_url || "/braseritologo.jpeg"}
                                 alt={tenant?.name || "Restaurant"}
-                                className="w-[52px] h-[52px] rounded-full object-cover shadow-lg ring-2 ring-primary/10 relative transition-transform duration-300 group-hover:scale-105"
+                                className="w-10 h-10 sm:w-[52px] sm:h-[52px] rounded-full object-cover shadow-lg ring-2 ring-primary/10 relative transition-transform duration-300 group-hover:scale-105"
                             />
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-semibold tracking-wide">{tenant?.name || 'Restaurant'}</h1>
-                            <p className="text-xs text-muted-foreground/70 font-medium tracking-wider uppercase">Menú Digital</p>
+                        <div className="min-w-0">
+                            <h1 className="text-base sm:text-2xl font-semibold tracking-wide truncate">{tenant?.name || 'Restaurant'}</h1>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground/70 font-medium tracking-wider uppercase">Menú Digital</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
                         <ThemeToggle />
                         <Button
                             variant="outline"
                             size="sm"
-                            className="border-primary/30 text-primary hover:bg-primary hover:text-white transition-all duration-300 rounded-full px-4"
+                            className="border-primary/30 text-primary hover:bg-primary hover:text-white transition-all duration-300 rounded-full px-2 sm:px-4 h-8 sm:h-9"
                             onClick={() => toast.info("Inicio de sesión (Demo)", { description: "Esta es una simulación de acceso para clientes." })}
                         >
-                            <Utensils className="h-4 w-4 mr-2" />
-                            Ingresar
+                            <Utensils className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Ingresar</span>
                         </Button>
                     </div>
                 </div>

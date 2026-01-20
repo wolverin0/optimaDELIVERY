@@ -1,22 +1,27 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useTenant } from '@/context/TenantContext';
+import { isTrialExpired } from '@/lib/trial';
 
 interface ProtectedRouteProps {
     children: ReactNode;
     requiredRoles?: Array<'owner' | 'admin' | 'kitchen' | 'staff'>;
+    skipTrialCheck?: boolean;
 }
 
 /**
- * Route guard that ensures user is authenticated and optionally has required role.
- * Redirects to login if not authenticated.
+ * Route guard that ensures user is authenticated, optionally has required role,
+ * and has an active trial or subscription.
+ * Redirects to login if not authenticated, or to trial-expired if trial has ended.
  */
-export const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, requiredRoles, skipTrialCheck = false }: ProtectedRouteProps) => {
     const { isAuthenticated, isLoading, profile } = useAuth();
+    const { tenant, isLoading: tenantLoading } = useTenant();
     const location = useLocation();
 
-    // Show loading while checking auth state
-    if (isLoading) {
+    // Show loading while checking auth state or tenant data
+    if (isLoading || tenantLoading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="text-center">
@@ -55,6 +60,14 @@ export const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps)
     // User needs to complete registration setup
     if (!profile?.tenant_id && location.pathname !== '/register/setup') {
         return <Navigate to="/register/setup" replace />;
+    }
+
+    // Check trial expiration (skip for upgrade page and certain routes)
+    if (!skipTrialCheck && tenant && isTrialExpired(tenant)) {
+        // Allow access to trial-expired and upgrade pages
+        if (location.pathname !== '/trial-expired' && location.pathname !== '/upgrade') {
+            return <Navigate to="/trial-expired" replace />;
+        }
     }
 
     return <>{children}</>;

@@ -25,6 +25,8 @@ import Kitchen from "./pages/Kitchen";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import SuperAdmin from "./pages/SuperAdmin";
+import TrialExpired from "./pages/TrialExpired";
+import Upgrade from "./pages/Upgrade";
 
 // Luxury Design Variants (legacy)
 import MenuTest1 from "./test1/Menu";
@@ -81,6 +83,19 @@ const App = () => (
                 <Route path="/admin" element={
                   <ProtectedRoute requiredRoles={['owner', 'admin']}>
                     <Admin />
+                  </ProtectedRoute>
+                } />
+
+                {/* Trial/Subscription Routes - skip trial check */}
+                <Route path="/trial-expired" element={
+                  <ProtectedRoute skipTrialCheck>
+                    <TrialExpired />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/upgrade" element={
+                  <ProtectedRoute skipTrialCheck>
+                    <Upgrade />
                   </ProtectedRoute>
                 } />
 

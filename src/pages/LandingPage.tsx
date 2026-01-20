@@ -51,7 +51,25 @@ const BASE_TENANT: Tenant = {
     updated_at: '',
     settings: {},
     mercadopago_access_token: null,
-    mercadopago_public_key: null
+    mercadopago_public_key: null,
+    mercadopago_refresh_token: null,
+    mercadopago_user_id: null,
+    mercadopago_connected_at: null,
+    kitchen_pin: null,
+    social_instagram: null,
+    social_facebook: null,
+    social_whatsapp: null,
+    social_tiktok: null,
+    social_twitter: null,
+    email_verified: true,
+    verification_token: null,
+    verification_sent_at: null,
+    verified_at: null,
+    trial_ends_at: null,
+    subscription_status: 'active',
+    plan_type: 'pro',
+    subscription_started_at: null,
+    subscription_ends_at: null
 };
 
 // Mock Order Provider for the preview
@@ -93,17 +111,17 @@ const LandingPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-orange-50 text-slate-900 font-sans selection:bg-orange-500/20">
             {/* Navbar - Floating */}
-            <nav className="fixed top-4 left-4 right-4 z-50">
-                <div className="max-w-6xl mx-auto bg-white/80 backdrop-blur-xl rounded-2xl border border-orange-100 shadow-lg shadow-orange-900/5 px-6 h-16 flex items-center justify-between">
-                    <Link to="/" className="flex items-center gap-3 cursor-pointer">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                            <Utensils className="w-5 h-5 text-white" />
+            <nav className="fixed top-4 left-2 right-2 sm:left-4 sm:right-4 z-50">
+                <div className="max-w-6xl mx-auto bg-white/80 backdrop-blur-xl rounded-2xl border border-orange-100 shadow-lg shadow-orange-900/5 px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
+                            <Utensils className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                        <span className="hidden min-[480px]:inline text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                             optimaDELIVERY
                         </span>
                     </Link>
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <Link to="/demo" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors cursor-pointer">
                             Ver Demo
                         </Link>
@@ -111,9 +129,9 @@ const LandingPage = () => {
                             Ingresar
                         </Link>
                         <Link to="/register/setup">
-                            <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl px-3 sm:px-6 font-semibold shadow-lg shadow-orange-500/25 transition-all duration-200 cursor-pointer">
-                                <span className="hidden sm:inline">Empezar Gratis</span>
-                                <span className="sm:hidden">Empezar</span>
+                            <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl px-3 sm:px-6 font-semibold shadow-lg shadow-orange-500/25 transition-all duration-200 cursor-pointer h-9 sm:h-10 text-sm">
+                                <span className="hidden sm:inline">Prueba 7 Días</span>
+                                <span className="sm:hidden">Probar</span>
                             </Button>
                         </Link>
                     </div>
@@ -151,7 +169,7 @@ const LandingPage = () => {
                             <div className="flex flex-col sm:flex-row gap-4 mb-10 justify-center lg:justify-start">
                                 <Link to="/register/setup">
                                     <Button size="lg" className="h-14 px-8 text-lg rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-xl shadow-orange-500/30 w-full sm:w-auto transition-all duration-200 cursor-pointer">
-                                        Crear mi Menú Gratis
+                                        Empezar Prueba de 7 Días
                                         <ArrowRight className="ml-2 w-5 h-5" />
                                     </Button>
                                 </Link>
@@ -180,7 +198,7 @@ const LandingPage = () => {
                         <div className="relative lg:pl-8 hidden lg:block">
                             <div className="relative flex items-center justify-center">
                                 {/* Phone mockup - matching RegisterSetup style with LIVE Menu */}
-                                <div className="relative scale-[0.7] xl:scale-[0.75] origin-center">
+                                <div className="relative transform-gpu will-change-transform" style={{ transform: 'scale(0.7)' }}>
                                     <div className="w-[375px] h-[812px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10 rotate-3 hover:rotate-0 transition-transform duration-500">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30" />
@@ -245,6 +263,59 @@ const LandingPage = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            {/* Mobile Phone Preview - Shown once between hero and social proof (mobile only) */}
+            <section className="py-12 lg:hidden bg-gradient-to-b from-amber-50/50 to-white">
+                <div className="max-w-sm mx-auto px-6">
+                    <p className="text-center text-sm font-semibold text-slate-500 mb-6">
+                        Así se verá tu menú
+                    </p>
+                    <div className="relative flex flex-col items-center">
+                        {/* Phone mockup - larger for mobile view */}
+                        <div className="w-[220px] h-[476px] bg-white rounded-[2rem] shadow-2xl border-[5px] border-slate-900 overflow-hidden transform-gpu">
+                            {/* Notch */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-b-xl z-30" />
+                            {/* Screen Content - Scaled Menu */}
+                            <div className="w-full h-full overflow-hidden bg-white">
+                                <div className="transform-gpu origin-top-left" style={{ transform: 'scale(0.587)', width: '375px', height: '812px' }}>
+                                    <TenantContext.Provider value={{
+                                        tenant: previewTenant,
+                                        categories: PREVIEW_CATEGORIES,
+                                        menuItems: PREVIEW_ITEMS,
+                                        isLoading: false,
+                                        error: null,
+                                        tenantSlug: 'preview',
+                                        refreshTenant: async () => {},
+                                        refreshMenu: async () => {}
+                                    }}>
+                                        <MockOrderProvider>
+                                            <Menu isPreview={true} />
+                                        </MockOrderProvider>
+                                    </TenantContext.Provider>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Theme switcher dots */}
+                        <div className="mt-6 flex items-center gap-2 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full shadow-lg border border-orange-100">
+                            <span className="text-xs font-medium text-slate-500 mr-1">Diseños:</span>
+                            {THEMES.map((theme, idx) => (
+                                <button
+                                    key={theme.templateId}
+                                    onClick={() => setCurrentThemeIndex(idx)}
+                                    className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
+                                        currentThemeIndex === idx
+                                            ? 'border-slate-900 scale-110 shadow-lg'
+                                            : 'border-white shadow hover:scale-105'
+                                    }`}
+                                    style={{ backgroundColor: theme.primaryColor }}
+                                    title={theme.name}
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -420,97 +491,42 @@ const LandingPage = () => {
                             ))}
                         </div>
 
-                        {/* Feature visual */}
-                        <div className="relative">
-                            <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-3xl p-8 border border-orange-500/20">
-                                <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
-                                    {activeFeature === 0 && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-orange-500 font-bold">Vista Mobile</span>
-                                                <Smartphone className="w-5 h-5 text-slate-500" />
-                                            </div>
-                                            {[1,2,3].map(i => (
-                                                <div key={i} className="flex items-center gap-4 p-3 bg-slate-700/50 rounded-xl">
-                                                    <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl" />
-                                                    <div className="flex-1">
-                                                        <div className="h-3 bg-slate-600 rounded w-24 mb-2" />
-                                                        <div className="h-2 bg-slate-700 rounded w-16" />
-                                                    </div>
-                                                    <span className="text-orange-500 font-bold">$4.500</span>
-                                                </div>
-                                            ))}
+                        {/* Feature visual - Live Phone Mockup */}
+                        <div className="relative flex items-center justify-center">
+                            <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-3xl p-6 md:p-8 border border-orange-500/20">
+                                {/* Phone mockup with live Menu cycling themes */}
+                                <div className="relative transform-gpu will-change-transform mx-auto" style={{ transform: 'scale(0.65)' }}>
+                                    <div className="w-[280px] h-[607px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-800 overflow-hidden ring-4 ring-orange-500/20">
+                                        {/* Notch */}
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-800 rounded-b-xl z-30" />
+                                        {/* Screen Content - LIVE Menu synced with activeFeature */}
+                                        <div className="w-full h-full overflow-hidden bg-white">
+                                            <TenantContext.Provider value={{
+                                                tenant: {
+                                                    ...BASE_TENANT,
+                                                    theme: THEMES[activeFeature % THEMES.length]
+                                                },
+                                                categories: PREVIEW_CATEGORIES,
+                                                menuItems: PREVIEW_ITEMS,
+                                                isLoading: false,
+                                                error: null,
+                                                tenantSlug: 'preview',
+                                                refreshTenant: async () => {},
+                                                refreshMenu: async () => {}
+                                            }}>
+                                                <MockOrderProvider>
+                                                    <Menu isPreview={true} />
+                                                </MockOrderProvider>
+                                            </TenantContext.Provider>
                                         </div>
-                                    )}
-                                    {activeFeature === 1 && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-orange-500 font-bold">Panel Cocina</span>
-                                                <ChefHat className="w-5 h-5 text-slate-500" />
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-3">
-                                                {['Pendiente', 'Preparando', 'Listo'].map((status, i) => (
-                                                    <div key={i} className="text-center">
-                                                        <div className={`text-2xl font-bold ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-orange-500' : 'text-green-500'}`}>
-                                                            {3 - i}
-                                                        </div>
-                                                        <div className="text-xs text-slate-500">{status}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-xl">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-bold text-yellow-500">#1234</span>
-                                                    <span className="text-sm text-slate-400">Hace 2 min</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {activeFeature === 2 && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-orange-500 font-bold">Estadísticas</span>
-                                                <BarChart3 className="w-5 h-5 text-slate-500" />
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="bg-slate-700/50 p-4 rounded-xl">
-                                                    <div className="text-2xl font-bold text-white">$125.400</div>
-                                                    <div className="text-xs text-green-500 flex items-center gap-1">
-                                                        <TrendingUp className="w-3 h-3" /> +12% vs ayer
-                                                    </div>
-                                                </div>
-                                                <div className="bg-slate-700/50 p-4 rounded-xl">
-                                                    <div className="text-2xl font-bold text-white">47</div>
-                                                    <div className="text-xs text-slate-500">Pedidos hoy</div>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-1 items-end h-20">
-                                                {[40, 65, 45, 80, 60, 90, 75].map((h, i) => (
-                                                    <div key={i} className="flex-1 bg-gradient-to-t from-orange-500 to-red-500 rounded-t" style={{height: `${h}%`}} />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {activeFeature === 3 && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-orange-500 font-bold">MercadoPago</span>
-                                                <CreditCard className="w-5 h-5 text-slate-500" />
-                                            </div>
-                                            <div className="bg-gradient-to-r from-blue-600 to-blue-400 p-4 rounded-xl text-white">
-                                                <div className="text-sm opacity-80 mb-1">Balance disponible</div>
-                                                <div className="text-3xl font-bold">$248.650</div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                {['Pago recibido #1234', 'Pago recibido #1233'].map((tx, i) => (
-                                                    <div key={i} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                                                        <span className="text-sm text-slate-400">{tx}</span>
-                                                        <span className="text-green-500 font-bold">+$8.500</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                    </div>
+                                </div>
+                                {/* Current theme badge */}
+                                <div className="text-center mt-4">
+                                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white text-sm rounded-full border border-orange-500/30">
+                                        <Eye className="w-4 h-4 text-orange-400" />
+                                        Diseño: {THEMES[activeFeature % THEMES.length].name}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -616,9 +632,9 @@ const LandingPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <Link to="/register?plan=basic">
+                            <Link to="/register/setup?plan=basic">
                                 <Button variant="outline" className="w-full h-14 rounded-xl text-lg font-semibold border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
-                                    Empezar Prueba Gratis
+                                    Empezar 7 Días Gratis
                                 </Button>
                             </Link>
                         </div>
@@ -653,9 +669,9 @@ const LandingPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <Link to="/register?plan=pro">
+                            <Link to="/register/setup?plan=pro">
                                 <Button className="w-full h-14 rounded-xl text-lg font-bold bg-white text-orange-600 hover:bg-orange-50 shadow-lg transition-all cursor-pointer">
-                                    Suscribirse Ahora
+                                    Empezar 7 Días Gratis
                                 </Button>
                             </Link>
                         </div>
@@ -682,12 +698,12 @@ const LandingPage = () => {
                     </p>
                     <Link to="/register/setup">
                         <Button size="lg" className="h-16 px-12 text-xl rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 font-bold shadow-2xl shadow-orange-500/40 transition-all duration-200 cursor-pointer">
-                            Crear mi Menú Gratis
+                            Empezar Prueba de 7 Días
                             <ArrowRight className="ml-3 w-6 h-6" />
                         </Button>
                     </Link>
                     <p className="mt-6 text-slate-500 text-sm">
-                        Setup en 5 minutos • Sin tarjeta requerida • Cancela cuando quieras
+                        Setup en 5 minutos • 7 días gratis • Sin tarjeta requerida
                     </p>
                 </div>
             </section>

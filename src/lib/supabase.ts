@@ -24,6 +24,10 @@ export interface ThemeConfig {
     borderRadius?: string;
 }
 
+// Subscription/Trial types
+export type SubscriptionStatus = 'trial' | 'active' | 'past_due' | 'cancelled' | 'expired';
+export type PlanType = 'free' | 'basic' | 'pro';
+
 export type Database = {
     elbraserito: {
         Tables: {
@@ -52,6 +56,11 @@ export type Database = {
                     verification_token: string | null;
                     verification_sent_at: string | null;
                     verified_at: string | null;
+                    trial_ends_at: string | null;
+                    subscription_status: SubscriptionStatus;
+                    plan_type: PlanType;
+                    subscription_started_at: string | null;
+                    subscription_ends_at: string | null;
                     is_active: boolean;
                     settings: Record<string, unknown>;
                     created_at: string;
