@@ -1,5 +1,6 @@
 import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck, XCircle, Settings } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
+import { useTenant } from '@/context/TenantContext';
 import { OrderCard } from '@/components/OrderCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
@@ -8,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Kitchen = () => {
   const { orders } = useOrders();
+  const { tenant } = useTenant();
 
   const activeOrders = orders.filter(o => o.status !== 'cancelled');
   const pendingOrders = orders.filter(o => o.status === 'pending');
@@ -22,11 +24,17 @@ const Kitchen = () => {
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img
-              src="/braseritologo.jpeg"
-              alt="El Nuevo Braserito"
-              className="w-[52px] h-[52px] rounded-full object-cover shadow-gold"
-            />
+            {tenant?.logo_url ? (
+              <img
+                src={tenant.logo_url}
+                alt={tenant.name}
+                className="w-[52px] h-[52px] rounded-full object-cover shadow-gold"
+              />
+            ) : (
+              <div className="w-[52px] h-[52px] rounded-full bg-primary flex items-center justify-center text-white text-xl font-bold shadow-gold">
+                {tenant?.name?.charAt(0) || 'K'}
+              </div>
+            )}
             <h1 className="text-2xl font-semibold tracking-wide">Cocina</h1>
           </div>
           <div className="flex items-center gap-2">

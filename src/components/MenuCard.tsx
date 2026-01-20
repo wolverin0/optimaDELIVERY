@@ -1,6 +1,6 @@
 import { Plus, Scale, PackageX, Check } from 'lucide-react';
 import { useState } from 'react';
-import { MenuItem } from '@/types/order';
+import { MenuItem } from '@/lib/supabase';
 import { useOrders } from '@/context/OrderContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -43,8 +43,8 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (item.soldOut) return;
-    if (item.soldByWeight) {
+    if (!item.is_available) return;
+    if (item.sold_by_weight) {
       setShowWeightDialog(true);
     } else {
       addToCart(item);
@@ -64,7 +64,7 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!item.soldOut) {
+    if (item.is_available) {
       setShowImageModal(true);
     }
   };
@@ -72,11 +72,14 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
   // Calculate animation delay based on index
   const animationDelay = `${index * 0.1}s`;
 
+  // Use image_url or fallback to placeholder
+  const imageUrl = item.image_url || '/placeholder.svg';
+
   return (
     <>
       {/* Luxury Horizontal Card */}
       <div
-        className={`luxury-card animate-fade-in-left opacity-0 ${item.soldOut ? 'opacity-60' : ''}`}
+        className={`luxury-card animate-fade-in-left opacity-0 ${!item.is_available ? 'opacity-60' : ''}`}
         style={{ animationDelay }}
       >
         {/* Image Section */}
@@ -85,20 +88,20 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
           onClick={handleImageClick}
         >
           <img
-            src={item.image}
+            src={imageUrl}
             alt={item.name}
-            className={`w-full h-full object-cover transition-transform duration-500 hover:scale-110 ${item.soldOut ? 'grayscale' : ''}`}
+            className={`w-full h-full object-cover transition-transform duration-500 hover:scale-110 ${!item.is_available ? 'grayscale' : ''}`}
             loading="lazy"
           />
 
-          {item.soldByWeight && !item.soldOut && (
+          {item.sold_by_weight && item.is_available && (
             <div className="absolute top-3 left-3 bg-card px-2.5 py-1.5 rounded-full text-[10px] font-semibold text-primary uppercase tracking-wide shadow-sm flex items-center gap-1">
               <Scale size={10} />
-              Por {item.weightUnit}
+              Por {item.weight_unit}
             </div>
           )}
 
-          {item.soldOut && (
+          {!item.is_available && (
             <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
               <div className="bg-destructive text-white px-4 py-2 rounded-full text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
                 <PackageX size={12} />
@@ -119,15 +122,15 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
 
           <div className="flex items-center justify-between mt-4">
             <div className="text-primary text-[26px] font-semibold">
-              {formatPrice(item.price)}
-              {item.soldByWeight && (
+              {formatPrice(Number(item.price))}
+              {item.sold_by_weight && (
                 <span className="text-[12px] font-normal text-muted-foreground ml-0.5">
-                  /{item.weightUnit}
+                  /{item.weight_unit}
                 </span>
               )}
             </div>
 
-            {!item.soldOut && (
+            {item.is_available && (
               <button onClick={handleAdd} className="add-btn">
                 <Plus size={20} strokeWidth={2} />
               </button>
@@ -143,7 +146,7 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
           onClick={() => setShowImageModal(false)}
         >
           <img
-            src={item.image}
+            src={imageUrl}
             alt={item.name}
             className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl cursor-pointer"
             onClick={() => setShowImageModal(false)}
@@ -156,7 +159,7 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
         <DialogContent className="sm:max-w-md bg-card border-border">
           <DialogHeader>
             <DialogTitle className="text-2xl tracking-wide">
-              ¿Cuantos {item.weightUnit} de {item.name}?
+              ¿Cuantos {item.weight_unit} de {item.name}?
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center gap-4 py-6">
@@ -168,10 +171,10 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
               onChange={(e) => setWeight(e.target.value)}
               className="h-14 text-2xl text-center font-bold border-primary/30 focus:border-primary"
             />
-            <span className="text-xl font-medium text-muted-foreground">{item.weightUnit}</span>
+            <span className="text-xl font-medium text-muted-foreground">{item.weight_unit}</span>
           </div>
           <p className="text-muted-foreground text-center">
-            Total: <span className="text-primary font-bold text-xl">{formatPrice(item.price * parseFloat(weight || '0'))}</span>
+            Total: <span className="text-primary font-bold text-xl">{formatPrice(Number(item.price) * parseFloat(weight || '0'))}</span>
           </p>
           <DialogFooter className="gap-3 mt-4">
             <Button

@@ -25,6 +25,7 @@ export type PaymentMethod = 'cash' | 'mercadopago';
 export interface CustomerData {
   name: string;
   phone: string;
+  email?: string;
   address: string;
   notes?: string;
   deliveryType: DeliveryType;

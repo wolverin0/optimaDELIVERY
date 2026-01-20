@@ -3,13 +3,30 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/context/AuthContext";
+import { TenantProvider } from "@/context/TenantContext";
 import { OrderProvider } from "@/context/OrderContext";
+import { KitchenPinProvider } from "@/context/KitchenPinContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+
+// Public pages
+import LandingPage from "./pages/LandingPage";
 import Menu from "./pages/Menu";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import RegisterSetup from "./pages/RegisterSetup";
+import AuthCallback from "./pages/AuthCallback";
+import NotFound from "./pages/NotFound";
+import Demo from "./pages/Demo";
+import KitchenPin from "./pages/KitchenPin";
+
+// Protected pages
 import Kitchen from "./pages/Kitchen";
 import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
+import SuperAdmin from "./pages/SuperAdmin";
 
-// Luxury Design Variants
+// Luxury Design Variants (legacy)
 import MenuTest1 from "./test1/Menu";
 import MenuTest2 from "./test2/Menu";
 import MenuTest3 from "./test3/Menu";
@@ -18,26 +35,71 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <OrderProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Menu />} />
-            <Route path="/cocina" element={<Kitchen />} />
-            <Route path="/admin" element={<Admin />} />
+    <BrowserRouter>
+      <AuthProvider>
+        <TenantProvider>
+          <OrderProvider>
+            <KitchenPinProvider>
+              <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                {/* Playground removed - use /demo */}
+                <Route path="/demo" element={<Demo />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
 
-            {/* Luxury Design Test Variants */}
-            <Route path="/test1" element={<MenuTest1 />} />
-            <Route path="/test2" element={<MenuTest2 />} />
-            <Route path="/test3" element={<MenuTest3 />} />
+                {/* Tenant Menu (public) - /t/{tenant-slug} */}
+                <Route path="/t/:tenantSlug" element={<Menu />} />
+                <Route path="/t/:tenantSlug/menu" element={<Menu />} />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </OrderProvider>
+                {/* Kitchen PIN Access (public) - /cocina/{tenant-slug} */}
+                <Route path="/cocina/:slug" element={<KitchenPin />} />
+
+                {/* Protected Routes - require authentication */}
+                <Route path="/register/setup" element={
+                  <ProtectedRoute>
+                    <RegisterSetup />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/cocina" element={
+                  <ProtectedRoute>
+                    <Kitchen />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRoles={['owner', 'admin']}>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
+
+                {/* Luxury Design Test Variants (legacy) */}
+                <Route path="/test1" element={<MenuTest1 />} />
+                <Route path="/test2" element={<MenuTest2 />} />
+                <Route path="/test3" element={<MenuTest3 />} />
+
+                {/* Super Admin (protected by email whitelist in component) */}
+                <Route path="/super-admin" element={<SuperAdmin />} />
+
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              </TooltipProvider>
+            </KitchenPinProvider>
+          </OrderProvider>
+        </TenantProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

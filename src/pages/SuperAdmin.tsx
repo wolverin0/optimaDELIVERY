@@ -1,0 +1,315 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+    Loader2, Building2, Users, DollarSign, TrendingUp,
+    LogOut, Eye, MoreVertical, Search, Filter
+} from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+
+interface TenantData {
+    id: string;
+    name: string;
+    slug: string;
+    is_active: boolean;
+    created_at: string;
+    business_phone: string | null;
+    business_email: string | null;
+    mercadopago_access_token: string | null;
+}
+
+interface DashboardMetrics {
+    totalTenants: number;
+    activeTenants: number;
+    totalOrders: number;
+    monthlyRevenue: number;
+}
+
+// Super admin emails from environment variable (comma-separated)
+const SUPER_ADMIN_EMAILS = (import.meta.env.VITE_SUPER_ADMIN_EMAILS || '')
+    .split(',')
+    .map((email: string) => email.trim())
+    .filter((email: string) => email.length > 0);
+
+const SuperAdmin = () => {
+    const navigate = useNavigate();
+    const { user, signOut, isLoading: authLoading } = useAuth();
+    const [tenants, setTenants] = useState<TenantData[]>([]);
+    const [metrics, setMetrics] = useState<DashboardMetrics>({
+        totalTenants: 0,
+        activeTenants: 0,
+        totalOrders: 0,
+        monthlyRevenue: 0,
+    });
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Check if user is super admin
+    const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
+
+    useEffect(() => {
+        if (authLoading) return;
+
+        if (!user || !isSuperAdmin) {
+            navigate('/login');
+            return;
+        }
+
+        fetchTenants();
+    }, [user, authLoading, isSuperAdmin, navigate]);
+
+    const fetchTenants = async () => {
+        try {
+            const { data: { session } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+            if (!session) return;
+
+            const res = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/tenants?select=*&order=created_at.desc`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+                    }
+                }
+            );
+
+            if (res.ok) {
+                const data = await res.json();
+                setTenants(data);
+                setMetrics({
+                    totalTenants: data.length,
+                    activeTenants: data.filter((t: TenantData) => t.is_active).length,
+                    totalOrders: 0, // TODO: Aggregate from orders table
+                    monthlyRevenue: 0, // TODO: Calculate from orders
+                });
+            }
+        } catch (err) {
+            console.error('Error fetching tenants:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleGhostLogin = (tenant: TenantData) => {
+        // Open tenant's menu in new tab
+        window.open(`/t/${tenant.slug}`, '_blank');
+    };
+
+    const filteredTenants = tenants.filter(t =>
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.slug.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (authLoading || isLoading) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-slate-900">
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!isSuperAdmin) {
+        return (
+            <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-900 text-white gap-4">
+                <p className="text-red-400 font-medium">Acceso denegado</p>
+                <Button variant="outline" onClick={() => navigate('/login')}>
+                    Volver al Login
+                </Button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-slate-900 text-white">
+            {/* Header */}
+            <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold">
+                            OD
+                        </div>
+                        <div>
+                            <h1 className="font-bold text-lg">Super Admin</h1>
+                            <p className="text-xs text-slate-400">optimaDELIVERY</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm text-slate-400">{user?.email}</span>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-slate-400 hover:text-white"
+                            onClick={signOut}
+                        >
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Salir
+                        </Button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content */}
+            <main className="max-w-7xl mx-auto px-6 py-8">
+                {/* Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <MetricCard
+                        icon={<Building2 className="w-5 h-5" />}
+                        label="Total Negocios"
+                        value={metrics.totalTenants}
+                        color="blue"
+                    />
+                    <MetricCard
+                        icon={<Users className="w-5 h-5" />}
+                        label="Activos"
+                        value={metrics.activeTenants}
+                        color="green"
+                    />
+                    <MetricCard
+                        icon={<TrendingUp className="w-5 h-5" />}
+                        label="Pedidos (Mes)"
+                        value={metrics.totalOrders}
+                        color="purple"
+                    />
+                    <MetricCard
+                        icon={<DollarSign className="w-5 h-5" />}
+                        label="Revenue (Mes)"
+                        value={`$${metrics.monthlyRevenue.toLocaleString()}`}
+                        color="yellow"
+                    />
+                </div>
+
+                {/* Tenants Table */}
+                <Card className="bg-slate-800 border-slate-700">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-white">Negocios Registrados</CardTitle>
+                                <CardDescription className="text-slate-400">
+                                    Gestiona todos los tenants de la plataforma
+                                </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="relative">
+                                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <Input
+                                        placeholder="Buscar..."
+                                        className="pl-9 bg-slate-700 border-slate-600 text-white w-64"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-slate-700 text-left text-sm text-slate-400">
+                                        <th className="pb-3 font-medium">Negocio</th>
+                                        <th className="pb-3 font-medium">URL</th>
+                                        <th className="pb-3 font-medium">Estado</th>
+                                        <th className="pb-3 font-medium">MercadoPago</th>
+                                        <th className="pb-3 font-medium">Creado</th>
+                                        <th className="pb-3 font-medium text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {filteredTenants.map((tenant) => (
+                                        <tr key={tenant.id} className="text-sm">
+                                            <td className="py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-xs font-bold">
+                                                        {tenant.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-white">{tenant.name}</p>
+                                                        <p className="text-xs text-slate-400">{tenant.business_email || 'Sin email'}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-4">
+                                                <code className="text-xs bg-slate-700 px-2 py-1 rounded">
+                                                    /t/{tenant.slug}
+                                                </code>
+                                            </td>
+                                            <td className="py-4">
+                                                <Badge variant={tenant.is_active ? "default" : "secondary"}>
+                                                    {tenant.is_active ? 'Activo' : 'Inactivo'}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-4">
+                                                <Badge variant={tenant.mercadopago_access_token ? "default" : "outline"}
+                                                    className={tenant.mercadopago_access_token ? 'bg-green-600' : 'text-slate-400'}>
+                                                    {tenant.mercadopago_access_token ? 'Conectado' : 'Sin conectar'}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-4 text-slate-400">
+                                                {new Date(tenant.created_at).toLocaleDateString('es-AR')}
+                                            </td>
+                                            <td className="py-4 text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+                                                            <MoreVertical className="w-4 h-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                                                        <DropdownMenuItem
+                                                            className="text-white hover:bg-slate-700 cursor-pointer"
+                                                            onClick={() => handleGhostLogin(tenant)}
+                                                        >
+                                                            <Eye className="w-4 h-4 mr-2" />
+                                                            Ver Menú
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {filteredTenants.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} className="py-8 text-center text-slate-400">
+                                                No se encontraron negocios
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </main>
+        </div>
+    );
+};
+
+const MetricCard = ({ icon, label, value, color }: { icon: any, label: string, value: string | number, color: string }) => {
+    const colorClasses: Record<string, string> = {
+        blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+        green: 'bg-green-500/10 text-green-400 border-green-500/20',
+        purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+        yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+    };
+
+    return (
+        <div className={`rounded-xl border p-4 ${colorClasses[color]}`}>
+            <div className="flex items-center gap-2 mb-2">
+                {icon}
+                <span className="text-sm opacity-80">{label}</span>
+            </div>
+            <p className="text-2xl font-bold text-white">{value}</p>
+        </div>
+    );
+};
+
+export default SuperAdmin;

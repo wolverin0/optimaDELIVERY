@@ -65,20 +65,35 @@ export const CartDrawer = () => {
     setStep('payment');
   };
 
-  const handleSelectPayment = (method: PaymentMethod) => {
+  const [orderResult, setOrderResult] = useState<{ paymentUrl?: string; isDemo?: boolean; orderNumber?: number } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSelectPayment = async (method: PaymentMethod) => {
     setPaymentMethod(method);
 
     if (!deliveryType) return;
 
+    setIsSubmitting(true);
+
     // Submit order
-    submitOrder({
+    const result = await submitOrder({
       ...customerData,
       address: deliveryType === 'pickup' ? 'Retira en sucursal' : customerData.address,
       deliveryType,
       paymentMethod: method,
     });
 
+    setIsSubmitting(false);
+    setOrderResult(result);
     setStep('success');
+
+    // If MercadoPago with real payment URL, redirect
+    if (method === 'mercadopago' && result.paymentUrl && !result.isDemo) {
+      // Small delay so user sees success message
+      setTimeout(() => {
+        window.location.href = result.paymentUrl!;
+      }, 1500);
+    }
   };
 
   const handleClose = () => {
@@ -115,7 +130,7 @@ export const CartDrawer = () => {
           <ShoppingBag className="h-7 w-7" strokeWidth={1.5} />
           {cart.length > 0 && (
             <span className="absolute -top-1 -right-1 w-6 h-6 bg-white text-primary text-xs font-bold rounded-full flex items-center justify-center border-2 border-primary shadow-md">
-              {cart.length}
+              {cart.reduce((total, item) => total + (item.soldByWeight ? 1 : item.quantity), 0)}
             </span>
           )}
         </button>
@@ -445,19 +460,34 @@ export const CartDrawer = () => {
               <CheckCircle2 className="h-12 w-12 text-green-600" />
             </div>
             <h2 className="text-2xl font-semibold mb-2">¡Gracias por tu pedido!</h2>
+            {orderResult?.orderNumber && (
+              <p className="text-lg font-bold text-primary mb-2">Pedido #{orderResult.orderNumber}</p>
+            )}
             <p className="text-muted-foreground mb-6 max-w-sm">
               {paymentMethod === 'mercadopago'
-                ? 'Serás redirigido a MercadoPago para completar el pago. (Demo)'
+                ? orderResult?.isDemo
+                  ? 'El negocio aún no tiene MercadoPago conectado. Tu pedido fue registrado.'
+                  : 'Redirigiendo a MercadoPago para completar el pago...'
                 : deliveryType === 'pickup'
                   ? 'Tu pedido está siendo preparado. Te esperamos en nuestra sucursal.'
                   : 'Tu pedido está siendo preparado y te lo enviaremos pronto.'
               }
             </p>
 
-            {paymentMethod === 'mercadopago' && (
+            {paymentMethod === 'mercadopago' && orderResult?.isDemo && (
+              <div className="w-full max-w-xs mb-6 p-4 bg-amber-500/10 rounded-xl border border-amber-500/30">
+                <p className="text-sm text-amber-600 font-medium">Pago pendiente</p>
+                <p className="text-xs text-muted-foreground mt-1">Coordina el pago directamente con el negocio</p>
+              </div>
+            )}
+
+            {paymentMethod === 'mercadopago' && !orderResult?.isDemo && orderResult?.paymentUrl && (
               <div className="w-full max-w-xs mb-6 p-4 bg-[#009ee3]/10 rounded-xl border border-[#009ee3]/30">
-                <p className="text-sm text-[#009ee3] font-medium">Demo MercadoPago</p>
-                <p className="text-xs text-muted-foreground mt-1">En producción, aquí se mostraría el checkout de MP</p>
+                <p className="text-sm text-[#009ee3] font-medium">Redirigiendo...</p>
+                <p className="text-xs text-muted-foreground mt-1">Si no eres redirigido automáticamente:</p>
+                <a href={orderResult.paymentUrl} className="text-[#009ee3] underline text-sm mt-2 block">
+                  Click aquí para pagar
+                </a>
               </div>
             )}
 

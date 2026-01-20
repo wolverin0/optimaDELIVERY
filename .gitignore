@@ -22,3 +22,50 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables (SENSITIVE - DO NOT COMMIT)
+.env
+.env.local
+.env.*.local
+
+# MCP and AI tool configs
+.mcp.json
+.serena/
+
+# Debug and check scripts (development only)
+check_*.js
+check_*.cjs
+debug_*.cjs
+deep_debug*.cjs
+list_*.js
+count_*.js
+find_*.js
+get_*.js
+trace_*.js
+verify_*.js
+verify_*.cjs
+run_*.js
+setup_*.js
+fix_*.js
+enable_*.js
+enable_*.cjs
+migrate_*.cjs
+retry_*.cjs
+deploy_*.cjs
+full_db_*.cjs
+full_db_*.js
+test_*.cjs
+test_*.js
+
+# SQL migration scripts (keep in supabase/ folder instead)
+*.sql
+!supabase/**/*.sql
+
+# Test artifacts
+test-manifest/
+debates/
+nul
+
+# Temporary files
+handoff.md
+roadmap.md
