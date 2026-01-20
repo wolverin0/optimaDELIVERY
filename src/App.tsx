@@ -21,6 +21,7 @@ import Demo from "./pages/Demo";
 import KitchenPin from "./pages/KitchenPin";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import JoinTeam from "./pages/JoinTeam";
 
 // Protected pages
 import Kitchen from "./pages/Kitchen";
@@ -57,6 +58,7 @@ const App = () => (
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/terminos" element={<Terms />} />
                 <Route path="/privacidad" element={<Privacy />} />
+                <Route path="/join/:token" element={<JoinTeam />} />
 
                 {/* Tenant Menu (public) - /t/{tenant-slug} */}
                 <Route path="/t/:tenantSlug" element={<Menu />} />

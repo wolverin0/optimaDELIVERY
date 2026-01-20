@@ -175,3 +175,16 @@ export type Category = Database['elbraserito']['Tables']['categories']['Row'];
 export type MenuItem = Database['elbraserito']['Tables']['menu_items']['Row'];
 export type Order = Database['elbraserito']['Tables']['orders']['Row'];
 export type OrderItem = Database['elbraserito']['Tables']['order_items']['Row'];
+
+// Team Invitation types
+export interface TeamInvitation {
+    id: string;
+    tenant_id: string;
+    email: string;
+    role: 'staff' | 'admin';
+    token: string;
+    invited_by: string;
+    expires_at: string;
+    accepted_at: string | null;
+    created_at: string;
+}

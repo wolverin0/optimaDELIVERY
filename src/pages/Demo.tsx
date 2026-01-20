@@ -368,19 +368,19 @@ const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }
                             <span className="hidden sm:inline text-sm text-slate-600">Admin Demo</span>
                         </div>
                     </div>
-                    <nav className="flex gap-1 overflow-x-auto pb-1">
+                    <nav className="flex gap-1">
                         {navItems.map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => setActiveAdminTab(item.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                                className={`flex items-center justify-center gap-1.5 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex-1 sm:flex-none ${
                                     activeAdminTab === item.id
                                         ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
                                         : 'text-slate-600 hover:bg-orange-50 hover:text-slate-800'
                                 }`}
                             >
                                 {item.icon}
-                                <span>{item.label}</span>
+                                <span className="hidden sm:inline">{item.label}</span>
                             </button>
                         ))}
                     </nav>
