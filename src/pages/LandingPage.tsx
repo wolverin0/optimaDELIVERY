@@ -1,29 +1,55 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Check, LayoutTemplate, Smartphone, TrendingUp, ShieldCheck, CreditCard, Zap } from 'lucide-react';
+import {
+    ArrowRight,
+    Check,
+    Smartphone,
+    QrCode,
+    CreditCard,
+    ChefHat,
+    Clock,
+    TrendingUp,
+    Star,
+    Play,
+    Utensils,
+    Bell,
+    BarChart3
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const LandingPage = () => {
+    const [activeFeature, setActiveFeature] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveFeature((prev) => (prev + 1) % 4);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-blue-500/30">
-            {/* Navbar */}
-            <nav className="border-b border-white/5 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                            <span className="font-bold text-white text-lg">O</span>
+        <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-orange-50 text-slate-900 font-sans selection:bg-orange-500/20">
+            {/* Navbar - Floating */}
+            <nav className="fixed top-4 left-4 right-4 z-50">
+                <div className="max-w-6xl mx-auto bg-white/80 backdrop-blur-xl rounded-2xl border border-orange-100 shadow-lg shadow-orange-900/5 px-6 h-16 flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-3 cursor-pointer">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                            <Utensils className="w-5 h-5 text-white" />
                         </div>
-                        <span className="text-xl font-bold tracking-tight">optimaDELIVERY</span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <Link to="/demo" className="hidden md:block text-sm font-medium text-slate-400 hover:text-white transition-colors">
-                            Demo
+                        <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                            optimaDELIVERY
+                        </span>
+                    </Link>
+                    <div className="flex items-center gap-4">
+                        <Link to="/demo" className="hidden md:block text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors cursor-pointer">
+                            Ver Demo
                         </Link>
-                        <Link to="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                        <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors cursor-pointer">
                             Ingresar
                         </Link>
-                        <Link to="/register">
-                            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 font-medium">
-                                Probar Gratis
+                        <Link to="/register/setup">
+                            <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl px-6 font-semibold shadow-lg shadow-orange-500/25 transition-all duration-200 cursor-pointer">
+                                Empezar Gratis
                             </Button>
                         </Link>
                     </div>
@@ -32,186 +58,558 @@ const LandingPage = () => {
 
             {/* Hero Section */}
             <section className="relative pt-32 pb-20 overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-500/20 rounded-full blur-[120px] -z-10" />
+                {/* Background decorations */}
+                <div className="absolute top-20 right-0 w-96 h-96 bg-orange-200/40 rounded-full blur-3xl -z-10" />
+                <div className="absolute bottom-0 left-0 w-80 h-80 bg-red-200/30 rounded-full blur-3xl -z-10" />
 
-                <div className="container mx-auto px-6 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-8 animate-fade-in-up">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                        Nuevo: Integración con MercadoPago
-                    </div>
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        {/* Left - Copy */}
+                        <div className="text-left">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 border border-green-200 text-green-700 text-sm font-semibold mb-6">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                +500 restaurantes ya confian en nosotros
+                            </div>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent max-w-4xl mx-auto leading-tight">
-                        Tu Menú Digital<br />Listo en Minutos
-                    </h1>
+                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
+                                <span className="text-slate-900">Tu carta digital</span>
+                                <br />
+                                <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent">
+                                    lista en 5 minutos
+                                </span>
+                            </h1>
 
-                    <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                        La plataforma todo en uno para restaurantes en Argentina.
-                        Diseños premium, pedidos por WhatsApp y cobros online sin comisiones.
-                    </p>
+                            <p className="text-xl text-slate-600 mb-8 leading-relaxed max-w-lg">
+                                Crea tu menú QR profesional, recibe pedidos por WhatsApp y cobra online.
+                                <span className="font-semibold text-slate-900"> Sin comisiones ocultas.</span>
+                            </p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link to="/register/setup">
-                            <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-blue-600 hover:bg-blue-700 w-full sm:w-auto font-semibold shadow-lg shadow-blue-900/20">
-                                Crear mi Menú
-                                <ArrowRight className="ml-2 w-5 h-5" />
-                            </Button>
-                        </Link>
-                        <Link to="/demo">
-                            <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white w-full sm:w-auto">
-                                <LayoutTemplate className="mr-2 w-5 h-5" />
-                                Ver Demo
-                            </Button>
-                        </Link>
-                    </div>
+                            <div className="flex flex-col sm:flex-row gap-4 mb-10">
+                                <Link to="/register/setup">
+                                    <Button size="lg" className="h-14 px-8 text-lg rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-xl shadow-orange-500/30 w-full sm:w-auto transition-all duration-200 cursor-pointer">
+                                        Crear mi Menú Gratis
+                                        <ArrowRight className="ml-2 w-5 h-5" />
+                                    </Button>
+                                </Link>
+                                <Link to="/demo">
+                                    <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 w-full sm:w-auto font-semibold transition-all duration-200 cursor-pointer">
+                                        <Play className="mr-2 w-5 h-5 fill-current" />
+                                        Ver Demo
+                                    </Button>
+                                </Link>
+                            </div>
 
-                    {/* Social Proof */}
-                    <div className="mt-20 pt-10 border-t border-white/5">
-                        <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-8">Elegido por los mejores gastronómicos</p>
-                        <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-                            <div className="text-xl font-serif font-bold text-white">El Nuevo Braserito</div>
-                            <div className="text-xl font-sans font-black text-white">BURGER KINGDOM</div>
-                            <div className="text-xl font-mono font-bold text-white">SUSHI ZEN</div>
-                            <div className="text-xl font-serif italic text-white">La Pasta Bella</div>
+                            {/* Trust badges */}
+                            <div className="flex items-center gap-6 text-sm text-slate-500">
+                                <div className="flex items-center gap-2">
+                                    <Check className="w-5 h-5 text-green-500" />
+                                    <span>Sin tarjeta requerida</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Check className="w-5 h-5 text-green-500" />
+                                    <span>Setup en minutos</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right - Product Mockup */}
+                        <div className="relative lg:pl-8">
+                            <div className="relative">
+                                {/* Phone mockup */}
+                                <div className="relative mx-auto w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl shadow-slate-900/40 rotate-3 hover:rotate-0 transition-transform duration-500">
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-slate-900 rounded-b-2xl z-20" />
+                                    <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden">
+                                        {/* Mock menu content */}
+                                        <div className="bg-gradient-to-br from-orange-500 to-red-600 p-6 text-white">
+                                            <h3 className="font-bold text-lg">El Nuevo Braserito</h3>
+                                            <p className="text-white/80 text-sm">Hamburguesas Artesanales</p>
+                                        </div>
+                                        <div className="p-4 space-y-3">
+                                            {['Clásica con Queso', 'Bacon Royale', 'La Braserita'].map((item, i) => (
+                                                <div key={i} className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl">
+                                                    <div className="w-12 h-12 bg-gradient-to-br from-orange-200 to-orange-300 rounded-lg" />
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold text-slate-900 text-sm">{item}</p>
+                                                        <p className="text-orange-600 font-bold text-sm">${(4500 + i * 2000).toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Floating elements */}
+                                <div className="absolute -top-4 -left-4 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <Bell className="w-5 h-5 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-slate-900 text-sm">Nuevo Pedido!</p>
+                                            <p className="text-slate-500 text-xs">#1234 - $8.500</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl p-4 shadow-xl shadow-slate-200/50 animate-float-delayed">
+                                    <div className="flex items-center gap-2">
+                                        <QrCode className="w-8 h-8 text-orange-500" />
+                                        <div>
+                                            <p className="font-bold text-slate-900 text-sm">QR Listo</p>
+                                            <p className="text-slate-500 text-xs">Escanear para ver</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Features Grid */}
-            <section className="py-24 bg-slate-900/50 border-y border-white/5">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold mb-4">Todo lo que necesitas para vender más</h2>
-                        <p className="text-slate-400">Herramientas potentes diseñadas para la gastronomía moderna.</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <FeatureCard
-                            icon={<LayoutTemplate className="w-8 h-8 text-blue-500" />}
-                            title="Diseños Premium"
-                            description="Elige entre 5 plantillas profesionales. Clásico, Moderno, Dark Mode y más. Cambia de estilo con un clic."
-                        />
-                        <FeatureCard
-                            icon={<Smartphone className="w-8 h-8 text-purple-500" />}
-                            title="100% Móvil"
-                            description="Tu carta se ve perfecta en cualquier celular. Sin apps que descargar, acceso instantáneo por QR."
-                        />
-                        <FeatureCard
-                            icon={<CreditCard className="w-8 h-8 text-green-500" />}
-                            title="Cobros Integrados"
-                            description="Conecta tu cuenta de MercadoPago y recibe el dinero de tus ventas al instante. Sin intermediarios."
-                        />
+            {/* Social Proof - Logos */}
+            <section className="py-12 border-y border-orange-100 bg-white/50">
+                <div className="max-w-6xl mx-auto px-6">
+                    <p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-widest mb-8">
+                        Restaurantes que ya venden con optimaDELIVERY
+                    </p>
+                    <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+                        {['El Nuevo Braserito', 'Burger Kingdom', 'Sushi Zen', 'La Pasta Bella', 'Taco Loco'].map((name, i) => (
+                            <div key={i} className="text-xl font-bold text-slate-300 hover:text-orange-500 transition-colors cursor-pointer">
+                                {name}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* Pricing Section */}
-            <section className="py-24 relative overflow-hidden">
-                <div className="container mx-auto px-6">
+            {/* How it Works */}
+            <section className="py-24">
+                <div className="max-w-6xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-5xl font-bold mb-6">Planes Flexibles</h2>
-                        <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                            Comienza con una prueba gratuita de 7 días. Cancela cuando quieras.
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900">
+                            Así de fácil funciona
+                        </h2>
+                        <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                            En solo 3 pasos tu restaurante estará vendiendo online
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {/* Plan Emprendedor */}
-                        <div className="rounded-3xl p-8 border border-slate-800 bg-slate-900/50 hover:border-slate-700 transition-colors">
-                            <h3 className="text-xl font-semibold mb-2 text-slate-300">Emprendedor</h3>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-bold">$15.000</span>
-                                <span className="text-slate-400">/mes</span>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                step: '01',
+                                icon: <Utensils className="w-8 h-8" />,
+                                title: 'Crea tu menú',
+                                description: 'Agrega tus productos, precios y fotos. Elige entre 5 diseños profesionales.'
+                            },
+                            {
+                                step: '02',
+                                icon: <QrCode className="w-8 h-8" />,
+                                title: 'Comparte tu QR',
+                                description: 'Genera tu código QR único. Imprímelo para mesas o comparte el link.'
+                            },
+                            {
+                                step: '03',
+                                icon: <CreditCard className="w-8 h-8" />,
+                                title: 'Recibe pedidos',
+                                description: 'Los pedidos llegan a WhatsApp y al panel. Cobra online con MercadoPago.'
+                            }
+                        ].map((item, i) => (
+                            <div
+                                key={i}
+                                className="relative bg-white rounded-3xl p-8 border border-orange-100 shadow-xl shadow-orange-900/5 hover:shadow-2xl hover:shadow-orange-900/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                            >
+                                <span className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30">
+                                    {item.step}
+                                </span>
+                                <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 mb-6 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+                                    {item.icon}
+                                </div>
+                                <h3 className="text-xl font-bold mb-3 text-slate-900">{item.title}</h3>
+                                <p className="text-slate-600 leading-relaxed">{item.description}</p>
                             </div>
-                            <p className="text-slate-400 text-sm mb-6 pb-6 border-b border-slate-800">Ideal para dark kitchens y locales pequeños.</p>
-                            <ul className="space-y-4 text-left mb-8">
-                                <PricingItem text="Menú Digital QR Ilimitado" />
-                                <PricingItem text="Pedidos por WhatsApp" />
-                                <PricingItem text="Diseños Básicos" />
-                                <PricingItem text="Soporte por Email" />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Features Showcase */}
+            <section className="py-24 bg-gradient-to-b from-slate-900 to-slate-950 text-white overflow-hidden">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                            Todo lo que necesitas
+                        </h2>
+                        <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+                            Herramientas potentes para hacer crecer tu negocio gastronómico
+                        </p>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        {/* Feature tabs */}
+                        <div className="space-y-4">
+                            {[
+                                {
+                                    icon: <Smartphone className="w-6 h-6" />,
+                                    title: 'Menú 100% Mobile',
+                                    description: 'Tu carta se ve perfecta en cualquier celular. Sin apps que descargar, acceso instantáneo.'
+                                },
+                                {
+                                    icon: <ChefHat className="w-6 h-6" />,
+                                    title: 'Cocina en Tiempo Real',
+                                    description: 'Panel de cocina con estados de pedidos. Actualiza el progreso y notifica a tus clientes.'
+                                },
+                                {
+                                    icon: <BarChart3 className="w-6 h-6" />,
+                                    title: 'Estadísticas Detalladas',
+                                    description: 'Visualiza tus ventas, productos más vendidos y horarios pico de tu negocio.'
+                                },
+                                {
+                                    icon: <CreditCard className="w-6 h-6" />,
+                                    title: 'Pagos Integrados',
+                                    description: 'Conecta MercadoPago y recibe el dinero de tus ventas al instante. Sin intermediarios.'
+                                }
+                            ].map((feature, i) => (
+                                <div
+                                    key={i}
+                                    onClick={() => setActiveFeature(i)}
+                                    className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 ${
+                                        activeFeature === i
+                                            ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30'
+                                            : 'hover:bg-white/5 border border-transparent'
+                                    }`}
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors duration-300 ${
+                                            activeFeature === i
+                                                ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white'
+                                                : 'bg-slate-800 text-slate-400'
+                                        }`}>
+                                            {feature.icon}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold mb-1">{feature.title}</h3>
+                                            <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Feature visual */}
+                        <div className="relative">
+                            <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-3xl p-8 border border-orange-500/20">
+                                <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+                                    {activeFeature === 0 && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <span className="text-orange-500 font-bold">Vista Mobile</span>
+                                                <Smartphone className="w-5 h-5 text-slate-500" />
+                                            </div>
+                                            {[1,2,3].map(i => (
+                                                <div key={i} className="flex items-center gap-4 p-3 bg-slate-700/50 rounded-xl">
+                                                    <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl" />
+                                                    <div className="flex-1">
+                                                        <div className="h-3 bg-slate-600 rounded w-24 mb-2" />
+                                                        <div className="h-2 bg-slate-700 rounded w-16" />
+                                                    </div>
+                                                    <span className="text-orange-500 font-bold">$4.500</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {activeFeature === 1 && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <span className="text-orange-500 font-bold">Panel Cocina</span>
+                                                <ChefHat className="w-5 h-5 text-slate-500" />
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {['Pendiente', 'Preparando', 'Listo'].map((status, i) => (
+                                                    <div key={i} className="text-center">
+                                                        <div className={`text-2xl font-bold ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-orange-500' : 'text-green-500'}`}>
+                                                            {3 - i}
+                                                        </div>
+                                                        <div className="text-xs text-slate-500">{status}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-xl">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-yellow-500">#1234</span>
+                                                    <span className="text-sm text-slate-400">Hace 2 min</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {activeFeature === 2 && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <span className="text-orange-500 font-bold">Estadísticas</span>
+                                                <BarChart3 className="w-5 h-5 text-slate-500" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-slate-700/50 p-4 rounded-xl">
+                                                    <div className="text-2xl font-bold text-white">$125.400</div>
+                                                    <div className="text-xs text-green-500 flex items-center gap-1">
+                                                        <TrendingUp className="w-3 h-3" /> +12% vs ayer
+                                                    </div>
+                                                </div>
+                                                <div className="bg-slate-700/50 p-4 rounded-xl">
+                                                    <div className="text-2xl font-bold text-white">47</div>
+                                                    <div className="text-xs text-slate-500">Pedidos hoy</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-1 items-end h-20">
+                                                {[40, 65, 45, 80, 60, 90, 75].map((h, i) => (
+                                                    <div key={i} className="flex-1 bg-gradient-to-t from-orange-500 to-red-500 rounded-t" style={{height: `${h}%`}} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {activeFeature === 3 && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <span className="text-orange-500 font-bold">MercadoPago</span>
+                                                <CreditCard className="w-5 h-5 text-slate-500" />
+                                            </div>
+                                            <div className="bg-gradient-to-r from-blue-600 to-blue-400 p-4 rounded-xl text-white">
+                                                <div className="text-sm opacity-80 mb-1">Balance disponible</div>
+                                                <div className="text-3xl font-bold">$248.650</div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {['Pago recibido #1234', 'Pago recibido #1233'].map((tx, i) => (
+                                                    <div key={i} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                                                        <span className="text-sm text-slate-400">{tx}</span>
+                                                        <span className="text-green-500 font-bold">+$8.500</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Testimonials */}
+            <section className="py-24">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900">
+                            Lo que dicen nuestros clientes
+                        </h2>
+                        <p className="text-xl text-slate-600">
+                            Miles de restaurantes ya venden mas con optimaDELIVERY
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                quote: 'Duplicamos nuestros pedidos de delivery en el primer mes. La integración con WhatsApp es increíble.',
+                                name: 'María González',
+                                role: 'Dueña de Pasta Bella',
+                                rating: 5
+                            },
+                            {
+                                quote: 'El panel de cocina nos cambió la vida. Ya no perdemos pedidos y nuestros tiempos mejoraron un 40%.',
+                                name: 'Carlos Rodríguez',
+                                role: 'Chef de Burger Kingdom',
+                                rating: 5
+                            },
+                            {
+                                quote: 'Súper fácil de configurar. En 10 minutos teníamos el menú funcionando con pagos online.',
+                                name: 'Ana Martínez',
+                                role: 'Gerente de Sushi Zen',
+                                rating: 5
+                            }
+                        ].map((testimonial, i) => (
+                            <div
+                                key={i}
+                                className="bg-white rounded-3xl p-8 border border-orange-100 shadow-xl shadow-orange-900/5 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                            >
+                                <div className="flex gap-1 mb-4">
+                                    {[...Array(testimonial.rating)].map((_, j) => (
+                                        <Star key={j} className="w-5 h-5 fill-orange-400 text-orange-400" />
+                                    ))}
+                                </div>
+                                <p className="text-slate-700 mb-6 leading-relaxed italic">
+                                    "{testimonial.quote}"
+                                </p>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                                        {testimonial.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-900">{testimonial.name}</p>
+                                        <p className="text-sm text-slate-500">{testimonial.role}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Pricing */}
+            <section className="py-24 bg-gradient-to-b from-orange-50 to-white">
+                <div className="max-w-5xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900">
+                            Planes simples y transparentes
+                        </h2>
+                        <p className="text-xl text-slate-600">
+                            Sin sorpresas. Sin comisiones ocultas. Cancela cuando quieras.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {/* Plan Emprendedor */}
+                        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer">
+                            <h3 className="text-xl font-bold mb-2 text-slate-900">Emprendedor</h3>
+                            <div className="flex items-baseline gap-1 mb-4">
+                                <span className="text-5xl font-bold text-slate-900">$15.000</span>
+                                <span className="text-slate-500">/mes</span>
+                            </div>
+                            <p className="text-slate-500 mb-8 pb-6 border-b border-slate-100">
+                                Ideal para dark kitchens y locales pequeños
+                            </p>
+                            <ul className="space-y-4 mb-8">
+                                {[
+                                    'Menú Digital QR Ilimitado',
+                                    'Pedidos por WhatsApp',
+                                    '3 Plantillas de Diseño',
+                                    'Soporte por Email'
+                                ].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-slate-700">
+                                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                                            <Check className="w-3 h-3 text-green-600" />
+                                        </div>
+                                        {item}
+                                    </li>
+                                ))}
                             </ul>
                             <Link to="/register?plan=basic">
-                                <Button variant="outline" className="w-full h-12 rounded-xl border-slate-700 hover:bg-slate-800 hover:text-white">
-                                    Comenzar Prueba Gratis
+                                <Button variant="outline" className="w-full h-14 rounded-xl text-lg font-semibold border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
+                                    Empezar Prueba Gratis
                                 </Button>
                             </Link>
                         </div>
 
                         {/* Plan PRO */}
-                        <div className="rounded-3xl p-8 border border-blue-500/30 bg-blue-900/10 hover:border-blue-500/50 transition-colors relative overflow-hidden group shadow-2xl shadow-blue-900/20">
-                            <div className="absolute top-0 right-0 bg-blue-600 text-xs font-bold px-3 py-1 rounded-bl-xl text-white">MÁS POPULAR</div>
-                            <h3 className="text-xl font-semibold mb-2 text-white">Profesional</h3>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-bold text-blue-400">$25.000</span>
-                                <span className="text-slate-300">/mes</span>
+                        <div className="relative bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-8 text-white shadow-2xl shadow-orange-500/30 cursor-pointer">
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-sm font-bold px-4 py-1 rounded-full shadow-lg">
+                                MAS POPULAR
                             </div>
-                            <p className="text-slate-400 text-sm mb-6 pb-6 border-b border-blue-500/20">Para restaurantes que buscan automatizar todo.</p>
-                            <ul className="space-y-4 text-left mb-8">
-                                <PricingItem text="Todo lo del plan Emprendedor" highlighted />
-                                <PricingItem text="Cobros con MercadoPago" highlighted />
-                                <PricingItem text="Gestión de Delivery y Takeaway" />
-                                <PricingItem text="Panel de Administración Completo" />
-                                <PricingItem text="Soporte Prioritario WhatsApp" />
+                            <h3 className="text-xl font-bold mb-2">Profesional</h3>
+                            <div className="flex items-baseline gap-1 mb-4">
+                                <span className="text-5xl font-bold">$25.000</span>
+                                <span className="text-white/70">/mes</span>
+                            </div>
+                            <p className="text-white/80 mb-8 pb-6 border-b border-white/20">
+                                Para restaurantes que buscan automatizar todo
+                            </p>
+                            <ul className="space-y-4 mb-8">
+                                {[
+                                    'Todo lo del plan Emprendedor',
+                                    'Cobros con MercadoPago',
+                                    'Panel de Cocina en Tiempo Real',
+                                    'Estadísticas Detalladas',
+                                    '5 Plantillas Premium',
+                                    'Soporte Prioritario WhatsApp'
+                                ].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-3">
+                                        <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                                            <Check className="w-3 h-3" />
+                                        </div>
+                                        {item}
+                                    </li>
+                                ))}
                             </ul>
                             <Link to="/register?plan=pro">
-                                <Button className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/25">
+                                <Button className="w-full h-14 rounded-xl text-lg font-bold bg-white text-orange-600 hover:bg-orange-50 shadow-lg transition-all cursor-pointer">
                                     Suscribirse Ahora
                                 </Button>
                             </Link>
                         </div>
                     </div>
 
-                    <div className="mt-12 text-center">
-                        <div className="inline-flex items-center gap-2 text-slate-500 text-sm bg-slate-900/80 px-4 py-2 rounded-full border border-slate-800">
-                            <ShieldCheck className="w-4 h-4 text-green-500" />
-                            Garantía de satisfacción de 30 días o te devolvemos tu dinero.
-                        </div>
-                    </div>
+                    <p className="text-center text-slate-500 mt-8 text-sm">
+                        7 días de prueba gratis en ambos planes. Sin tarjeta de crédito.
+                    </p>
                 </div>
             </section>
 
-            {/* CTA Final */}
-            <section className="py-20 border-t border-white/5 bg-gradient-to-b from-slate-950 to-blue-950/20">
-                <div className="container mx-auto px-6 text-center">
-                    <h2 className="text-3xl font-bold mb-6">¿Listo para modernizar tu restaurante?</h2>
-                    <Link to="/register">
-                        <Button size="lg" className="h-14 px-10 text-lg rounded-full bg-white text-slate-950 hover:bg-slate-200 font-bold">
-                            Crear Cuenta Gratis
+            {/* Final CTA */}
+            <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10" />
+                <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-80 h-80 bg-red-500/20 rounded-full blur-3xl" />
+
+                <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+                    <h2 className="text-4xl md:text-6xl font-bold mb-6">
+                        ¿Listo para vender más?
+                    </h2>
+                    <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
+                        Únete a los +500 restaurantes que ya confían en optimaDELIVERY para hacer crecer su negocio.
+                    </p>
+                    <Link to="/register/setup">
+                        <Button size="lg" className="h-16 px-12 text-xl rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 font-bold shadow-2xl shadow-orange-500/40 transition-all duration-200 cursor-pointer">
+                            Crear mi Menú Gratis
+                            <ArrowRight className="ml-3 w-6 h-6" />
                         </Button>
                     </Link>
+                    <p className="mt-6 text-slate-500 text-sm">
+                        Setup en 5 minutos • Sin tarjeta requerida • Cancela cuando quieras
+                    </p>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="py-12 border-t border-white/5 bg-slate-950">
-                <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-500">
-                    <div>© 2024 optimaDELIVERY. Hecho con ❤️ en Argentina.</div>
-                    <div className="flex gap-6">
-                        <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-                        <a href="#" className="hover:text-white transition-colors">Términos</a>
-                        <a href="#" className="hover:text-white transition-colors">Contacto</a>
+            <footer className="py-12 bg-slate-950 text-white">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+                                <Utensils className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="text-lg font-bold">optimaDELIVERY</span>
+                        </div>
+                        <div className="flex gap-8 text-sm text-slate-400">
+                            <a href="#" className="hover:text-white transition-colors cursor-pointer">Privacidad</a>
+                            <a href="#" className="hover:text-white transition-colors cursor-pointer">Términos</a>
+                            <a href="#" className="hover:text-white transition-colors cursor-pointer">Contacto</a>
+                        </div>
+                        <p className="text-sm text-slate-500">
+                            © 2024 optimaDELIVERY. Hecho en Argentina.
+                        </p>
                     </div>
                 </div>
             </footer>
+
+            {/* Custom animations */}
+            <style>{`
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-10px); }
+                }
+                @keyframes float-delayed {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-8px); }
+                }
+                .animate-float {
+                    animation: float 3s ease-in-out infinite;
+                }
+                .animate-float-delayed {
+                    animation: float-delayed 3s ease-in-out infinite;
+                    animation-delay: 1.5s;
+                }
+            `}</style>
         </div>
     );
 };
-
-const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
-    <div className="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors">
-        <div className="mb-5 p-3 bg-slate-900 rounded-xl inline-block">{icon}</div>
-        <h3 className="text-xl font-bold mb-3">{title}</h3>
-        <p className="text-slate-400 leading-relaxed">{description}</p>
-    </div>
-);
-
-const PricingItem = ({ text, highlighted = false }: { text: string, highlighted?: boolean }) => (
-    <li className={`flex items-center gap-3 ${highlighted ? 'text-white font-medium' : 'text-slate-300'}`}>
-        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${highlighted ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
-            <Check className="w-3 h-3" />
-        </div>
-        {text}
-    </li>
-);
 
 export default LandingPage;
