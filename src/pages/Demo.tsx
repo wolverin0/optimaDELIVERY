@@ -1,6 +1,6 @@
 import { useState, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { TenantContext } from '@/context/TenantContext';
-// We import OrderContext to provide it with mock values
 import { OrderContext } from '@/context/OrderContext';
 import Menu from '@/pages/Menu';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,10 @@ import {
     TrendingUp,
     Users,
     DollarSign,
-    ShoppingBag
+    ShoppingBag,
+    Utensils,
+    ArrowLeft,
+    Sparkles
 } from 'lucide-react';
 import { Tenant, MenuItem, Category } from '@/lib/supabase';
 import { THEMES } from '@/lib/themes';
@@ -104,7 +107,7 @@ const MockOrderProvider = ({ children, onNewOrder }: { children: ReactNode, onNe
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        onNewOrder(newOrder); // Update KDS
+        onNewOrder(newOrder);
         clearCart();
         toast.success("¡Pedido enviado a cocina!", { position: 'top-center', duration: 3000 });
         return { success: true, orderNumber: parseInt(orderId), isDemo: true };
@@ -138,47 +141,62 @@ const MockOrderProvider = ({ children, onNewOrder }: { children: ReactNode, onNe
 // --- VIEW COMPONENTS ---
 
 const KitchenView = ({ orders }: { orders: MockOrder[] }) => (
-    <div className="p-8 bg-slate-100 min-h-full">
-        <header className="mb-8 flex justify-between items-center">
-            <h2 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-                <ChefHat className="w-8 h-8 text-orange-500" />
-                Monitor de Cocina (KDS)
+    <div className="p-6 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-full">
+        <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                    <ChefHat className="w-5 h-5 text-white" />
+                </div>
+                Monitor de Cocina
             </h2>
-            <div className="bg-white px-4 py-2 rounded-full shadow-sm font-mono text-sm">
-                Promedio Prep: <span className="font-bold text-green-600">12m</span>
+            <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm font-mono text-sm border border-white/50">
+                Tiempo Promedio: <span className="font-bold text-green-600">12m</span>
             </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
             {['pending', 'preparing', 'ready', 'delivered'].map((status) => {
                 const label = status === 'pending' ? 'Pendiente' :
                     status === 'preparing' ? 'En Preparación' :
                         status === 'ready' ? 'Listo' : 'Entregado';
+                const colors = {
+                    pending: 'from-orange-500 to-red-500',
+                    preparing: 'from-amber-500 to-orange-500',
+                    ready: 'from-green-500 to-emerald-500',
+                    delivered: 'from-slate-400 to-slate-500'
+                };
 
                 return (
-                    <div key={status} className="bg-slate-200/50 rounded-xl p-4 flex flex-col h-full">
-                        <h3 className="uppercase text-xs font-bold text-slate-500 mb-4 tracking-wider flex justify-between">
+                    <div key={status} className="bg-white/60 backdrop-blur-xl rounded-2xl p-4 flex flex-col border border-white/50 shadow-lg shadow-orange-900/5">
+                        <h3 className="uppercase text-xs font-bold text-slate-500 mb-4 tracking-wider flex justify-between items-center">
                             {label}
-                            <span className="bg-slate-300 px-2 rounded-full text-slate-700">{orders.filter(o => o.status === status).length}</span>
+                            <span className={`bg-gradient-to-r ${colors[status as keyof typeof colors]} text-white px-2 py-0.5 rounded-full text-xs`}>
+                                {orders.filter(o => o.status === status).length}
+                            </span>
                         </h3>
-                        <div className="space-y-3">
+                        <div className="space-y-3 flex-1">
                             {orders.filter(o => o.status === status).map(order => (
-                                <div key={order.id} className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-orange-500 animate-in fade-in slide-in-from-bottom-2">
+                                <div key={order.id} className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500 animate-in fade-in slide-in-from-bottom-2">
                                     <div className="flex justify-between mb-2">
-                                        <span className="font-bold text-lg">#{order.id}</span>
-                                        <span className="text-xs text-slate-400 font-mono">{order.time}</span>
+                                        <span className="font-bold text-lg text-slate-800">#{order.id}</span>
+                                        <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2 py-1 rounded">{order.time}</span>
                                     </div>
                                     <p className="text-sm font-medium text-slate-700 mb-3">{order.customer}</p>
-                                    <ul className="text-xs text-slate-500 space-y-1 mb-3 pt-2 border-t border-slate-100">
+                                    <ul className="text-xs text-slate-500 space-y-1 pt-2 border-t border-slate-100">
                                         {order.items.map((item, idx) => (
                                             <li key={idx} className="flex items-center gap-2">
-                                                <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
                                                 {item}
                                             </li>
                                         ))}
                                     </ul>
                                 </div>
                             ))}
+                            {orders.filter(o => o.status === status).length === 0 && (
+                                <div className="flex-1 flex items-center justify-center py-8 text-slate-400 text-sm">
+                                    Sin pedidos
+                                </div>
+                            )}
                         </div>
                     </div>
                 );
@@ -188,59 +206,72 @@ const KitchenView = ({ orders }: { orders: MockOrder[] }) => (
 );
 
 const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }) => (
-    <div className="p-8 bg-slate-50 min-h-full">
+    <div className="p-6 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-full">
         <header className="mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <LayoutDashboard className="w-8 h-8 text-blue-600" />
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                    <LayoutDashboard className="w-5 h-5 text-white" />
+                </div>
                 Panel de Administración
             </h2>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="text-sm font-medium text-slate-500">Ingresos Totales</h3>
-                    <DollarSign className="w-4 h-4 text-green-500" />
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                    </div>
                 </div>
-                <p className="text-3xl font-bold text-slate-900">${revenue.toLocaleString()}</p>
-                <p className="text-xs text-green-600 flex items-center mt-1">
+                <p className="text-3xl font-bold text-slate-800">${revenue.toLocaleString()}</p>
+                <p className="text-xs text-green-600 flex items-center mt-2 font-medium">
                     <TrendingUp className="w-3 h-3 mr-1" /> +12.5% vs ayer
                 </p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="text-sm font-medium text-slate-500">Pedidos Activos</h3>
-                    <ShoppingBag className="w-4 h-4 text-blue-500" />
+                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <ShoppingBag className="w-4 h-4 text-orange-600" />
+                    </div>
                 </div>
-                <p className="text-3xl font-bold text-slate-900">{orders.filter(o => o.status !== 'delivered').length}</p>
+                <p className="text-3xl font-bold text-slate-800">{orders.filter(o => o.status !== 'delivered').length}</p>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="text-sm font-medium text-slate-500">Clientes Nuevos</h3>
-                    <Users className="w-4 h-4 text-purple-500" />
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Users className="w-4 h-4 text-purple-600" />
+                    </div>
                 </div>
-                <p className="text-3xl font-bold text-slate-900">24</p>
+                <p className="text-3xl font-bold text-slate-800">24</p>
             </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 font-semibold text-slate-700">Actividad Reciente</div>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-orange-900/5 border border-white/50 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 font-semibold text-slate-800">Actividad Reciente</div>
             <div className="divide-y divide-slate-100">
                 {orders.slice().reverse().map(order => (
-                    <div key={order.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50">
+                    <div key={order.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                         <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-orange-500'}`} />
+                            <div className={`w-2.5 h-2.5 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-orange-500'}`} />
                             <div>
-                                <p className="font-medium text-sm text-slate-900">Pedido #{order.id}</p>
+                                <p className="font-medium text-sm text-slate-800">Pedido #{order.id}</p>
                                 <p className="text-xs text-slate-500">{order.customer}</p>
                             </div>
                         </div>
                         <div className="text-right">
-                            <p className="font-medium text-sm text-slate-900">${order.total.toLocaleString()}</p>
+                            <p className="font-medium text-sm text-slate-800">${order.total.toLocaleString()}</p>
                             <p className="text-xs text-slate-500">{order.time}</p>
                         </div>
                     </div>
                 ))}
+                {orders.length === 0 && (
+                    <div className="px-6 py-12 text-center text-slate-400">
+                        No hay actividad reciente
+                    </div>
+                )}
             </div>
         </div>
     </div>
@@ -249,17 +280,14 @@ const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }
 // --- MAIN DEMO PAGE ---
 const Demo = () => {
     const [viewMode, setViewMode] = useState<'consumer' | 'kitchen' | 'admin'>('consumer');
-    // Default to the first theme
     const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
 
-    // Initial mock orders
     const [orders, setOrders] = useState<MockOrder[]>([
         { id: '101', customer: 'Juan Perez', total: 17000, status: 'preparing', items: ['Clásica con Queso', 'Papas Rústicas'], time: '12:30 PM' },
         { id: '102', customer: 'Maria Garcia', total: 3500, status: 'pending', items: ['Craft Cola'], time: '12:35 PM' },
     ]);
     const [lastNotification, setLastNotification] = useState<string | null>(null);
 
-    // Apply selected theme to the mock tenant
     const dynamicTenant = {
         ...BASE_TENANT,
         theme: currentTheme
@@ -285,28 +313,30 @@ const Demo = () => {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-950 text-white font-sans">
+        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 font-sans">
             {/* Sidebar Navigation */}
-            <aside className="w-20 md:w-72 flex-shrink-0 border-r border-slate-900 flex flex-col bg-slate-950">
-                <div className="p-6 flex items-center gap-3 border-b border-slate-900 h-20">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg shadow-blue-900/20">
-                        O
+            <aside className="w-20 md:w-72 flex-shrink-0 border-r border-orange-100/50 flex flex-col bg-white/70 backdrop-blur-xl">
+                <div className="p-4 md:p-6 flex items-center gap-3 border-b border-orange-100/50 h-20">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25 flex-shrink-0">
+                        <Utensils className="h-5 w-5 text-white" />
                     </div>
                     <div className="hidden md:block">
-                        <span className="font-bold text-lg tracking-tight">optima</span>
-                        <span className="font-light text-slate-400">DELIVERY</span>
+                        <span className="font-bold text-lg text-slate-800">optima</span>
+                        <span className="font-light text-orange-600">DELIVERY</span>
                     </div>
                 </div>
 
                 <ScrollArea className="flex-1">
-                    <nav className="p-4 space-y-8">
+                    <nav className="p-4 space-y-6">
                         {/* Section: Apps */}
                         <section>
-                            <div className="text-xs font-bold text-slate-500 uppercase mb-3 px-2 hidden md:block tracking-wider">Módulos</div>
+                            <div className="text-xs font-bold text-slate-400 uppercase mb-3 px-2 hidden md:block tracking-wider">Módulos</div>
                             <div className="space-y-1">
                                 <Button
                                     variant="ghost"
-                                    className={`w-full justify-start h-12 ${viewMode === 'consumer' ? 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full justify-start h-12 rounded-xl transition-all ${viewMode === 'consumer'
+                                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-orange-50'}`}
                                     onClick={() => setViewMode('consumer')}
                                 >
                                     <Smartphone className="w-5 h-5 mr-3" />
@@ -314,7 +344,9 @@ const Demo = () => {
                                 </Button>
                                 <Button
                                     variant="ghost"
-                                    className={`w-full justify-start h-12 ${viewMode === 'kitchen' ? 'bg-orange-600/10 text-orange-400 border-l-2 border-orange-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full justify-start h-12 rounded-xl transition-all ${viewMode === 'kitchen'
+                                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-orange-50'}`}
                                     onClick={() => setViewMode('kitchen')}
                                 >
                                     <ChefHat className="w-5 h-5 mr-3" />
@@ -322,7 +354,9 @@ const Demo = () => {
                                 </Button>
                                 <Button
                                     variant="ghost"
-                                    className={`w-full justify-start h-12 ${viewMode === 'admin' ? 'bg-emerald-600/10 text-emerald-400 border-l-2 border-emerald-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full justify-start h-12 rounded-xl transition-all ${viewMode === 'admin'
+                                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-orange-50'}`}
                                     onClick={() => setViewMode('admin')}
                                 >
                                     <LayoutDashboard className="w-5 h-5 mr-3" />
@@ -331,42 +365,55 @@ const Demo = () => {
                             </div>
                         </section>
 
-                        {/* Section: Template Switcher (Config) */}
+                        {/* Section: Template Switcher */}
                         <section>
-                            <div className="text-xs font-bold text-slate-500 uppercase mb-3 px-2 hidden md:block tracking-wider">Diseños</div>
+                            <div className="text-xs font-bold text-slate-400 uppercase mb-3 px-2 hidden md:block tracking-wider">Diseños</div>
                             <div className="space-y-1">
                                 {THEMES.map(theme => (
                                     <Button
                                         key={theme.templateId}
                                         variant="ghost"
                                         size="sm"
-                                        className={`w-full justify-start h-10 ${currentTheme.templateId === theme.templateId ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                        className={`w-full justify-start h-10 rounded-lg transition-all ${currentTheme.templateId === theme.templateId
+                                            ? 'bg-orange-100 text-orange-700'
+                                            : 'text-slate-500 hover:text-slate-700 hover:bg-orange-50'}`}
                                         onClick={() => {
                                             setCurrentTheme(theme);
-                                            setViewMode('consumer'); // Switch to consumer to see changes
+                                            setViewMode('consumer');
                                             toast.info(`Diseño cambiado a: ${theme.name}`, { position: 'bottom-center' });
                                         }}
                                     >
-                                        <div className="w-3 h-3 rounded-full mr-3 border border-white/20" style={{ backgroundColor: theme.primaryColor }}></div>
+                                        <div
+                                            className="w-4 h-4 rounded-full mr-3 border-2 border-white shadow-sm"
+                                            style={{ backgroundColor: theme.primaryColor }}
+                                        />
                                         <span className="hidden md:inline capitalize text-sm">{theme.name}</span>
                                     </Button>
                                 ))}
                             </div>
                         </section>
-
                     </nav>
                 </ScrollArea>
 
-                <div className="p-4 border-t border-slate-900">
-                    <Button onClick={simulateOrder} variant="outline" className="w-full h-12 border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-green-400 font-medium">
+                <div className="p-4 space-y-3 border-t border-orange-100/50">
+                    <Button
+                        onClick={simulateOrder}
+                        className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium shadow-lg shadow-green-500/25 rounded-xl"
+                    >
                         <Plus className="w-4 h-4 mr-2" />
                         <span className="hidden md:inline">Simular Pedido</span>
                     </Button>
+                    <Link to="/">
+                        <Button variant="ghost" className="w-full h-10 text-slate-500 hover:text-slate-700 hover:bg-orange-50 rounded-lg">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            <span className="hidden md:inline">Volver al inicio</span>
+                        </Button>
+                    </Link>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 relative overflow-hidden bg-white text-slate-900 shadow-2xl">
+            <main className="flex-1 relative overflow-hidden bg-white shadow-2xl rounded-l-3xl">
                 {viewMode === 'consumer' && (
                     <div className="h-full overflow-y-auto w-full">
                         <TenantContext.Provider value={{
@@ -396,11 +443,19 @@ const Demo = () => {
 
                 {/* Toast Notification Overlay */}
                 {lastNotification && (
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 z-50 pointer-events-none border border-slate-700">
-                        <Bell className="w-5 h-5 text-yellow-500" />
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-full shadow-2xl shadow-orange-500/30 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 z-50 pointer-events-none">
+                        <Bell className="w-5 h-5" />
                         <span className="font-semibold tracking-wide">{lastNotification}</span>
                     </div>
                 )}
+
+                {/* Demo Badge */}
+                <div className="absolute bottom-6 right-6 z-40">
+                    <div className="bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full shadow-lg border border-orange-100 flex items-center gap-2 text-sm font-medium text-slate-600">
+                        <Sparkles className="w-4 h-4 text-orange-500" />
+                        Modo Demo
+                    </div>
+                </div>
             </main>
         </div>
     );

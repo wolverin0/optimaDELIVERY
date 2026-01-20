@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Store, CreditCard, LayoutDashboard, UtensilsCrossed, Settings, LogOut, ExternalLink, CheckCircle, Palette, Edit } from 'lucide-react';
+import { Loader2, Store, CreditCard, LayoutDashboard, UtensilsCrossed, Settings, LogOut, ExternalLink, CheckCircle, Palette, Edit, Utensils } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MenuManager } from '@/components/admin/MenuManager';
 import { OrdersManager } from '@/components/admin/OrdersManager';
@@ -19,14 +19,6 @@ import { ChefHat, Share2 } from 'lucide-react';
 // Environment variables for MercadoPago
 const MP_CLIENT_ID = import.meta.env.VITE_MP_CLIENT_ID || 'YOUR_MP_CLIENT_ID';
 const MP_REDIRECT_URI = import.meta.env.VITE_MP_REDIRECT_URI || 'YOUR_EDGE_FUNCTION_URL';
-
-// Helper to convert hex to rgba with alpha
-const hexToRgba = (hex: string, alpha: number): string => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
 
 // Role type definition
 type UserRole = 'owner' | 'admin' | 'kitchen' | 'staff';
@@ -61,26 +53,19 @@ const Dashboard = () => {
 
     const userRole = profile?.role as UserRole | undefined;
 
-    // Define navigation items with role-based access
-    // - owner: Full access to everything
-    // - admin: Full access except billing/subscription settings
-    // - kitchen: Only sees Kitchen/KDS view
-    // - staff: Can view orders and overview, no editing
     const navItems: NavItemConfig[] = useMemo(() => [
-        { id: 'overview', icon: <LayoutDashboard />, label: 'Resumen', allowedRoles: ['owner', 'admin', 'staff'] },
-        { id: 'menu', icon: <UtensilsCrossed />, label: 'Menu', allowedRoles: ['owner', 'admin'] },
-        { id: 'kitchen', icon: <ChefHat />, label: 'Cocina', allowedRoles: ['owner', 'admin', 'kitchen'] },
-        { id: 'orders', icon: <CreditCard />, label: 'Pedidos', allowedRoles: ['owner', 'admin', 'staff'] },
-        { id: 'design', icon: <Palette />, label: 'Diseno', allowedRoles: ['owner', 'admin'] },
-        { id: 'settings', icon: <Settings />, label: 'Configuracion', allowedRoles: ['owner', 'admin'] },
+        { id: 'overview', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Resumen', allowedRoles: ['owner', 'admin', 'staff'] },
+        { id: 'menu', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Menu', allowedRoles: ['owner', 'admin'] },
+        { id: 'kitchen', icon: <ChefHat className="w-5 h-5" />, label: 'Cocina', allowedRoles: ['owner', 'admin', 'kitchen'] },
+        { id: 'orders', icon: <CreditCard className="w-5 h-5" />, label: 'Pedidos', allowedRoles: ['owner', 'admin', 'staff'] },
+        { id: 'design', icon: <Palette className="w-5 h-5" />, label: 'Diseño', allowedRoles: ['owner', 'admin'] },
+        { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Config', allowedRoles: ['owner', 'admin'] },
     ], []);
 
-    // Filter nav items based on user role
     const visibleNavItems = useMemo(() => {
         return navItems.filter(item => hasPermission(userRole, item.allowedRoles));
     }, [navItems, userRole]);
 
-    // Get default tab based on role
     const getDefaultTab = useMemo(() => {
         if (userRole === 'kitchen') return 'kitchen';
         if (userRole === 'staff') return 'overview';
@@ -89,7 +74,6 @@ const Dashboard = () => {
 
     const [activeTab, setActiveTab] = useState(getDefaultTab);
 
-    // Update active tab if current tab is not allowed for the user's role
     useEffect(() => {
         const isCurrentTabAllowed = visibleNavItems.some(item => item.id === activeTab);
         if (!isCurrentTabAllowed && visibleNavItems.length > 0) {
@@ -97,24 +81,36 @@ const Dashboard = () => {
         }
     }, [activeTab, visibleNavItems]);
 
-    // Get primary color from tenant theme, fallback to blue
-    const primaryColor = tenant?.theme?.primaryColor || '#3B82F6';
-
     if (isLoading) {
         return (
-            <div className="h-screen w-full flex items-center justify-center bg-slate-50">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/30 animate-pulse">
+                        <Utensils className="w-6 h-6 text-white" />
+                    </div>
+                    <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                </div>
             </div>
         );
     }
 
     if (error || !tenant) {
         return (
-            <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-50 gap-4">
-                <p className="text-destructive font-medium">No se pudo cargar la información del negocio.</p>
-                <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => window.location.reload()}>Reintentar</Button>
-                    <Button variant="destructive" onClick={signOut}>Cerrar Sesión</Button>
+            <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 gap-6 px-4">
+                <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center">
+                    <Store className="w-8 h-8 text-red-500" />
+                </div>
+                <div className="text-center">
+                    <p className="text-red-600 font-medium text-lg mb-2">Error al cargar</p>
+                    <p className="text-slate-500 text-sm">No se pudo cargar la información del negocio.</p>
+                </div>
+                <div className="flex gap-3">
+                    <Button variant="outline" onClick={() => window.location.reload()} className="rounded-xl">
+                        Reintentar
+                    </Button>
+                    <Button variant="destructive" onClick={signOut} className="rounded-xl">
+                        Cerrar Sesión
+                    </Button>
                 </div>
             </div>
         );
@@ -124,19 +120,19 @@ const Dashboard = () => {
     const mpAuthUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${MP_REDIRECT_URI}&state=${tenant.id}`;
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
+        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex">
             {/* Sidebar */}
-            <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
-                <div className="p-6 border-b border-slate-100">
-                    <div className="flex items-center gap-2 font-bold text-xl" style={{ color: primaryColor }}>
-                        <div
-                            className="w-8 h-8 text-white rounded-lg flex items-center justify-center"
-                            style={{ backgroundColor: primaryColor }}
-                        >
-                            O
+            <aside className="w-64 bg-white/70 backdrop-blur-xl border-r border-orange-100/50 hidden md:flex flex-col">
+                <div className="p-6 border-b border-orange-100/50">
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25 group-hover:shadow-orange-500/40 transition-shadow">
+                            <Utensils className="h-5 w-5 text-white" />
                         </div>
-                        optima
-                    </div>
+                        <div>
+                            <span className="font-bold text-lg text-slate-800">optima</span>
+                            <span className="font-light text-orange-600">DELIVERY</span>
+                        </div>
+                    </Link>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1">
@@ -147,26 +143,27 @@ const Dashboard = () => {
                             label={item.label}
                             isActive={activeTab === item.id}
                             onClick={() => setActiveTab(item.id)}
-                            primaryColor={primaryColor}
                         />
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-slate-100">
+                <div className="p-4 border-t border-orange-100/50">
                     <div className="flex items-center gap-3 mb-4 px-2">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center text-sm font-bold text-orange-600">
                             {profile?.full_name?.charAt(0)?.toUpperCase() || profile?.email?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="overflow-hidden flex-1">
-                            <p className="text-sm font-medium truncate">{profile?.full_name || profile?.email || 'Usuario'}</p>
-                            <div className="flex items-center gap-2">
-                                <RoleBadge role={userRole} />
-                            </div>
+                            <p className="text-sm font-medium text-slate-800 truncate">{profile?.full_name || profile?.email || 'Usuario'}</p>
+                            <RoleBadge role={userRole} />
                         </div>
                     </div>
-                    <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" onClick={signOut}>
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                        onClick={signOut}
+                    >
                         <LogOut className="w-4 h-4 mr-2" />
-                        Cerrar Sesion
+                        Cerrar Sesión
                     </Button>
                 </div>
             </aside>
@@ -174,124 +171,128 @@ const Dashboard = () => {
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto">
                 {/* Mobile Header */}
-                <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center px-4 justify-between">
-                    <span className="font-bold text-lg">optimaDELIVERY</span>
-                    <Button size="icon" variant="ghost"><Settings /></Button>
+                <header className="md:hidden h-16 bg-white/80 backdrop-blur-xl border-b border-orange-100/50 flex items-center px-4 justify-between sticky top-0 z-10">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+                            <Utensils className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="font-bold text-slate-800">optimaDELIVERY</span>
+                    </div>
+                    <Button size="icon" variant="ghost" className="text-slate-600">
+                        <Settings className="w-5 h-5" />
+                    </Button>
                 </header>
 
-                <div className="p-8 max-w-7xl mx-auto">
+                <div className="p-6 md:p-8 max-w-7xl mx-auto">
                     {activeTab === 'overview' && (
                         <div className="space-y-6">
-                            <h1 className="text-3xl font-bold text-slate-900">Hola, {tenant.name.split(' ')[0]} 👋</h1>
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+                                    Hola, {tenant.name.split(' ')[0]}
+                                </h1>
+                                <p className="text-slate-500 mt-1">Aquí está el resumen de tu negocio</p>
+                            </div>
 
-                            <div className="grid md:grid-cols-3 gap-6">
+                            <div className="grid md:grid-cols-3 gap-4 md:gap-6">
                                 <StatCard title="Ventas Hoy" value="$0" trend="+0%" />
                                 <StatCard title="Pedidos Activos" value="0" />
                                 <StatCard title="Visitas al Menú" value="0" />
                             </div>
 
-                            <div
-                                className="rounded-2xl p-8 text-white flex items-center justify-between"
-                                style={{ backgroundColor: primaryColor }}
-                            >
-                                <div>
-                                    <h2 className="text-xl font-bold mb-2">Tu menu esta online</h2>
-                                    <p className="mb-4" style={{ color: hexToRgba('#ffffff', 0.8) }}>Comparte el link con tus clientes para empezar a vender.</p>
-                                    <div
-                                        className="flex items-center gap-2 p-2 rounded-lg text-sm font-mono"
-                                        style={{ backgroundColor: hexToRgba('#000000', 0.2) }}
-                                    >
-                                        optimadelivery.com/t/{tenant.slug}
-                                        <ExternalLink
-                                            className="w-4 h-4 ml-2 opacity-50 cursor-pointer hover:opacity-100"
-                                            onClick={() => window.open(`/t/${tenant.slug}`, '_blank')}
-                                        />
+                            <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-6 md:p-8 text-white shadow-xl shadow-orange-500/20">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-bold mb-2">Tu menú está online</h2>
+                                        <p className="text-white/80 mb-4">Comparte el link con tus clientes para empezar a vender.</p>
+                                        <div className="flex items-center gap-2 bg-black/20 backdrop-blur px-4 py-2 rounded-xl text-sm font-mono w-fit">
+                                            optimadelivery.vercel.app/t/{tenant.slug}
+                                            <ExternalLink
+                                                className="w-4 h-4 opacity-70 cursor-pointer hover:opacity-100 transition-opacity"
+                                                onClick={() => window.open(`/t/${tenant.slug}`, '_blank')}
+                                            />
+                                        </div>
                                     </div>
+                                    <Button
+                                        className="bg-white hover:bg-white/90 text-orange-600 font-semibold shadow-lg rounded-xl h-12 px-6"
+                                        onClick={() => window.open(`/t/${tenant.slug}`, '_blank')}
+                                    >
+                                        Ver mi Menú
+                                    </Button>
                                 </div>
-                                <Button
-                                    className="bg-white hover:bg-white/90"
-                                    style={{ color: primaryColor }}
-                                    onClick={() => window.open(`/t/${tenant.slug}`, '_blank')}
-                                >
-                                    Ver mi Menu
-                                </Button>
                             </div>
                         </div>
                     )}
 
                     {activeTab === 'settings' && canEdit(userRole) && (
                         <div className="space-y-6">
-                            <h1 className="text-2xl font-bold mb-6">Configuracion</h1>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-800 mb-1">Configuración</h1>
+                                <p className="text-slate-500">Administra los ajustes de tu negocio</p>
+                            </div>
 
                             <Tabs defaultValue={canAccessBilling(userRole) ? "payments" : "general"} className="w-full">
-                                <TabsList className="mb-6">
-                                    <TabsTrigger value="general">General</TabsTrigger>
-                                    {/* Payments/Billing tab - owner only */}
+                                <TabsList className="mb-6 bg-white/60 backdrop-blur rounded-xl p-1">
+                                    <TabsTrigger value="general" className="rounded-lg">General</TabsTrigger>
                                     {canAccessBilling(userRole) && (
-                                        <TabsTrigger value="payments">Pagos</TabsTrigger>
+                                        <TabsTrigger value="payments" className="rounded-lg">Pagos</TabsTrigger>
                                     )}
-                                    <TabsTrigger value="kitchen">Cocina</TabsTrigger>
-                                    <TabsTrigger value="social">Redes</TabsTrigger>
-                                    <TabsTrigger value="team">Equipo</TabsTrigger>
+                                    <TabsTrigger value="kitchen" className="rounded-lg">Cocina</TabsTrigger>
+                                    <TabsTrigger value="social" className="rounded-lg">Redes</TabsTrigger>
+                                    <TabsTrigger value="team" className="rounded-lg">Equipo</TabsTrigger>
                                 </TabsList>
 
-                                {/* Payments/Billing content - owner only */}
                                 {canAccessBilling(userRole) && (
                                     <TabsContent value="payments" className="space-y-6">
-                                        <Card>
+                                        <Card className="bg-white/70 backdrop-blur-xl border-white/50 shadow-lg shadow-orange-900/5 rounded-2xl">
                                             <CardHeader>
-                                                <CardTitle className="flex items-center gap-2">
-                                                    <CreditCard className="w-5 h-5" />
-                                                    Metodos de Cobro
+                                                <CardTitle className="flex items-center gap-2 text-slate-800">
+                                                    <CreditCard className="w-5 h-5 text-orange-500" />
+                                                    Métodos de Cobro
                                                 </CardTitle>
                                                 <CardDescription>
-                                                    Configura como reciben el dinero tus clientes.
+                                                    Configura cómo reciben el dinero tus clientes.
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent className="space-y-6">
                                                 {/* MercadoPago Connect */}
-                                                <div className="flex items-start justify-between p-4 border rounded-xl hover:border-blue-200 transition-colors bg-slate-50/50">
+                                                <div className="flex items-start justify-between p-4 border border-orange-100 rounded-xl hover:border-orange-200 transition-colors bg-white/50">
                                                     <div className="flex gap-4">
-                                                        <div className="w-12 h-12 bg-white rounded-lg shadow-sm flex items-center justify-center p-2">
+                                                        <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center p-2">
                                                             <img src="https://logotipoz.com/wp-content/uploads/2021/10/version-horizontal-large-logo-mercado-pago.webp" alt="MP" className="w-full h-full object-contain" />
                                                         </div>
                                                         <div>
-                                                            <h3 className="font-medium text-slate-900">Mercado Pago</h3>
+                                                            <h3 className="font-medium text-slate-800">Mercado Pago</h3>
                                                             <p className="text-sm text-slate-500 max-w-sm mt-1">
                                                                 Conecta tu cuenta para recibir pagos directamente con QR y links de pago.
-                                                                El dinero va directo a tu cuenta - comisiones transparentes.
                                                             </p>
                                                         </div>
                                                     </div>
-
                                                     <div className="flex items-center gap-2">
                                                         {isMpConnected ? (
-                                                            <Badge className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1 flex gap-1">
+                                                            <Badge className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1 flex gap-1 rounded-full">
                                                                 <CheckCircle className="w-3 h-3" />
                                                                 Conectado
                                                             </Badge>
                                                         ) : (
-                                                            <Button asChild className="bg-[#009EE3] hover:bg-[#008ED0] text-white">
-                                                                <a href={mpAuthUrl}>
-                                                                    Conectar Cuenta
-                                                                </a>
+                                                            <Button asChild className="bg-[#009EE3] hover:bg-[#008ED0] text-white rounded-xl">
+                                                                <a href={mpAuthUrl}>Conectar Cuenta</a>
                                                             </Button>
                                                         )}
                                                     </div>
                                                 </div>
 
                                                 {/* Cash / Efectivo */}
-                                                <div className="flex items-center justify-between p-4 border rounded-xl bg-white opacity-60">
+                                                <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-white/30 opacity-60">
                                                     <div className="flex gap-4 items-center">
-                                                        <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                                                            <span className="text-xl">$</span>
+                                                        <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                                                            <span className="text-xl text-slate-600">$</span>
                                                         </div>
                                                         <div>
-                                                            <h3 className="font-medium">Efectivo / Transferencia</h3>
+                                                            <h3 className="font-medium text-slate-700">Efectivo / Transferencia</h3>
                                                             <p className="text-sm text-slate-500">Habilitado por defecto.</p>
                                                         </div>
                                                     </div>
-                                                    <Button variant="outline" size="sm" disabled>Configurar</Button>
+                                                    <Button variant="outline" size="sm" disabled className="rounded-lg">Configurar</Button>
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -299,44 +300,31 @@ const Dashboard = () => {
                                 )}
 
                                 <TabsContent value="general" className="space-y-6">
-                                    <Card>
+                                    <Card className="bg-white/70 backdrop-blur-xl border-white/50 shadow-lg shadow-orange-900/5 rounded-2xl">
                                         <CardHeader>
-                                            <CardTitle className="flex items-center gap-2">
-                                                <Store className="w-5 h-5" />
-                                                Informacion del Negocio
+                                            <CardTitle className="flex items-center gap-2 text-slate-800">
+                                                <Store className="w-5 h-5 text-orange-500" />
+                                                Información del Negocio
                                             </CardTitle>
                                             <CardDescription>
-                                                Datos basicos de tu negocio que aparecen en tu menu.
+                                                Datos básicos de tu negocio que aparecen en tu menú.
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
                                             <div className="grid md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-700">Nombre del Negocio</label>
-                                                    <p className="mt-1 text-slate-900 font-medium">{tenant.name}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-700">URL del Menu</label>
-                                                    <p className="mt-1 text-slate-500 font-mono text-sm">optimadelivery.com/t/{tenant.slug}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-700">Telefono</label>
-                                                    <p className="mt-1 text-slate-900">{tenant.business_phone || 'No configurado'}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-700">Email de Contacto</label>
-                                                    <p className="mt-1 text-slate-900">{tenant.business_email || 'No configurado'}</p>
-                                                </div>
+                                                <InfoField label="Nombre del Negocio" value={tenant.name} />
+                                                <InfoField label="URL del Menú" value={`optimadelivery.vercel.app/t/${tenant.slug}`} mono />
+                                                <InfoField label="Teléfono" value={tenant.business_phone || 'No configurado'} />
+                                                <InfoField label="Email de Contacto" value={tenant.business_email || 'No configurado'} />
                                                 <div className="md:col-span-2">
-                                                    <label className="text-sm font-medium text-slate-700">Direccion</label>
-                                                    <p className="mt-1 text-slate-900">{tenant.business_address || 'No configurada'}</p>
+                                                    <InfoField label="Dirección" value={tenant.business_address || 'No configurada'} />
                                                 </div>
                                             </div>
                                         </CardContent>
                                         <CardFooter>
-                                            <Button variant="outline" disabled>
+                                            <Button variant="outline" disabled className="rounded-xl">
                                                 <Edit className="w-4 h-4 mr-2" />
-                                                Editar Informacion (Proximamente)
+                                                Editar Información (Próximamente)
                                             </Button>
                                         </CardFooter>
                                     </Card>
@@ -357,16 +345,9 @@ const Dashboard = () => {
                         </div>
                     )}
 
-                    {/* Menu - owner and admin only */}
                     {activeTab === 'menu' && canEdit(userRole) && <MenuManager />}
-
-                    {/* Kitchen/KDS - owner, admin, and kitchen staff */}
                     {activeTab === 'kitchen' && hasPermission(userRole, ['owner', 'admin', 'kitchen']) && <KDSManager />}
-
-                    {/* Orders - owner, admin, and staff (view only for staff) */}
                     {activeTab === 'orders' && hasPermission(userRole, ['owner', 'admin', 'staff']) && <OrdersManager />}
-
-                    {/* Design/Theme - owner and admin only */}
                     {activeTab === 'design' && canEdit(userRole) && <ThemeSettings />}
                 </div>
             </main>
@@ -374,17 +355,13 @@ const Dashboard = () => {
     );
 };
 
-const NavItem = ({ icon, label, isActive, onClick, primaryColor }: { icon: any, label: string, isActive: boolean, onClick: () => void, primaryColor: string }) => (
+const NavItem = ({ icon, label, isActive, onClick }: { icon: any, label: string, isActive: boolean, onClick: () => void }) => (
     <button
         onClick={onClick}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-            ? ''
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${isActive
+            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
+            : 'text-slate-600 hover:bg-orange-50 hover:text-slate-800'
             }`}
-        style={isActive ? {
-            backgroundColor: hexToRgba(primaryColor, 0.1),
-            color: primaryColor
-        } : undefined}
     >
         {icon}
         {label}
@@ -392,22 +369,32 @@ const NavItem = ({ icon, label, isActive, onClick, primaryColor }: { icon: any, 
 );
 
 const StatCard = ({ title, value, trend }: { title: string, value: string, trend?: string }) => (
-    <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+    <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl border border-white/50 shadow-lg shadow-orange-900/5">
         <h3 className="text-sm font-medium text-slate-500 mb-2">{title}</h3>
         <div className="flex items-end justify-between">
-            <span className="text-2xl font-bold text-slate-900">{value}</span>
-            {trend && <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">{trend}</span>}
+            <span className="text-2xl font-bold text-slate-800">{value}</span>
+            {trend && (
+                <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                    {trend}
+                </span>
+            )}
         </div>
     </div>
 );
 
-// Role badge component for displaying user role
+const InfoField = ({ label, value, mono }: { label: string, value: string, mono?: boolean }) => (
+    <div>
+        <label className="text-sm font-medium text-slate-500">{label}</label>
+        <p className={`mt-1 text-slate-800 ${mono ? 'font-mono text-sm' : ''}`}>{value}</p>
+    </div>
+);
+
 const RoleBadge = ({ role }: { role: UserRole | undefined }) => {
     const roleConfig: Record<UserRole, { label: string; className: string }> = {
-        owner: { label: 'Propietario', className: 'bg-purple-100 text-purple-700' },
-        admin: { label: 'Admin', className: 'bg-blue-100 text-blue-700' },
-        kitchen: { label: 'Cocina', className: 'bg-orange-100 text-orange-700' },
-        staff: { label: 'Staff', className: 'bg-slate-100 text-slate-700' },
+        owner: { label: 'Propietario', className: 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700' },
+        admin: { label: 'Admin', className: 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700' },
+        kitchen: { label: 'Cocina', className: 'bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700' },
+        staff: { label: 'Staff', className: 'bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700' },
     };
 
     if (!role) return null;
