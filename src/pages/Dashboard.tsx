@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Store, CreditCard, LayoutDashboard, UtensilsCrossed, Settings, LogOut, ExternalLink, CheckCircle, Palette, Edit, Utensils } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import { MenuManager } from '@/components/admin/MenuManager';
 import { OrdersManager } from '@/components/admin/OrdersManager';
 import { ThemeSettings } from '@/components/admin/ThemeSettings';
@@ -48,10 +49,41 @@ const canAccessBilling = (userRole: UserRole | undefined): boolean => {
 };
 
 const Dashboard = () => {
-    const { tenant, isLoading, error } = useTenant();
+    const { tenant, isLoading, error, refreshTenant } = useTenant();
     const { signOut, profile } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const { toast } = useToast();
 
     const userRole = profile?.role as UserRole | undefined;
+
+    // Handle MercadoPago connection result
+    useEffect(() => {
+        const mpSuccess = searchParams.get('mp_success');
+        const mpError = searchParams.get('mp_error');
+
+        if (mpSuccess === 'true') {
+            // Refresh tenant to get updated MP credentials
+            refreshTenant();
+            toast({
+                title: 'MercadoPago conectado',
+                description: 'Tu cuenta de MercadoPago se ha vinculado correctamente.',
+            });
+            // Clean URL
+            searchParams.delete('mp_success');
+            setSearchParams(searchParams, { replace: true });
+        }
+
+        if (mpError) {
+            toast({
+                title: 'Error al conectar MercadoPago',
+                description: `No se pudo vincular tu cuenta: ${mpError}`,
+                variant: 'destructive',
+            });
+            // Clean URL
+            searchParams.delete('mp_error');
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams, refreshTenant, toast, setSearchParams]);
 
     const navItems: NavItemConfig[] = useMemo(() => [
         { id: 'overview', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Resumen', allowedRoles: ['owner', 'admin', 'staff'] },
