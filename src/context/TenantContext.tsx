@@ -127,13 +127,14 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             try {
                 let tenantData: Tenant | null = null;
 
-                // Priority 1: If user is authenticated and has a tenant, use that
-                if (profile?.tenant_id) {
-                    tenantData = await fetchTenantById(profile.tenant_id);
-                }
-                // Priority 2: If tenant slug in URL, use that
-                else if (tenantSlug) {
+                // Priority 1: If tenant slug in URL (/t/slug), always use that
+                // This allows logged-in users to view other tenants' menus
+                if (tenantSlug) {
                     tenantData = await fetchTenantBySlug(tenantSlug);
+                }
+                // Priority 2: If user is authenticated and has a tenant (for dashboard/admin pages)
+                else if (profile?.tenant_id) {
+                    tenantData = await fetchTenantById(profile.tenant_id);
                 }
 
                 // Only update state if component is still mounted

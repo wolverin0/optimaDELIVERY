@@ -1,6 +1,7 @@
 import { Minus, Plus, ShoppingBag, Trash2, Scale, Crown, ArrowLeft, Send, MapPin, Store, Truck, CreditCard, Banknote, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useOrders } from '@/context/OrderContext';
+import { useTenant } from '@/context/TenantContext';
 import { DeliveryType, PaymentMethod } from '@/types/order';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +13,11 @@ type CheckoutStep = 'cart' | 'delivery-type' | 'customer-info' | 'payment' | 'su
 
 export const CartDrawer = () => {
   const { cart, cartTotal, updateQuantity, updateWeight, removeFromCart, submitOrder } = useOrders();
+  const { tenant } = useTenant();
   const { toast } = useToast();
+
+  // Check if tenant has MercadoPago connected
+  const hasMercadoPago = Boolean(tenant?.mercadopago_access_token);
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [deliveryType, setDeliveryType] = useState<DeliveryType | null>(null);
@@ -397,28 +402,30 @@ export const CartDrawer = () => {
             <div className="flex-1 space-y-4">
               <p className="text-muted-foreground text-center mb-6">Seleccioná cómo querés pagar</p>
 
-              {/* MercadoPago Option */}
-              <button
-                className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-[#009ee3] transition-all flex items-center gap-5 group disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => handleSelectPayment('mercadopago')}
-                disabled={isSubmitting}
-              >
-                <div className="w-16 h-16 bg-[#009ee3]/10 rounded-full flex items-center justify-center group-hover:bg-[#009ee3]/20 transition-colors">
-                  <CreditCard className="h-8 w-8 text-[#009ee3]" />
-                </div>
-                <div className="text-left flex-1">
-                  <h3 className="text-xl font-semibold tracking-wide">MercadoPago</h3>
-                  <p className="text-muted-foreground text-sm mt-1">Tarjeta de crédito, débito o dinero en cuenta</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Visa</span>
-                    <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Mastercard</span>
-                    <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Mercado Crédito</span>
+              {/* MercadoPago Option - Only show if tenant has it connected */}
+              {hasMercadoPago && (
+                <button
+                  className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-[#009ee3] transition-all flex items-center gap-5 group disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => handleSelectPayment('mercadopago')}
+                  disabled={isSubmitting}
+                >
+                  <div className="w-16 h-16 bg-[#009ee3]/10 rounded-full flex items-center justify-center group-hover:bg-[#009ee3]/20 transition-colors">
+                    <CreditCard className="h-8 w-8 text-[#009ee3]" />
                   </div>
-                </div>
-              </button>
+                  <div className="text-left flex-1">
+                    <h3 className="text-xl font-semibold tracking-wide">MercadoPago</h3>
+                    <p className="text-muted-foreground text-sm mt-1">Tarjeta de crédito, débito o dinero en cuenta</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Visa</span>
+                      <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Mastercard</span>
+                      <span className="text-xs px-2 py-1 bg-[#009ee3]/10 text-[#009ee3] rounded">Mercado Crédito</span>
+                    </div>
+                  </div>
+                </button>
+              )}
 
-              {/* Cash Option - Only for pickup */}
-              {deliveryType === 'pickup' && (
+              {/* Cash Option - For pickup, or always if MP not connected */}
+              {(deliveryType === 'pickup' || !hasMercadoPago) && (
                 <button
                   className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-green-500 transition-all flex items-center gap-5 group disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handleSelectPayment('cash')}
@@ -428,8 +435,14 @@ export const CartDrawer = () => {
                     <Banknote className="h-8 w-8 text-green-600" />
                   </div>
                   <div className="text-left flex-1">
-                    <h3 className="text-xl font-semibold tracking-wide">Pago en Sucursal</h3>
-                    <p className="text-muted-foreground text-sm mt-1">Pagás en efectivo cuando retirás tu pedido</p>
+                    <h3 className="text-xl font-semibold tracking-wide">
+                      {deliveryType === 'pickup' ? 'Pago en Sucursal' : 'Pago contra Entrega'}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      {deliveryType === 'pickup'
+                        ? 'Pagás en efectivo cuando retirás tu pedido'
+                        : 'Pagás en efectivo cuando recibís tu pedido'}
+                    </p>
                   </div>
                 </button>
               )}
