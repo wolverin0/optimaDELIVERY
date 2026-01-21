@@ -57,9 +57,10 @@ full_db_*.js
 test_*.cjs
 test_*.js
 
-# SQL migration scripts (keep in supabase/ folder instead)
+# SQL migration scripts
 *.sql
 !supabase/**/*.sql
+!migrations/**/*.sql
 
 # Test artifacts
 test-manifest/

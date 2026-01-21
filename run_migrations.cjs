@@ -52,6 +52,15 @@ async function runMigrations() {
         await client.query(createTenantSql);
         console.log('Create tenant function migration completed!');
 
+        // Read and run comprehensive RLS setup
+        console.log('\n--- Running Comprehensive RLS Setup ---');
+        const comprehensiveRlsSql = fs.readFileSync(
+            path.join(__dirname, 'migrations', 'comprehensive_rls_setup.sql'),
+            'utf8'
+        );
+        await client.query(comprehensiveRlsSql);
+        console.log('Comprehensive RLS setup completed!');
+
         console.log('\n=== All migrations completed successfully! ===');
 
     } catch (error) {
