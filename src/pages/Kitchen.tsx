@@ -1,24 +1,48 @@
 import { useState } from 'react';
-import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck, XCircle, Settings, List } from 'lucide-react';
+import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck, XCircle, Settings, List, CreditCard } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { useTenant } from '@/context/TenantContext';
 import { OrderCard } from '@/components/OrderCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Order } from '@/types/order';
 
-type FilterType = 'all' | 'pending' | 'preparing' | 'ready' | 'dispatched' | 'cancelled';
+type FilterType = 'all' | 'pending' | 'preparing' | 'ready' | 'dispatched' | 'cancelled' | 'awaiting_payment';
+
+// Check if order is ready to be cooked (payment confirmed or cash)
+const isReadyToCook = (order: Order): boolean => {
+  // Cash orders are always ready
+  if (order.payment_method === 'cash' || !order.payment_method) {
+    return true;
+  }
+  // MercadoPago orders need payment_status = 'paid'
+  if (order.payment_method === 'mercadopago') {
+    return order.payment_status === 'paid';
+  }
+  return true;
+};
 
 const Kitchen = () => {
   const { orders } = useOrders();
   const { tenant } = useTenant();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
-  const activeOrders = orders.filter(o => o.status !== 'cancelled');
-  const pendingOrders = orders.filter(o => o.status === 'pending');
-  const preparingOrders = orders.filter(o => o.status === 'preparing');
-  const readyOrders = orders.filter(o => o.status === 'ready');
-  const dispatchedOrders = orders.filter(o => o.status === 'dispatched');
+  // Orders awaiting payment (MercadoPago not yet paid)
+  const awaitingPaymentOrders = orders.filter(o =>
+    o.payment_method === 'mercadopago' &&
+    o.payment_status !== 'paid' &&
+    o.status !== 'cancelled'
+  );
+
+  // Filter out orders awaiting payment from active orders
+  const paidOrCashOrders = orders.filter(o => isReadyToCook(o));
+
+  const activeOrders = paidOrCashOrders.filter(o => o.status !== 'cancelled');
+  const pendingOrders = paidOrCashOrders.filter(o => o.status === 'pending');
+  const preparingOrders = paidOrCashOrders.filter(o => o.status === 'preparing');
+  const readyOrders = paidOrCashOrders.filter(o => o.status === 'ready');
+  const dispatchedOrders = paidOrCashOrders.filter(o => o.status === 'dispatched');
   const cancelledOrders = orders.filter(o => o.status === 'cancelled');
 
   const getFilteredOrders = () => {
@@ -28,6 +52,7 @@ const Kitchen = () => {
       case 'ready': return readyOrders;
       case 'dispatched': return dispatchedOrders;
       case 'cancelled': return cancelledOrders;
+      case 'awaiting_payment': return awaitingPaymentOrders;
       default: return activeOrders;
     }
   };
@@ -39,6 +64,7 @@ const Kitchen = () => {
       case 'ready': return 'Listos';
       case 'dispatched': return 'Despachados';
       case 'cancelled': return 'Cancelados';
+      case 'awaiting_payment': return 'Esperando Pago';
       default: return 'Todos los Activos';
     }
   };
@@ -156,6 +182,17 @@ const Kitchen = () => {
               colorClass="text-red-600"
               bgClass="bg-red-100 dark:bg-red-900/30"
             />
+            {/* Show awaiting payment filter only if there are orders waiting */}
+            {awaitingPaymentOrders.length > 0 && (
+              <FilterCard
+                filter="awaiting_payment"
+                icon={CreditCard}
+                label="Esperando Pago"
+                count={awaitingPaymentOrders.length}
+                colorClass="text-purple-600"
+                bgClass="bg-purple-100 dark:bg-purple-900/30"
+              />
+            )}
           </div>
         </div>
       </div>

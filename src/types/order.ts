@@ -32,6 +32,8 @@ export interface CustomerData {
   paymentMethod: PaymentMethod;
 }
 
+export type PaymentStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'refunded';
+
 export interface Order {
   id: string;
   customer: CustomerData;
@@ -41,4 +43,8 @@ export interface Order {
   createdAt: Date;
   statusChangedAt: Date;
   snoozedUntil?: Date;
+  payment_method?: PaymentMethod;
+  payment_status?: PaymentStatus;
+  mercadopago_preference_id?: string;
+  mercadopago_payment_id?: string;
 }
