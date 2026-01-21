@@ -382,6 +382,7 @@ export const MenuManager = () => {
                                             src={item.image_url || '/placeholder.svg'}
                                             alt={item.name}
                                             className={`w-full h-full object-cover ${!item.is_available ? 'grayscale' : ''}`}
+                                            loading="lazy"
                                             onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                                         />
                                         <Badge className="absolute top-2 left-2">

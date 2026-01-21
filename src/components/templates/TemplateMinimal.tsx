@@ -1,7 +1,7 @@
 import { TemplateProps } from './types';
 import { CartDrawer } from '@/components/CartDrawer';
 import { SocialLinksBar } from '@/components/SocialLinksBar';
-import { Plus, Scale, Minus } from 'lucide-react';
+import { Plus, Scale, Minus, Utensils } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -40,11 +40,17 @@ export const TemplateMinimal = ({ tenant, menuItems }: TemplateProps) => {
             {/* Header: Centered & Minimal with enhanced styling */}
             <header className="py-16 md:py-20 text-center px-6">
                 <div className="mb-8 mx-auto w-24 h-24 rounded-full border border-stone-200 p-1.5 group cursor-pointer">
-                    <img
-                        src={tenant.logo_url || '/braseritologo.jpeg'}
-                        className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
-                        alt={tenant.name}
-                    />
+                    {tenant.logo_url ? (
+                        <img
+                            src={tenant.logo_url}
+                            className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                            alt={tenant.name}
+                        />
+                    ) : (
+                        <div className="w-full h-full rounded-full bg-stone-100 flex items-center justify-center">
+                            <Utensils className="w-10 h-10 text-stone-400" />
+                        </div>
+                    )}
                 </div>
                 <h1 className="text-4xl md:text-5xl font-normal tracking-wide mb-4 text-stone-800">
                     {tenant.name}

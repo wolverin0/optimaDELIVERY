@@ -2,7 +2,7 @@ import { TemplateProps } from './types';
 import { CartDrawer } from '@/components/CartDrawer';
 import { SocialLinksBar } from '@/components/SocialLinksBar';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown, Sparkles } from 'lucide-react';
+import { Plus, ChevronDown, Sparkles, Utensils } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -25,11 +25,17 @@ export const TemplateVisual = ({ tenant, menuItems }: TemplateProps) => {
                 <div className="flex items-center gap-4 pointer-events-auto">
                     <div className="relative group cursor-pointer">
                         <div className="absolute -inset-1 bg-emerald-500/30 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <img
-                            src={tenant.logo_url || '/braseritologo.jpeg'}
-                            className="w-14 h-14 rounded-full border-2 border-white/20 shadow-2xl relative transition-transform duration-300 group-hover:scale-105"
-                            alt={tenant.name}
-                        />
+                        {tenant.logo_url ? (
+                            <img
+                                src={tenant.logo_url}
+                                className="w-14 h-14 rounded-full border-2 border-white/20 shadow-2xl relative transition-transform duration-300 group-hover:scale-105"
+                                alt={tenant.name}
+                            />
+                        ) : (
+                            <div className="w-14 h-14 rounded-full border-2 border-white/20 bg-zinc-800 flex items-center justify-center shadow-2xl relative transition-transform duration-300 group-hover:scale-105">
+                                <Utensils className="w-7 h-7 text-emerald-400" />
+                            </div>
+                        )}
                     </div>
                     <div>
                         <h1 className="font-bold text-xl tracking-tight drop-shadow-md leading-none">{tenant.name}</h1>

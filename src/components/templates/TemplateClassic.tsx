@@ -17,11 +17,17 @@ export const TemplateClassic = ({ tenant, menuItems }: TemplateProps) => {
                     <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                         <div className="relative group cursor-pointer flex-shrink-0">
                             <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                            <img
-                                src={tenant?.logo_url || "/braseritologo.jpeg"}
-                                alt={tenant?.name || "Restaurant"}
-                                className="w-10 h-10 sm:w-[52px] sm:h-[52px] rounded-full object-cover shadow-lg ring-2 ring-primary/10 relative transition-transform duration-300 group-hover:scale-105"
-                            />
+                            {tenant?.logo_url ? (
+                                <img
+                                    src={tenant.logo_url}
+                                    alt={tenant?.name || "Restaurant"}
+                                    className="w-10 h-10 sm:w-[52px] sm:h-[52px] rounded-full object-cover shadow-lg ring-2 ring-primary/10 relative transition-transform duration-300 group-hover:scale-105"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 sm:w-[52px] sm:h-[52px] rounded-full bg-primary/10 flex items-center justify-center shadow-lg ring-2 ring-primary/10 relative transition-transform duration-300 group-hover:scale-105">
+                                    <Utensils className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                                </div>
+                            )}
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-base sm:text-2xl font-semibold tracking-wide truncate">{tenant?.name || 'Restaurant'}</h1>

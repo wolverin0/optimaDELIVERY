@@ -4,7 +4,7 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { SocialLinksBar } from '@/components/SocialLinksBar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Clock, MapPin, Star, Plus, ChefHat, X } from 'lucide-react';
+import { Search, Clock, MapPin, Star, Plus, ChefHat, X, Utensils } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { toast } from 'sonner';
 
@@ -45,11 +45,17 @@ export const TemplateSidebar = ({ tenant, menuItems, categories, isPreview }: Te
                     <div className="flex items-center gap-3 mb-8">
                         <div className="relative group cursor-pointer">
                             <div className="absolute -inset-1 bg-primary/10 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <img
-                                src={tenant.logo_url || '/braseritologo.jpeg'}
-                                className="w-12 h-12 rounded-xl shadow-md object-cover relative transition-transform duration-300 group-hover:scale-105"
-                                alt="Logo"
-                            />
+                            {tenant.logo_url ? (
+                                <img
+                                    src={tenant.logo_url}
+                                    className="w-12 h-12 rounded-xl shadow-md object-cover relative transition-transform duration-300 group-hover:scale-105"
+                                    alt="Logo"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 rounded-xl shadow-md bg-primary/10 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
+                                    <Utensils className="w-6 h-6 text-primary" />
+                                </div>
+                            )}
                         </div>
                         <div>
                             <h1 className="font-bold text-lg leading-none tracking-tight">{tenant.name}</h1>
@@ -199,6 +205,7 @@ export const TemplateSidebar = ({ tenant, menuItems, categories, isPreview }: Te
                                                         src={item.image_url}
                                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                         alt={item.name}
+                                                        loading="lazy"
                                                     />
                                                     {!item.is_available && (
                                                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
