@@ -1,15 +1,18 @@
-import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck, XCircle, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { ChefHat, ArrowLeft, Clock, CheckCircle, Truck, XCircle, Settings, List } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { useTenant } from '@/context/TenantContext';
 import { OrderCard } from '@/components/OrderCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+type FilterType = 'all' | 'pending' | 'preparing' | 'ready' | 'dispatched' | 'cancelled';
 
 const Kitchen = () => {
   const { orders } = useOrders();
   const { tenant } = useTenant();
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   const activeOrders = orders.filter(o => o.status !== 'cancelled');
   const pendingOrders = orders.filter(o => o.status === 'pending');
@@ -18,143 +21,180 @@ const Kitchen = () => {
   const dispatchedOrders = orders.filter(o => o.status === 'dispatched');
   const cancelledOrders = orders.filter(o => o.status === 'cancelled');
 
+  const getFilteredOrders = () => {
+    switch (activeFilter) {
+      case 'pending': return pendingOrders;
+      case 'preparing': return preparingOrders;
+      case 'ready': return readyOrders;
+      case 'dispatched': return dispatchedOrders;
+      case 'cancelled': return cancelledOrders;
+      default: return activeOrders;
+    }
+  };
+
+  const getFilterLabel = () => {
+    switch (activeFilter) {
+      case 'pending': return 'Pendientes';
+      case 'preparing': return 'En Preparación';
+      case 'ready': return 'Listos';
+      case 'dispatched': return 'Despachados';
+      case 'cancelled': return 'Cancelados';
+      default: return 'Todos los Activos';
+    }
+  };
+
+  const filteredOrders = getFilteredOrders();
+
+  const FilterCard = ({
+    filter,
+    icon: Icon,
+    label,
+    count,
+    colorClass,
+    bgClass,
+  }: {
+    filter: FilterType;
+    icon: React.ElementType;
+    label: string;
+    count: number;
+    colorClass: string;
+    bgClass: string;
+  }) => (
+    <button
+      onClick={() => setActiveFilter(filter)}
+      className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all ${bgClass} ${
+        activeFilter === filter
+          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-105'
+          : 'hover:scale-102 hover:shadow-md'
+      }`}
+    >
+      <Icon className={`h-5 w-5 ${colorClass} mb-1`} />
+      <span className="text-2xl font-bold">{count}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             {tenant?.logo_url ? (
               <img
                 src={tenant.logo_url}
                 alt={tenant.name}
-                className="w-[52px] h-[52px] rounded-full object-cover shadow-gold"
+                className="w-10 h-10 rounded-full object-cover shadow-gold"
               />
             ) : (
-              <div className="w-[52px] h-[52px] rounded-full bg-primary flex items-center justify-center text-white text-xl font-bold shadow-gold">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-lg font-bold shadow-gold">
                 {tenant?.name?.charAt(0) || 'K'}
               </div>
             )}
-            <h1 className="text-2xl font-semibold tracking-wide">Cocina</h1>
+            <h1 className="text-xl font-semibold tracking-wide">Pedidos</h1>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link to="/admin">
-              <Button variant="outline" size="icon" className="sm:w-auto sm:px-3 border-primary/30 text-primary hover:bg-primary hover:text-white">
-                <Settings className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Admin</span>
-              </Button>
-            </Link>
-            <Link to="/">
               <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary hover:text-white">
-                <ArrowLeft className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Menu</span>
+                <Settings className="h-4 w-4" />
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Stats Bar - Responsive Grid */}
-      <div className="bg-secondary/50 border-b border-border">
-        <div className="container mx-auto px-4 py-3">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-            <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-lg">
-              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
-              <span className="font-semibold">{pendingOrders.length}</span>
-              <span className="text-xs sm:text-sm text-muted-foreground truncate">Pendientes</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/20 rounded-lg">
-              <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 shrink-0" />
-              <span className="font-semibold">{preparingOrders.length}</span>
-              <span className="text-xs sm:text-sm text-muted-foreground truncate">Preparando</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 rounded-lg">
-              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 shrink-0" />
-              <span className="font-semibold">{readyOrders.length}</span>
-              <span className="text-xs sm:text-sm text-muted-foreground truncate">Listos</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 rounded-lg">
-              <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 shrink-0" />
-              <span className="font-semibold">{dispatchedOrders.length}</span>
-              <span className="text-xs sm:text-sm text-muted-foreground truncate">Despachados</span>
-            </div>
+      {/* Filter Cards - 3x2 Grid */}
+      <div className="bg-secondary/30 border-b border-border">
+        <div className="container mx-auto px-4 py-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <FilterCard
+              filter="all"
+              icon={List}
+              label="Todos"
+              count={activeOrders.length}
+              colorClass="text-slate-600"
+              bgClass="bg-slate-100 dark:bg-slate-800"
+            />
+            <FilterCard
+              filter="pending"
+              icon={Clock}
+              label="Pendientes"
+              count={pendingOrders.length}
+              colorClass="text-orange-600"
+              bgClass="bg-orange-100 dark:bg-orange-900/30"
+            />
+            <FilterCard
+              filter="preparing"
+              icon={ChefHat}
+              label="Preparando"
+              count={preparingOrders.length}
+              colorClass="text-yellow-600"
+              bgClass="bg-yellow-100 dark:bg-yellow-900/30"
+            />
+            <FilterCard
+              filter="ready"
+              icon={CheckCircle}
+              label="Listos"
+              count={readyOrders.length}
+              colorClass="text-green-600"
+              bgClass="bg-green-100 dark:bg-green-900/30"
+            />
+            <FilterCard
+              filter="dispatched"
+              icon={Truck}
+              label="Despachados"
+              count={dispatchedOrders.length}
+              colorClass="text-blue-600"
+              bgClass="bg-blue-100 dark:bg-blue-900/30"
+            />
+            <FilterCard
+              filter="cancelled"
+              icon={XCircle}
+              label="Cancelados"
+              count={cancelledOrders.length}
+              colorClass="text-red-600"
+              bgClass="bg-red-100 dark:bg-red-900/30"
+            />
           </div>
         </div>
       </div>
 
       {/* Orders */}
-      <main className="container mx-auto px-4 py-6">
-        {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[50vh] text-muted-foreground">
-            <ChefHat className="h-20 w-20 mb-4 opacity-20 text-primary" />
-            <h2 className="text-xl font-semibold mb-2">Sin pedidos aun</h2>
-            <p className="text-center max-w-sm">
-              Los pedidos de los clientes apareceran aqui automaticamente
+      <main className="container mx-auto px-4 py-4">
+        {/* Current filter label */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-muted-foreground">
+            {getFilterLabel()} ({filteredOrders.length})
+          </h2>
+          {activeFilter !== 'all' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveFilter('all')}
+              className="text-xs"
+            >
+              Ver todos
+            </Button>
+          )}
+        </div>
+
+        {filteredOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[40vh] text-muted-foreground">
+            <ChefHat className="h-16 w-16 mb-4 opacity-20 text-primary" />
+            <h2 className="text-lg font-semibold mb-1">Sin pedidos</h2>
+            <p className="text-sm text-center max-w-sm">
+              {activeFilter === 'all'
+                ? 'Los pedidos apareceran aqui automaticamente'
+                : `No hay pedidos ${getFilterLabel().toLowerCase()}`}
             </p>
           </div>
         ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:flex lg:justify-start w-full mb-6 h-auto gap-1 bg-secondary/50 p-1">
-              <TabsTrigger value="all" className="px-3 py-2 text-xs sm:text-sm">
-                Activos ({activeOrders.length})
-              </TabsTrigger>
-              <TabsTrigger value="pending" className="px-3 py-2 text-xs sm:text-sm">
-                Pendientes ({pendingOrders.length})
-              </TabsTrigger>
-              <TabsTrigger value="preparing" className="px-3 py-2 text-xs sm:text-sm">
-                Preparando ({preparingOrders.length})
-              </TabsTrigger>
-              <TabsTrigger value="ready" className="px-3 py-2 text-xs sm:text-sm">
-                Listos ({readyOrders.length})
-              </TabsTrigger>
-              {cancelledOrders.length > 0 && (
-                <TabsTrigger value="cancelled" className="px-3 py-2 text-xs sm:text-sm col-span-2 sm:col-span-1">
-                  Cancelados ({cancelledOrders.length})
-                </TabsTrigger>
-              )}
-            </TabsList>
-
-            <TabsContent value="all" className="mt-0">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {activeOrders.map(order => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="pending" className="mt-0">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingOrders.map(order => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="preparing" className="mt-0">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {preparingOrders.map(order => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="ready" className="mt-0">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {readyOrders.map(order => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="cancelled" className="mt-0">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cancelledOrders.map(order => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredOrders.map(order => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
         )}
       </main>
     </div>
