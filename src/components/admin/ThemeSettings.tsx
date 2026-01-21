@@ -234,7 +234,40 @@ export const ThemeSettings = () => {
     };
 
     return (
-        <div className="flex gap-8 pb-10">
+        <div className="flex flex-col lg:flex-row gap-8 pb-10">
+            {/* MOBILE: Phone Preview at Top */}
+            <div className="lg:hidden flex flex-col items-center mb-4">
+                <div className="bg-slate-100 rounded-2xl p-4 w-full max-w-[280px]">
+                    <div className="text-center text-xs text-slate-500 mb-2 flex items-center justify-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        Vista Previa
+                    </div>
+                    <div className="w-full aspect-[9/16] max-h-[400px] bg-white rounded-[1.5rem] shadow-xl border-[4px] border-slate-900 relative overflow-hidden">
+                        {/* Mini Notch */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-b-lg z-30"></div>
+                        {/* Screen Content */}
+                        <div className="w-full h-full overflow-hidden bg-white pt-5">
+                            {previewTenant && (
+                                <TenantContext.Provider value={{
+                                    tenant: previewTenant,
+                                    categories: PREVIEW_CATEGORIES,
+                                    menuItems: PREVIEW_ITEMS,
+                                    isLoading: false,
+                                    error: null,
+                                    tenantSlug: 'preview',
+                                    refreshTenant: async () => { },
+                                    refreshMenu: async () => { }
+                                }}>
+                                    <MockOrderProvider>
+                                        <Menu isPreview={true} />
+                                    </MockOrderProvider>
+                                </TenantContext.Provider>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* LEFT SIDE: Settings */}
             <div className="flex-1 space-y-8 max-w-2xl">
                 <div>
