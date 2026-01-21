@@ -57,10 +57,15 @@ const JoinTeam = () => {
 
     const handleSignIn = async () => {
         setIsSigningIn(true);
+        // Store the invitation token so AuthCallback knows to return here
+        if (token) {
+            localStorage.setItem('pending_invitation_token', token);
+        }
         const { error } = await signInWithGoogle();
         if (error) {
             setError('Error al iniciar sesión. Intenta de nuevo.');
             setIsSigningIn(false);
+            localStorage.removeItem('pending_invitation_token');
         }
         // After sign in, the useEffect will trigger acceptance
     };
@@ -70,6 +75,9 @@ const JoinTeam = () => {
 
         setIsAccepting(true);
         const result = await acceptTeamInvitation(token);
+
+        // Clean up the stored token
+        localStorage.removeItem('pending_invitation_token');
 
         setAcceptResult({
             success: result.success,

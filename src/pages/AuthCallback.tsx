@@ -66,10 +66,20 @@ const AuthCallback = () => {
 
                 if (profile?.tenant_id) {
                     console.error('DEBUG: User has tenant, redirecting to dashboard');
+                    // Clear any pending invitation token since user already has a tenant
+                    localStorage.removeItem('pending_invitation_token');
                     window.location.href = '/dashboard';
                 } else {
-                    console.error('DEBUG: No tenant, redirecting to setup');
-                    window.location.href = '/register/setup';
+                    // Check if user was accepting an invitation
+                    const pendingInvitationToken = localStorage.getItem('pending_invitation_token');
+                    if (pendingInvitationToken) {
+                        console.error('DEBUG: Found pending invitation, redirecting to join page');
+                        localStorage.removeItem('pending_invitation_token');
+                        window.location.href = `/join/${pendingInvitationToken}`;
+                    } else {
+                        console.error('DEBUG: No tenant, redirecting to setup');
+                        window.location.href = '/register/setup';
+                    }
                 }
             } catch (err) {
                 console.error('Auth callback error:', err);
