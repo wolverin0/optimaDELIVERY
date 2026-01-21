@@ -438,12 +438,10 @@ export const ThemeSettings = () => {
                         {/* Screen Content - Scaled to fit phone frame */}
                         <div className="w-full h-full overflow-hidden bg-white relative">
                             <div
-                                className="origin-top-left overflow-y-auto scrollbar-hide"
+                                className="origin-top-left overflow-y-auto overflow-x-hidden scrollbar-hide pt-6"
                                 style={{
-                                    width: '375px',
-                                    height: '780px',
-                                    transform: 'scale(0.82)',
-                                    transformOrigin: 'top left'
+                                    width: '308px',
+                                    height: '640px',
                                 }}
                             >
                                 {previewTenant && (

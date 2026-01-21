@@ -43,6 +43,15 @@ async function runMigrations() {
         await client.query(teamInvitationsSql);
         console.log('Team invitations migration completed!');
 
+        // Read and run create tenant function migration
+        console.log('\n--- Running Create Tenant Function Migration ---');
+        const createTenantSql = fs.readFileSync(
+            path.join(__dirname, 'migrations', 'add_create_tenant_function.sql'),
+            'utf8'
+        );
+        await client.query(createTenantSql);
+        console.log('Create tenant function migration completed!');
+
         console.log('\n=== All migrations completed successfully! ===');
 
     } catch (error) {

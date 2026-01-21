@@ -209,142 +209,42 @@ const RegisterSetup = () => {
         setIsLoading(true);
 
         try {
-            // 1. Slug Check (Anonymous)
-            const { createClient } = await import('@supabase/supabase-js');
-            const tempClient = createClient(
-                import.meta.env.VITE_SUPABASE_URL,
-                import.meta.env.VITE_SUPABASE_ANON_KEY,
-                { auth: { persistSession: false } }
-            );
+            // Use the database function to create tenant atomically
+            const { data, error } = await supabase.rpc('create_tenant_for_user', {
+                p_name: formData.businessName,
+                p_slug: formData.slug,
+                p_phone: formData.phone || null,
+                p_theme: selectedTheme
+            });
 
-            const slugCheckResult = await tempClient
-                .from('tenants')
-                .select('id')
-                .eq('slug', formData.slug)
-                .limit(1);
-
-            if (slugCheckResult.error) {
-                throw new Error('Error al verificar el nombre del negocio.');
+            if (error) {
+                console.error('RPC Error:', error);
+                throw new Error(error.message || 'Error al crear el negocio');
             }
 
-            if (slugCheckResult.data && slugCheckResult.data.length > 0) {
-                toast({
-                    title: 'URL no disponible',
-                    description: 'Este nombre ya está en uso. Prueba con otro.',
-                    variant: 'destructive',
-                });
-                if (isMounted.current) setIsLoading(false);
-                return;
+            if (!data || data.length === 0) {
+                throw new Error('No se recibió respuesta del servidor');
             }
 
-            // 2. Tenant Creation (Raw Fetch with Session Token)
-            // Robust token retrieval
-            let token = session?.access_token;
-            if (!token) {
-                console.warn('Session token missing in context, trying localStorage...');
-                try {
-                    const stored = localStorage.getItem('sb-nzqnibcdgqjporarwlzx-auth-token');
-                    if (stored) {
-                        const parsed = JSON.parse(stored);
-                        token = parsed.access_token || parsed.accessToken;
-                    }
-                } catch (e) {
-                    console.error('Error reading token from storage:', e);
+            const result = data[0];
+
+            if (!result.success) {
+                // Handle specific errors
+                if (result.error_message === 'Slug already taken') {
+                    toast({
+                        title: 'URL no disponible',
+                        description: 'Este nombre ya está en uso. Prueba con otro.',
+                        variant: 'destructive',
+                    });
+                    if (isMounted.current) setIsLoading(false);
+                    return;
                 }
-            }
-
-            if (!token) {
-                console.error('FATAL: No access token available for request');
-                toast({
-                    title: 'Error de sesión',
-                    description: 'No se encontró tu sesión. Por favor inicia sesión nuevamente.',
-                    variant: 'destructive'
-                });
-                setIsLoading(false);
-                return; // Stop here
-            }
-
-            const tenantBody = {
-                name: formData.businessName,
-                slug: formData.slug,
-                business_phone: formData.phone || null,
-                is_active: true,
-                theme: selectedTheme,
-                settings: { currency: 'ARS', deliveryEnabled: true, pickupEnabled: true },
-            };
-
-            const tenantRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/tenants`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                    'Prefer': 'return=representation',
-                    'x-client-info': 'supabase-js-web'
-                },
-                body: JSON.stringify(tenantBody)
-            });
-
-            if (!tenantRes.ok) {
-                const errText = await tenantRes.text();
-                console.error('Tenant Create Failed:', errText);
-                throw new Error(`Error creando el negocio: ${tenantRes.status} ${tenantRes.statusText}`);
-            }
-
-            const tenantData = await tenantRes.json();
-            const tenant = tenantData[0];
-
-            // 3. User Update (Raw Fetch)
-            const userBody = {
-                id: user.id,
-                tenant_id: tenant.id,
-                email: user.email!,
-                full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-                avatar_url: user.user_metadata?.avatar_url || null,
-                role: 'owner',
-                is_active: true,
-                updated_at: new Date().toISOString()
-            };
-
-            // Using UPSERT via Prefer: resolution=merge-duplicates? Or just POST with on_conflict?
-            // REST API Upsert: POST with header Prefer: resolution=merge-duplicates
-            const userRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                    'Prefer': 'resolution=merge-duplicates,return=representation'
-                },
-                body: JSON.stringify(userBody)
-            });
-
-            if (!userRes.ok) {
-                const errText = await userRes.text();
-                console.error('User Update Failed:', errText);
-                throw new Error('Error actualizando perfil de usuario');
-            }
-
-            // 4. Create Categories (Raw Fetch)
-            const defaultCategories = [
-                { tenant_id: tenant.id, name: 'Comida', slug: 'comida', sort_order: 0 },
-                { tenant_id: tenant.id, name: 'Bebidas', slug: 'bebidas', sort_order: 1 },
-                { tenant_id: tenant.id, name: 'Postres', slug: 'postres', sort_order: 2 },
-            ];
-
-            const catRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/categories`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                    'Prefer': 'return=minimal' // Don't need data back
-                },
-                body: JSON.stringify(defaultCategories)
-            });
-
-            if (!catRes.ok) {
-                console.warn('Category creation warning:', await catRes.text());
+                if (result.error_message === 'User already has a tenant') {
+                    // User already has a tenant, redirect to dashboard
+                    window.location.href = '/dashboard';
+                    return;
+                }
+                throw new Error(result.error_message || 'Error al crear el negocio');
             }
 
             // Success!
@@ -353,13 +253,8 @@ const RegisterSetup = () => {
                 description: 'Tu negocio ha sido creado exitosamente.',
             });
 
-
-            // Force profile refresh and redirect
-            // await refreshProfile(); // REMOVED: This was blocking due to supabase client hang
-
             // Hard redirect immediately
             window.location.href = '/dashboard';
-
 
         } catch (error: any) {
             console.error('Error creating business:', error);
@@ -629,7 +524,7 @@ const RegisterSetup = () => {
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30"></div>
 
                         {/* Screen Content */}
-                        <div className="w-full h-full overflow-y-auto bg-white scrollbar-hide relative transform-gpu">
+                        <div className="w-full h-full overflow-y-auto overflow-x-hidden bg-white scrollbar-hide relative transform-gpu pt-8">
                             <TenantContext.Provider value={{
                                 tenant: previewTenant,
                                 categories: PREVIEW_CATEGORIES,
