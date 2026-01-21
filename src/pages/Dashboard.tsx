@@ -183,20 +183,20 @@ const Dashboard = () => {
                             <LogOut className="w-4 h-4" />
                         </Button>
                     </div>
-                    {/* Mobile Navigation Tabs */}
-                    <div className="flex overflow-x-auto px-2 pb-2 gap-1 scrollbar-hide">
+                    {/* Mobile Navigation Tabs - 2 rows grid */}
+                    <div className="grid grid-cols-3 gap-1 px-2 pb-2">
                         {visibleNavItems.map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                                className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-all ${
                                     activeTab === item.id
                                         ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
                                         : 'text-slate-600 bg-white/50 hover:bg-orange-50'
                                 }`}
                             >
                                 {item.icon}
-                                {item.label}
+                                <span className="text-[10px]">{item.label}</span>
                             </button>
                         ))}
                     </div>
