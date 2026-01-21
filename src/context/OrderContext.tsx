@@ -126,6 +126,11 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       createdAt: new Date(dbOrder.created_at),
       statusChangedAt: new Date(dbOrder.status_changed_at || dbOrder.created_at),
       snoozedUntil: dbOrder.snoozed_until ? new Date(dbOrder.snoozed_until) : undefined,
+      // Payment fields for Kitchen filtering
+      payment_method: dbOrder.payment_method || 'cash',
+      payment_status: dbOrder.payment_status || 'pending',
+      mercadopago_preference_id: dbOrder.mercadopago_preference_id,
+      mercadopago_payment_id: dbOrder.mercadopago_payment_id,
     };
   };
 
