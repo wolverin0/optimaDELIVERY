@@ -45,6 +45,7 @@ trace_*.js
 verify_*.js
 verify_*.cjs
 run_*.js
+run_*.cjs
 setup_*.js
 fix_*.js
 enable_*.js
