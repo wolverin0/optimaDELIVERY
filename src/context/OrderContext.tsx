@@ -59,44 +59,49 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const { tenant } = useTenant();
   const { session } = useAuth();
 
-  // Initialize cart from localStorage
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const stored = localStorage.getItem(getCartStorageKey(tenant?.id));
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Track if cart has been loaded from localStorage to prevent clearing on initial mount
+  const cartLoadedRef = useRef(false);
+  const lastTenantIdRef = useRef<string | undefined>(undefined);
+
+  // Initialize cart empty - will load from localStorage when tenant is available
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   const token = session?.access_token || null;
 
-  // Persist cart to localStorage whenever it changes
+  // Load cart when tenant becomes available or changes
   useEffect(() => {
-    const key = getCartStorageKey(tenant?.id);
+    if (tenant?.id && tenant.id !== lastTenantIdRef.current) {
+      lastTenantIdRef.current = tenant.id;
+      try {
+        const key = getCartStorageKey(tenant.id);
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCart(parsed);
+          }
+        }
+        cartLoadedRef.current = true;
+      } catch {
+        cartLoadedRef.current = true;
+      }
+    }
+  }, [tenant?.id]);
+
+  // Persist cart to localStorage whenever it changes (only after initial load)
+  useEffect(() => {
+    // Don't persist until we've loaded the cart and have a tenant
+    if (!cartLoadedRef.current || !tenant?.id) return;
+
+    const key = getCartStorageKey(tenant.id);
     if (cart.length > 0) {
       localStorage.setItem(key, JSON.stringify(cart));
     } else {
       localStorage.removeItem(key);
     }
   }, [cart, tenant?.id]);
-
-  // Load cart when tenant changes
-  useEffect(() => {
-    if (tenant?.id) {
-      try {
-        const stored = localStorage.getItem(getCartStorageKey(tenant.id));
-        if (stored) {
-          setCart(JSON.parse(stored));
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
-  }, [tenant?.id]);
 
   const mapDbOrderToOrder = (dbOrder: any): Order => {
     return {

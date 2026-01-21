@@ -3,10 +3,7 @@ import { MenuCard } from '@/components/MenuCard';
 import { CartDrawer } from '@/components/CartDrawer';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SocialLinksBar } from '@/components/SocialLinksBar';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { TemplateProps } from './types';
-import { toast } from 'sonner';
 
 export const TemplateClassic = ({ tenant, menuItems }: TemplateProps) => {
     const availableItems = menuItems.filter(item => item.is_available);
@@ -33,15 +30,6 @@ export const TemplateClassic = ({ tenant, menuItems }: TemplateProps) => {
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
                         <ThemeToggle />
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-primary/30 text-primary hover:bg-primary hover:text-white transition-all duration-300 rounded-full px-2 sm:px-4 h-8 sm:h-9"
-                            onClick={() => toast.info("Inicio de sesión (Demo)", { description: "Esta es una simulación de acceso para clientes." })}
-                        >
-                            <Utensils className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">Ingresar</span>
-                        </Button>
                     </div>
                 </div>
             </header>

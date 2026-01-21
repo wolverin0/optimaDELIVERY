@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import {
     Loader2, Building2, Users, DollarSign, TrendingUp,
     LogOut, Eye, MoreVertical, Search, Palette, Bell, CheckCircle, Clock,
-    Power, Calendar, ExternalLink, X, ShoppingBag, Download
+    Power, Calendar, ExternalLink, ShoppingBag, Download, BarChart3,
+    ArrowUpRight, ArrowDownRight, CreditCard, UserPlus, Activity, ChevronUp, ChevronDown
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -25,6 +26,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+
+type TimePeriod = 'today' | 'week' | 'month' | 'all';
+type SortField = 'name' | 'orders' | 'revenue' | 'created_at';
+type SortDirection = 'asc' | 'desc';
 
 interface TenantData {
     id: string;
@@ -118,6 +130,9 @@ const SuperAdmin = () => {
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [selectedTenant, setSelectedTenant] = useState<TenantData | null>(null);
     const [showTenantDetail, setShowTenantDetail] = useState(false);
+    const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
+    const [sortField, setSortField] = useState<SortField>('revenue');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
     // Check if user is super admin
     const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
@@ -365,6 +380,158 @@ const SuperAdmin = () => {
         return Math.ceil(diff / (1000 * 60 * 60 * 24));
     };
 
+    // Get date range based on selected time period
+    const getDateRange = () => {
+        const now = new Date();
+        switch (timePeriod) {
+            case 'today':
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            case 'week':
+                return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            case 'month':
+                return new Date(now.getFullYear(), now.getMonth(), 1);
+            default:
+                return new Date(0); // All time
+        }
+    };
+
+    // Compute per-tenant analytics with time period filter
+    const tenantAnalytics = useMemo(() => {
+        const startDate = getDateRange();
+        return tenants.map(tenant => {
+            const tenantOrders = orders.filter(o =>
+                o.tenant_id === tenant.id &&
+                new Date(o.created_at) >= startDate
+            );
+            const paidOrders = tenantOrders.filter(o =>
+                (o.payment_method === 'mercadopago' && o.payment_status === 'paid') ||
+                (o.payment_method === 'cash' && o.status === 'dispatched')
+            );
+            const revenue = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+            const tenantUsers = users.filter(u => u.tenant_id === tenant.id);
+
+            return {
+                ...tenant,
+                orderCount: tenantOrders.length,
+                paidOrderCount: paidOrders.length,
+                revenue,
+                userCount: tenantUsers.length,
+                avgOrderValue: paidOrders.length > 0 ? revenue / paidOrders.length : 0,
+            };
+        });
+    }, [tenants, orders, users, timePeriod]);
+
+    // Platform-wide metrics
+    const platformMetrics = useMemo(() => {
+        const now = new Date();
+        const startDate = getDateRange();
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+
+        // New signups
+        const newTenantsThisWeek = tenants.filter(t => new Date(t.created_at) >= weekAgo).length;
+        const newTenantsThisMonth = tenants.filter(t => new Date(t.created_at) >= monthAgo).length;
+
+        // MercadoPago connection rate
+        const mpConnected = tenants.filter(t => t.mercadopago_access_token).length;
+        const mpConnectionRate = tenants.length > 0 ? (mpConnected / tenants.length) * 100 : 0;
+
+        // Active rate (tenants with orders in period)
+        const tenantsWithOrders = new Set(
+            orders.filter(o => new Date(o.created_at) >= startDate).map(o => o.tenant_id)
+        ).size;
+        const activityRate = tenants.length > 0 ? (tenantsWithOrders / tenants.length) * 100 : 0;
+
+        // Trial status
+        const inTrial = tenants.filter(t => {
+            const days = getTrialDaysRemaining(t);
+            return days !== null && days > 0;
+        }).length;
+        const trialExpired = tenants.filter(t => {
+            const days = getTrialDaysRemaining(t);
+            return days !== null && days <= 0;
+        }).length;
+        const trialExpiringSoon = tenants.filter(t => {
+            const days = getTrialDaysRemaining(t);
+            return days !== null && days > 0 && days <= 3;
+        }).length;
+
+        // Orders in period
+        const periodOrders = orders.filter(o => new Date(o.created_at) >= startDate);
+        const paidPeriodOrders = periodOrders.filter(o =>
+            (o.payment_method === 'mercadopago' && o.payment_status === 'paid') ||
+            (o.payment_method === 'cash' && o.status === 'dispatched')
+        );
+        const periodRevenue = paidPeriodOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        return {
+            newTenantsThisWeek,
+            newTenantsThisMonth,
+            mpConnected,
+            mpConnectionRate,
+            tenantsWithOrders,
+            activityRate,
+            inTrial,
+            trialExpired,
+            trialExpiringSoon,
+            periodOrders: periodOrders.length,
+            paidPeriodOrders: paidPeriodOrders.length,
+            periodRevenue,
+        };
+    }, [tenants, orders, timePeriod]);
+
+    // Sort tenant analytics
+    const sortedTenantAnalytics = useMemo(() => {
+        const sorted = [...tenantAnalytics].sort((a, b) => {
+            let aVal: any, bVal: any;
+            switch (sortField) {
+                case 'name':
+                    aVal = a.name.toLowerCase();
+                    bVal = b.name.toLowerCase();
+                    break;
+                case 'orders':
+                    aVal = a.orderCount;
+                    bVal = b.orderCount;
+                    break;
+                case 'revenue':
+                    aVal = a.revenue;
+                    bVal = b.revenue;
+                    break;
+                case 'created_at':
+                    aVal = new Date(a.created_at).getTime();
+                    bVal = new Date(b.created_at).getTime();
+                    break;
+                default:
+                    return 0;
+            }
+            if (sortDirection === 'asc') {
+                return aVal > bVal ? 1 : -1;
+            } else {
+                return aVal < bVal ? 1 : -1;
+            }
+        });
+        return sorted.filter(t =>
+            t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.slug.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [tenantAnalytics, sortField, sortDirection, searchQuery]);
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('desc');
+        }
+    };
+
+    const SortIcon = ({ field }: { field: SortField }) => {
+        if (sortField !== field) return null;
+        return sortDirection === 'asc' ?
+            <ChevronUp className="w-4 h-4 inline ml-1" /> :
+            <ChevronDown className="w-4 h-4 inline ml-1" />;
+    };
+
     const filteredTenants = tenants.filter(t =>
         t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.slug.toLowerCase().includes(searchQuery.toLowerCase())
@@ -420,15 +587,91 @@ const SuperAdmin = () => {
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-6 py-8">
-                {/* Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-                    <MetricCard
-                        icon={<Building2 className="w-5 h-5" />}
-                        label="Total Negocios"
-                        value={metrics.totalTenants}
-                        subtext={`${metrics.activeTenants} activos`}
-                        color="blue"
-                    />
+                {/* Time Period Selector */}
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold">Panel de Control</h2>
+                    <Select value={timePeriod} onValueChange={(v: TimePeriod) => setTimePeriod(v)}>
+                        <SelectTrigger className="w-40 bg-slate-800 border-slate-700">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                            <SelectItem value="today">Hoy</SelectItem>
+                            <SelectItem value="week">Esta Semana</SelectItem>
+                            <SelectItem value="month">Este Mes</SelectItem>
+                            <SelectItem value="all">Todo el Tiempo</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Platform Overview */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-0">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-blue-200 text-sm">Total Negocios</p>
+                                    <p className="text-3xl font-bold">{metrics.totalTenants}</p>
+                                    <p className="text-blue-200 text-xs mt-1">
+                                        <UserPlus className="w-3 h-3 inline mr-1" />
+                                        +{platformMetrics.newTenantsThisWeek} esta semana
+                                    </p>
+                                </div>
+                                <Building2 className="w-10 h-10 text-blue-300 opacity-80" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-green-600 to-green-800 border-0">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-green-200 text-sm">Revenue ({timePeriod === 'today' ? 'Hoy' : timePeriod === 'week' ? 'Semana' : timePeriod === 'month' ? 'Mes' : 'Total'})</p>
+                                    <p className="text-3xl font-bold">${platformMetrics.periodRevenue.toLocaleString()}</p>
+                                    <p className="text-green-200 text-xs mt-1">
+                                        <ShoppingBag className="w-3 h-3 inline mr-1" />
+                                        {platformMetrics.paidPeriodOrders} pedidos pagados
+                                    </p>
+                                </div>
+                                <DollarSign className="w-10 h-10 text-green-300 opacity-80" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-purple-600 to-purple-800 border-0">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-purple-200 text-sm">MercadoPago</p>
+                                    <p className="text-3xl font-bold">{platformMetrics.mpConnected}</p>
+                                    <p className="text-purple-200 text-xs mt-1">
+                                        <CreditCard className="w-3 h-3 inline mr-1" />
+                                        {platformMetrics.mpConnectionRate.toFixed(0)}% conectados
+                                    </p>
+                                </div>
+                                <CreditCard className="w-10 h-10 text-purple-300 opacity-80" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-orange-600 to-orange-800 border-0">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-orange-200 text-sm">Actividad</p>
+                                    <p className="text-3xl font-bold">{platformMetrics.tenantsWithOrders}</p>
+                                    <p className="text-orange-200 text-xs mt-1">
+                                        <Activity className="w-3 h-3 inline mr-1" />
+                                        {platformMetrics.activityRate.toFixed(0)}% activos
+                                    </p>
+                                </div>
+                                <Activity className="w-10 h-10 text-orange-300 opacity-80" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Secondary Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                     <MetricCard
                         icon={<Users className="w-5 h-5" />}
                         label="Usuarios"
@@ -436,25 +679,23 @@ const SuperAdmin = () => {
                         color="green"
                     />
                     <MetricCard
+                        icon={<Clock className="w-5 h-5" />}
+                        label="En Trial"
+                        value={platformMetrics.inTrial}
+                        subtext={`${platformMetrics.trialExpiringSoon} por vencer`}
+                        color="blue"
+                    />
+                    <MetricCard
+                        icon={<Bell className="w-5 h-5" />}
+                        label="Trial Expirado"
+                        value={platformMetrics.trialExpired}
+                        color="red"
+                    />
+                    <MetricCard
                         icon={<ShoppingBag className="w-5 h-5" />}
-                        label="Pedidos Hoy"
-                        value={metrics.todayOrders}
-                        subtext={`${metrics.weekOrders} esta semana`}
+                        label="Pedidos Totales"
+                        value={metrics.totalOrders}
                         color="purple"
-                    />
-                    <MetricCard
-                        icon={<DollarSign className="w-5 h-5" />}
-                        label="Ventas Hoy"
-                        value={`$${metrics.todayRevenue.toLocaleString()}`}
-                        subtext={`$${metrics.weekRevenue.toLocaleString()} semana`}
-                        color="yellow"
-                    />
-                    <MetricCard
-                        icon={<TrendingUp className="w-5 h-5" />}
-                        label="Revenue Mes"
-                        value={`$${metrics.monthlyRevenue.toLocaleString()}`}
-                        subtext={`${metrics.totalOrders} pedidos totales`}
-                        color="orange"
                     />
                     <MetricCard
                         icon={<Palette className="w-5 h-5" />}
@@ -470,6 +711,10 @@ const SuperAdmin = () => {
                         <TabsTrigger value="tenants" className="data-[state=active]:bg-slate-700">
                             <Building2 className="w-4 h-4 mr-2" />
                             Negocios
+                        </TabsTrigger>
+                        <TabsTrigger value="analytics" className="data-[state=active]:bg-slate-700">
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            Analytics
                         </TabsTrigger>
                         <TabsTrigger value="users" className="data-[state=active]:bg-slate-700">
                             <Users className="w-4 h-4 mr-2" />
@@ -676,6 +921,172 @@ const SuperAdmin = () => {
                         </div>
                     </CardContent>
                 </Card>
+                    </TabsContent>
+
+                    {/* Analytics Tab */}
+                    <TabsContent value="analytics">
+                        <Card className="bg-slate-800 border-slate-700">
+                            <CardHeader>
+                                <div className="flex items-center justify-between flex-wrap gap-4">
+                                    <div>
+                                        <CardTitle className="text-white flex items-center gap-2">
+                                            <BarChart3 className="w-5 h-5" />
+                                            Analytics por Negocio
+                                        </CardTitle>
+                                        <CardDescription className="text-slate-400">
+                                            Métricas detalladas por cada tenant ({timePeriod === 'today' ? 'Hoy' : timePeriod === 'week' ? 'Esta Semana' : timePeriod === 'month' ? 'Este Mes' : 'Todo el Tiempo'})
+                                        </CardDescription>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="relative">
+                                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <Input
+                                                placeholder="Buscar negocio..."
+                                                className="pl-9 bg-slate-700 border-slate-600 text-white w-64"
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-slate-700 text-left text-sm text-slate-400">
+                                                <th
+                                                    className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
+                                                    onClick={() => handleSort('name')}
+                                                >
+                                                    Negocio <SortIcon field="name" />
+                                                </th>
+                                                <th className="pb-3 font-medium">Estado</th>
+                                                <th
+                                                    className="pb-3 font-medium cursor-pointer hover:text-white transition-colors text-right"
+                                                    onClick={() => handleSort('orders')}
+                                                >
+                                                    Pedidos <SortIcon field="orders" />
+                                                </th>
+                                                <th
+                                                    className="pb-3 font-medium cursor-pointer hover:text-white transition-colors text-right"
+                                                    onClick={() => handleSort('revenue')}
+                                                >
+                                                    Revenue <SortIcon field="revenue" />
+                                                </th>
+                                                <th className="pb-3 font-medium text-right">Ticket Prom.</th>
+                                                <th className="pb-3 font-medium text-center">Usuarios</th>
+                                                <th
+                                                    className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
+                                                    onClick={() => handleSort('created_at')}
+                                                >
+                                                    Creado <SortIcon field="created_at" />
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-700">
+                                            {sortedTenantAnalytics.map((tenant) => (
+                                                <tr key={tenant.id} className="text-sm hover:bg-slate-700/30 transition-colors">
+                                                    <td className="py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            {tenant.logo_url ? (
+                                                                <img
+                                                                    src={tenant.logo_url}
+                                                                    alt={tenant.name}
+                                                                    className="w-8 h-8 rounded-lg object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div
+                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white"
+                                                                    style={{ backgroundColor: tenant.primary_color || '#475569' }}
+                                                                >
+                                                                    {tenant.name.charAt(0).toUpperCase()}
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <p className="font-medium text-white">{tenant.name}</p>
+                                                                <p className="text-xs text-slate-400">/t/{tenant.slug}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge className={tenant.is_active ? 'bg-green-600' : 'bg-red-600'}>
+                                                                {tenant.is_active ? 'Activo' : 'Inactivo'}
+                                                            </Badge>
+                                                            {tenant.mercadopago_access_token && (
+                                                                <CreditCard className="w-4 h-4 text-blue-400" title="MercadoPago conectado" />
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 text-right">
+                                                        <span className="text-white font-medium">{tenant.orderCount}</span>
+                                                        {tenant.paidOrderCount > 0 && (
+                                                            <span className="text-green-400 text-xs ml-1">({tenant.paidOrderCount} pagados)</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="py-4 text-right">
+                                                        <span className={`font-bold ${tenant.revenue > 0 ? 'text-green-400' : 'text-slate-500'}`}>
+                                                            ${tenant.revenue.toLocaleString()}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-4 text-right">
+                                                        <span className="text-slate-300">
+                                                            ${tenant.avgOrderValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-4 text-center">
+                                                        <Badge variant="outline" className="text-slate-400 border-slate-600">
+                                                            {tenant.userCount}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="py-4 text-slate-400 text-sm">
+                                                        {new Date(tenant.created_at).toLocaleDateString('es-AR')}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {sortedTenantAnalytics.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={7} className="py-8 text-center text-slate-400">
+                                                        No se encontraron negocios con datos en este período
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Summary Footer */}
+                                <div className="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center flex-wrap gap-4">
+                                    <div className="flex gap-6 text-sm">
+                                        <div>
+                                            <span className="text-slate-400">Total Negocios: </span>
+                                            <span className="text-white font-medium">{sortedTenantAnalytics.length}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-400">Con Pedidos: </span>
+                                            <span className="text-white font-medium">
+                                                {sortedTenantAnalytics.filter(t => t.orderCount > 0).length}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-6 text-sm">
+                                        <div>
+                                            <span className="text-slate-400">Total Pedidos: </span>
+                                            <span className="text-white font-medium">
+                                                {sortedTenantAnalytics.reduce((sum, t) => sum + t.orderCount, 0)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-400">Revenue Total: </span>
+                                            <span className="text-green-400 font-bold">
+                                                ${sortedTenantAnalytics.reduce((sum, t) => sum + t.revenue, 0).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </TabsContent>
 
                     {/* Users Tab */}
