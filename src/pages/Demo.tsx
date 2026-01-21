@@ -435,17 +435,17 @@ const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }
                         </div>
 
                         {/* Menu Online Banner */}
-                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white flex items-center justify-between">
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-4 sm:p-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                                    <CheckCircle className="w-6 h-6" />
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-lg">Tu menú está online</h3>
-                                    <p className="text-white/80 text-sm">demo-burger.optimadelivery.com</p>
+                                <div className="min-w-0">
+                                    <h3 className="font-bold text-base sm:text-lg">Tu menú está online</h3>
+                                    <p className="text-white/80 text-xs sm:text-sm truncate">demo-burger.optimadelivery.com</p>
                                 </div>
                             </div>
-                            <Button variant="secondary" size="sm" className="bg-white text-green-600 hover:bg-green-50">
+                            <Button variant="secondary" size="sm" className="bg-white text-green-600 hover:bg-green-50 shrink-0 w-full sm:w-auto">
                                 Ver Menú
                             </Button>
                         </div>

@@ -123,11 +123,41 @@ export const ThemeSettings = () => {
         }
     };
 
-    const handleCustomRequest = () => {
-        toast({
-            title: 'Solicitud Enviada',
-            description: 'Un diseñador se pondrá en contacto contigo pronto. (Demo)',
-        });
+    const [isRequestingDesign, setIsRequestingDesign] = useState(false);
+
+    const handleCustomRequest = async () => {
+        if (!tenant) return;
+
+        setIsRequestingDesign(true);
+        try {
+            const { error } = await supabase
+                .from('design_requests')
+                .insert({
+                    tenant_id: tenant.id,
+                    tenant_name: tenant.name,
+                    tenant_slug: tenant.slug,
+                    contact_email: tenant.business_email,
+                    contact_phone: tenant.business_phone,
+                    price: 49000,
+                    status: 'pending'
+                });
+
+            if (error) throw error;
+
+            toast({
+                title: '¡Solicitud Enviada!',
+                description: 'Nuestro equipo de diseño se pondrá en contacto contigo pronto.',
+            });
+        } catch (error) {
+            console.error('Error creating design request:', error);
+            toast({
+                title: 'Error',
+                description: 'No se pudo enviar la solicitud. Intenta nuevamente.',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsRequestingDesign(false);
+        }
     };
 
     const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -443,13 +473,24 @@ export const ThemeSettings = () => {
                             </li>
                         </ul>
                         <div className="pt-4">
-                            <span className="text-2xl font-bold text-indigo-900">$49.99</span>
+                            <span className="text-2xl font-bold text-indigo-900">$49.000</span>
                             <span className="text-indigo-600 text-sm"> / pago único</span>
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 shadow-lg" onClick={handleCustomRequest}>
-                            Solicitar Diseño
+                        <Button
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 shadow-lg"
+                            onClick={handleCustomRequest}
+                            disabled={isRequestingDesign}
+                        >
+                            {isRequestingDesign ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Enviando...
+                                </>
+                            ) : (
+                                'Solicitar Diseño'
+                            )}
                         </Button>
                     </CardFooter>
                 </Card>

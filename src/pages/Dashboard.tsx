@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTenant } from '@/context/TenantContext';
 import { useAuth } from '@/context/AuthContext';
+import { useOrders } from '@/context/OrderContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -51,10 +52,47 @@ const canAccessBilling = (userRole: UserRole | undefined): boolean => {
 const Dashboard = () => {
     const { tenant, isLoading, error, refreshTenant } = useTenant();
     const { signOut, profile } = useAuth();
+    const { orders } = useOrders();
     const [searchParams, setSearchParams] = useSearchParams();
     const { toast } = useToast();
 
     const userRole = profile?.role as UserRole | undefined;
+
+    // Calculate today's sales from paid orders or delivered cash orders
+    const todayStats = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todayOrders = orders.filter(order => {
+            const orderDate = new Date(order.createdAt);
+            orderDate.setHours(0, 0, 0, 0);
+            return orderDate.getTime() === today.getTime();
+        });
+
+        // Count sales: paid MP orders OR delivered cash orders
+        const paidOrders = todayOrders.filter(order => {
+            // MercadoPago orders that are paid
+            if (order.payment_method === 'mercadopago' && order.payment_status === 'paid') {
+                return true;
+            }
+            // Cash orders that are dispatched (delivered)
+            if (order.payment_method === 'cash' && order.status === 'dispatched') {
+                return true;
+            }
+            return false;
+        });
+
+        const totalSales = paidOrders.reduce((sum, order) => sum + order.total, 0);
+        const activeOrders = todayOrders.filter(o =>
+            o.status !== 'cancelled' && o.status !== 'dispatched'
+        ).length;
+
+        return {
+            sales: totalSales,
+            activeOrders,
+            totalOrders: todayOrders.length
+        };
+    }, [orders]);
 
     // Handle MercadoPago connection result
     useEffect(() => {
@@ -149,7 +187,7 @@ const Dashboard = () => {
     }
 
     const isMpConnected = !!tenant.mercadopago_access_token;
-    const mpAuthUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${MP_REDIRECT_URI}&state=${tenant.id}`;
+    const mpAuthUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${encodeURIComponent(MP_REDIRECT_URI)}&state=${tenant.id}`;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex">
@@ -245,8 +283,15 @@ const Dashboard = () => {
                             </div>
 
                             <div className="grid md:grid-cols-3 gap-4 md:gap-6">
-                                <StatCard title="Ventas Hoy" value="$0" trend="+0%" />
-                                <StatCard title="Pedidos Activos" value="0" />
+                                <StatCard
+                                    title="Ventas Hoy"
+                                    value={`$${todayStats.sales.toLocaleString()}`}
+                                    subtitle={`${todayStats.totalOrders} pedido${todayStats.totalOrders !== 1 ? 's' : ''} hoy`}
+                                />
+                                <StatCard
+                                    title="Pedidos Activos"
+                                    value={todayStats.activeOrders.toString()}
+                                />
                                 <StatCard title="Visitas al Menú" value="0" />
                             </div>
 
@@ -419,11 +464,16 @@ const NavItem = ({ icon, label, isActive, onClick }: { icon: any, label: string,
     </button>
 );
 
-const StatCard = ({ title, value, trend }: { title: string, value: string, trend?: string }) => (
+const StatCard = ({ title, value, trend, subtitle }: { title: string, value: string, trend?: string, subtitle?: string }) => (
     <div className="bg-white/70 backdrop-blur-xl p-6 rounded-2xl border border-white/50 shadow-lg shadow-orange-900/5">
         <h3 className="text-sm font-medium text-slate-500 mb-2">{title}</h3>
         <div className="flex items-end justify-between">
-            <span className="text-2xl font-bold text-slate-800">{value}</span>
+            <div>
+                <span className="text-2xl font-bold text-slate-800">{value}</span>
+                {subtitle && (
+                    <p className="text-xs text-slate-400 mt-1">{subtitle}</p>
+                )}
+            </div>
             {trend && (
                 <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
                     {trend}

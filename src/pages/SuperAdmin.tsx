@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import {
     Loader2, Building2, Users, DollarSign, TrendingUp,
-    LogOut, Eye, MoreVertical, Search, Filter
+    LogOut, Eye, MoreVertical, Search, Palette, Bell, CheckCircle, Clock
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -15,6 +15,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface TenantData {
     id: string;
@@ -27,11 +28,25 @@ interface TenantData {
     mercadopago_access_token: string | null;
 }
 
+interface DesignRequest {
+    id: string;
+    tenant_id: string;
+    tenant_name: string;
+    tenant_slug: string;
+    contact_email: string | null;
+    contact_phone: string | null;
+    price: number;
+    status: 'pending' | 'contacted' | 'in_progress' | 'completed' | 'cancelled';
+    notes: string | null;
+    created_at: string;
+}
+
 interface DashboardMetrics {
     totalTenants: number;
     activeTenants: number;
     totalOrders: number;
     monthlyRevenue: number;
+    pendingDesignRequests: number;
 }
 
 // Super admin emails from environment variable (comma-separated)
@@ -44,11 +59,13 @@ const SuperAdmin = () => {
     const navigate = useNavigate();
     const { user, signOut, isLoading: authLoading } = useAuth();
     const [tenants, setTenants] = useState<TenantData[]>([]);
+    const [designRequests, setDesignRequests] = useState<DesignRequest[]>([]);
     const [metrics, setMetrics] = useState<DashboardMetrics>({
         totalTenants: 0,
         activeTenants: 0,
         totalOrders: 0,
         monthlyRevenue: 0,
+        pendingDesignRequests: 0,
     });
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -64,38 +81,79 @@ const SuperAdmin = () => {
             return;
         }
 
-        fetchTenants();
+        fetchData();
     }, [user, authLoading, isSuperAdmin, navigate]);
 
-    const fetchTenants = async () => {
+    const fetchData = async () => {
+        try {
+            const { data: { session } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+            if (!session) return;
+
+            const headers = {
+                'Authorization': `Bearer ${session.access_token}`,
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+            };
+
+            // Fetch tenants and design requests in parallel
+            const [tenantsRes, designRes] = await Promise.all([
+                fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/tenants?select=*&order=created_at.desc`, { headers }),
+                fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/design_requests?select=*&order=created_at.desc`, { headers })
+            ]);
+
+            if (tenantsRes.ok) {
+                const tenantsData = await tenantsRes.json();
+                setTenants(tenantsData);
+
+                let designData: DesignRequest[] = [];
+                if (designRes.ok) {
+                    designData = await designRes.json();
+                    setDesignRequests(designData);
+                }
+
+                setMetrics({
+                    totalTenants: tenantsData.length,
+                    activeTenants: tenantsData.filter((t: TenantData) => t.is_active).length,
+                    totalOrders: 0,
+                    monthlyRevenue: 0,
+                    pendingDesignRequests: designData.filter((r: DesignRequest) => r.status === 'pending').length,
+                });
+            }
+        } catch (err) {
+            console.error('Error fetching data:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const updateDesignRequestStatus = async (requestId: string, newStatus: DesignRequest['status']) => {
         try {
             const { data: { session } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
             if (!session) return;
 
             const res = await fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/tenants?select=*&order=created_at.desc`,
+                `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/design_requests?id=eq.${requestId}`,
                 {
+                    method: 'PATCH',
                     headers: {
                         'Authorization': `Bearer ${session.access_token}`,
-                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
-                    }
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus, updated_at: new Date().toISOString() })
                 }
             );
 
             if (res.ok) {
-                const data = await res.json();
-                setTenants(data);
-                setMetrics({
-                    totalTenants: data.length,
-                    activeTenants: data.filter((t: TenantData) => t.is_active).length,
-                    totalOrders: 0, // TODO: Aggregate from orders table
-                    monthlyRevenue: 0, // TODO: Calculate from orders
-                });
+                setDesignRequests(prev => prev.map(r =>
+                    r.id === requestId ? { ...r, status: newStatus } : r
+                ));
+                setMetrics(prev => ({
+                    ...prev,
+                    pendingDesignRequests: designRequests.filter(r => r.id !== requestId ? r.status === 'pending' : newStatus === 'pending').length
+                }));
             }
         } catch (err) {
-            console.error('Error fetching tenants:', err);
-        } finally {
-            setIsLoading(false);
+            console.error('Error updating design request:', err);
         }
     };
 
@@ -160,7 +218,7 @@ const SuperAdmin = () => {
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                     <MetricCard
                         icon={<Building2 className="w-5 h-5" />}
                         label="Total Negocios"
@@ -185,8 +243,31 @@ const SuperAdmin = () => {
                         value={`$${metrics.monthlyRevenue.toLocaleString()}`}
                         color="yellow"
                     />
+                    <MetricCard
+                        icon={<Palette className="w-5 h-5" />}
+                        label="Diseños Pendientes"
+                        value={metrics.pendingDesignRequests}
+                        color="pink"
+                    />
                 </div>
 
+                {/* Tabs for Tenants and Design Requests */}
+                <Tabs defaultValue="tenants" className="space-y-6">
+                    <TabsList className="bg-slate-800 border-slate-700">
+                        <TabsTrigger value="tenants" className="data-[state=active]:bg-slate-700">
+                            <Building2 className="w-4 h-4 mr-2" />
+                            Negocios
+                        </TabsTrigger>
+                        <TabsTrigger value="design-requests" className="data-[state=active]:bg-slate-700">
+                            <Palette className="w-4 h-4 mr-2" />
+                            Solicitudes de Diseño
+                            {metrics.pendingDesignRequests > 0 && (
+                                <Badge className="ml-2 bg-pink-500">{metrics.pendingDesignRequests}</Badge>
+                            )}
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="tenants">
                 {/* Tenants Table */}
                 <Card className="bg-slate-800 border-slate-700">
                     <CardHeader>
@@ -288,6 +369,126 @@ const SuperAdmin = () => {
                         </div>
                     </CardContent>
                 </Card>
+                    </TabsContent>
+
+                    <TabsContent value="design-requests">
+                        <Card className="bg-slate-800 border-slate-700">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <Palette className="w-5 h-5" />
+                                    Solicitudes de Diseño Premium
+                                </CardTitle>
+                                <CardDescription className="text-slate-400">
+                                    Gestiona las solicitudes de diseño personalizado de los tenants
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {designRequests.length === 0 ? (
+                                    <div className="py-12 text-center text-slate-400">
+                                        <Palette className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                        <p>No hay solicitudes de diseño</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {designRequests.map((request) => (
+                                            <div
+                                                key={request.id}
+                                                className={`p-4 rounded-lg border ${
+                                                    request.status === 'pending'
+                                                        ? 'bg-pink-500/10 border-pink-500/30'
+                                                        : request.status === 'in_progress'
+                                                        ? 'bg-yellow-500/10 border-yellow-500/30'
+                                                        : request.status === 'completed'
+                                                        ? 'bg-green-500/10 border-green-500/30'
+                                                        : 'bg-slate-700 border-slate-600'
+                                                }`}
+                                            >
+                                                <div className="flex items-start justify-between">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-semibold text-white">{request.tenant_name}</h4>
+                                                            <Badge
+                                                                className={
+                                                                    request.status === 'pending' ? 'bg-pink-500' :
+                                                                    request.status === 'contacted' ? 'bg-blue-500' :
+                                                                    request.status === 'in_progress' ? 'bg-yellow-500' :
+                                                                    request.status === 'completed' ? 'bg-green-500' :
+                                                                    'bg-slate-500'
+                                                                }
+                                                            >
+                                                                {request.status === 'pending' && 'Pendiente'}
+                                                                {request.status === 'contacted' && 'Contactado'}
+                                                                {request.status === 'in_progress' && 'En Progreso'}
+                                                                {request.status === 'completed' && 'Completado'}
+                                                                {request.status === 'cancelled' && 'Cancelado'}
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-sm text-slate-400">
+                                                            <code className="bg-slate-700 px-1.5 py-0.5 rounded text-xs">/t/{request.tenant_slug}</code>
+                                                        </p>
+                                                        <div className="flex gap-4 text-sm text-slate-400 mt-2">
+                                                            {request.contact_email && (
+                                                                <span>📧 {request.contact_email}</span>
+                                                            )}
+                                                            {request.contact_phone && (
+                                                                <span>📱 {request.contact_phone}</span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            {new Date(request.created_at).toLocaleString('es-AR')}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-2">
+                                                        <span className="text-lg font-bold text-green-400">
+                                                            ${request.price.toLocaleString()}
+                                                        </span>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
+                                                                    <MoreVertical className="w-4 h-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                                                                <DropdownMenuItem
+                                                                    className="text-white hover:bg-slate-700 cursor-pointer"
+                                                                    onClick={() => updateDesignRequestStatus(request.id, 'contacted')}
+                                                                >
+                                                                    <Bell className="w-4 h-4 mr-2" />
+                                                                    Marcar Contactado
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    className="text-white hover:bg-slate-700 cursor-pointer"
+                                                                    onClick={() => updateDesignRequestStatus(request.id, 'in_progress')}
+                                                                >
+                                                                    <Clock className="w-4 h-4 mr-2" />
+                                                                    En Progreso
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    className="text-white hover:bg-slate-700 cursor-pointer"
+                                                                    onClick={() => updateDesignRequestStatus(request.id, 'completed')}
+                                                                >
+                                                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                                                    Completado
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    className="text-white hover:bg-slate-700 cursor-pointer"
+                                                                    onClick={() => window.open(`/t/${request.tenant_slug}`, '_blank')}
+                                                                >
+                                                                    <Eye className="w-4 h-4 mr-2" />
+                                                                    Ver Menú
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
             </main>
         </div>
     );
@@ -299,6 +500,7 @@ const MetricCard = ({ icon, label, value, color }: { icon: any, label: string, v
         green: 'bg-green-500/10 text-green-400 border-green-500/20',
         purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
         yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+        pink: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
     };
 
     return (

@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const REDIRECT_URI = `${SUPABASE_URL}/functions/v1/mercadopago-auth`
-    const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://optimadelivery.com'
+    const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://optimadelivery.vercel.app'
 
     // Handle error from MercadoPago
     if (error) {
@@ -41,6 +41,9 @@ Deno.serve(async (req) => {
     }
 
     console.log('Exchanging code for tokens, tenant_id:', state)
+    console.log('Using REDIRECT_URI:', REDIRECT_URI)
+    console.log('MP_CLIENT_ID present:', !!MP_CLIENT_ID)
+    console.log('MP_CLIENT_SECRET present:', !!MP_CLIENT_SECRET)
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://api.mercadopago.com/oauth/token', {
@@ -61,7 +64,9 @@ Deno.serve(async (req) => {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text()
       console.error('Token exchange failed:', tokenResponse.status, errorData)
-      return Response.redirect(`${FRONTEND_URL}/dashboard?mp_error=token_exchange_failed`, 302)
+      // Include more details in the redirect for debugging
+      const errorInfo = encodeURIComponent(`${tokenResponse.status}: ${errorData.substring(0, 100)}`)
+      return Response.redirect(`${FRONTEND_URL}/dashboard?mp_error=token_exchange_failed&details=${errorInfo}`, 302)
     }
 
     const tokenData = await tokenResponse.json()

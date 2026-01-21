@@ -96,10 +96,19 @@ const LandingPage = () => {
     const [activeFeature, setActiveFeature] = useState(0);
     const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
 
+    // Auto-rotate features every 4 seconds
     useEffect(() => {
         const interval = setInterval(() => {
             setActiveFeature((prev) => (prev + 1) % 4);
         }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Auto-rotate themes every 2 seconds for hero phone mockup
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentThemeIndex((prev) => (prev + 1) % THEMES.length);
+        }, 2000);
         return () => clearInterval(interval);
     }, []);
 
