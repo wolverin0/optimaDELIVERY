@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Plus, Trash2, Edit, Save, Image, Camera, PackageX, Package, Loader2, FolderPlus, GripVertical } from 'lucide-react';
 import { useTenant } from '@/context/TenantContext';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,6 +59,7 @@ export const MenuManager = () => {
     const [showProductForm, setShowProductForm] = useState(false);
     const [editingItem, setEditingItem] = useState<DBMenuItem | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [productFormData, setProductFormData] = useState({
         name: '',
@@ -105,12 +107,47 @@ export const MenuManager = () => {
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setProductFormData(prev => ({ ...prev, image_url: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
+        if (!file || !tenant) return;
+
+        // Validate file type and size
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+            toast({ title: 'Formato no válido', description: 'Usa JPG, PNG, WebP o GIF', variant: 'destructive' });
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast({ title: 'Imagen muy grande', description: 'Máximo 5MB', variant: 'destructive' });
+            return;
+        }
+
+        setIsUploadingImage(true);
+        try {
+            // Generate unique filename
+            const ext = file.name.split('.').pop() || 'jpg';
+            const fileName = `${tenant.id}/menu/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+
+            // Upload to Supabase Storage
+            const { data, error } = await supabase.storage
+                .from('tenant-assets')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false,
+                });
+
+            if (error) throw error;
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('tenant-assets')
+                .getPublicUrl(fileName);
+
+            setProductFormData(prev => ({ ...prev, image_url: urlData.publicUrl }));
+            toast({ title: 'Imagen subida' });
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' });
+        } finally {
+            setIsUploadingImage(false);
         }
     };
 
@@ -313,14 +350,28 @@ export const MenuManager = () => {
                     </div>
 
                     {menuItems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl">
+                        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl bg-muted/20">
                             <Image className="w-16 h-16 text-muted-foreground/30 mb-4" />
                             <h3 className="text-lg font-medium">No hay productos</h3>
-                            <p className="text-muted-foreground mb-4">Agrega tu primer producto al menú.</p>
-                            <Button onClick={() => { resetProductForm(); setShowProductForm(true); }}>
-                                <Plus className="h-4 w-4 mr-2" />
-                                Agregar Producto
-                            </Button>
+                            {categories.length === 0 ? (
+                                <>
+                                    <p className="text-muted-foreground mb-4 max-w-sm">
+                                        Primero crea una categoría para organizar tus productos (ej: Hamburguesas, Bebidas, Postres).
+                                    </p>
+                                    <Button onClick={() => { setActiveTab('categories'); }} variant="outline">
+                                        <FolderPlus className="h-4 w-4 mr-2" />
+                                        Ir a Categorías
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-muted-foreground mb-4">Agrega tu primer producto al menú.</p>
+                                    <Button onClick={() => { resetProductForm(); setShowProductForm(true); }}>
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Agregar Producto
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -400,13 +451,15 @@ export const MenuManager = () => {
                     </div>
 
                     {categories.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl">
+                        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl bg-muted/20">
                             <FolderPlus className="w-16 h-16 text-muted-foreground/30 mb-4" />
                             <h3 className="text-lg font-medium">No hay categorías</h3>
-                            <p className="text-muted-foreground mb-4">Crea categorías para organizar tu menú.</p>
+                            <p className="text-muted-foreground mb-4 max-w-sm">
+                                Las categorías organizan tu menú. Ejemplos: Hamburguesas, Bebidas, Postres, Combos.
+                            </p>
                             <Button onClick={() => { resetCategoryForm(); setShowCategoryForm(true); }}>
                                 <FolderPlus className="h-4 w-4 mr-2" />
-                                Crear Categoría
+                                Crear Primera Categoría
                             </Button>
                         </div>
                     ) : (
@@ -466,7 +519,11 @@ export const MenuManager = () => {
                         <div className="space-y-2">
                             <Label>Imagen</Label>
                             <div className="flex gap-4 items-start">
-                                {productFormData.image_url ? (
+                                {isUploadingImage ? (
+                                    <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center border">
+                                        <Loader2 className="h-6 w-6 text-orange-500 animate-spin" />
+                                    </div>
+                                ) : productFormData.image_url ? (
                                     <img src={productFormData.image_url} alt="Preview" className="w-24 h-24 object-cover rounded-lg border" />
                                 ) : (
                                     <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center border-dashed border">
@@ -474,33 +531,73 @@ export const MenuManager = () => {
                                     </div>
                                 )}
                                 <div className="flex-1 space-y-2">
-                                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                                        <Camera className="h-4 w-4 mr-2" />Subir
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploadingImage}
+                                    >
+                                        {isUploadingImage ? (
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <Camera className="h-4 w-4 mr-2" />
+                                        )}
+                                        {isUploadingImage ? 'Subiendo...' : 'Subir'}
                                     </Button>
                                     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                                     <Input
                                         placeholder="O pegar URL"
-                                        value={productFormData.image_url.startsWith('data:') ? '' : productFormData.image_url}
+                                        value={productFormData.image_url}
                                         onChange={e => setProductFormData(prev => ({ ...prev, image_url: e.target.value }))}
                                         className="h-8 text-xs"
+                                        disabled={isUploadingImage}
                                     />
                                 </div>
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label>Nombre *</Label>
-                            <Input value={productFormData.name} onChange={e => setProductFormData(prev => ({ ...prev, name: e.target.value }))} />
+                            <Input
+                                value={productFormData.name}
+                                onChange={e => setProductFormData(prev => ({ ...prev, name: e.target.value }))}
+                                maxLength={100}
+                                required
+                                placeholder="Nombre del producto"
+                            />
+                            <p className="text-xs text-muted-foreground text-right">{productFormData.name.length}/100</p>
                         </div>
                         <div className="space-y-2">
                             <Label>Descripción</Label>
-                            <Textarea value={productFormData.description} onChange={e => setProductFormData(prev => ({ ...prev, description: e.target.value }))} />
+                            <Textarea
+                                value={productFormData.description}
+                                onChange={e => setProductFormData(prev => ({ ...prev, description: e.target.value }))}
+                                maxLength={500}
+                                placeholder="Describe el producto..."
+                                rows={3}
+                            />
+                            <p className="text-xs text-muted-foreground text-right">{productFormData.description.length}/500</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>Precio *</Label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                                    <Input type="number" value={productFormData.price} onChange={e => setProductFormData(prev => ({ ...prev, price: e.target.value }))} className="pl-7" />
+                                    <Input
+                                        type="number"
+                                        value={productFormData.price}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val === '' || parseFloat(val) >= 0) {
+                                                setProductFormData(prev => ({ ...prev, price: val }));
+                                            }
+                                        }}
+                                        className="pl-7"
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                        placeholder="0.00"
+                                    />
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -537,13 +634,17 @@ export const MenuManager = () => {
                                 placeholder="Ej: Hamburguesas, Bebidas, Postres"
                                 value={categoryFormData.name}
                                 onChange={e => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
+                                maxLength={50}
+                                required
                             />
+                            <p className="text-xs text-muted-foreground text-right">{categoryFormData.name.length}/50</p>
                         </div>
                         <div className="space-y-2">
                             <Label>Icono (emoji)</Label>
                             <Input
                                 placeholder="🍔"
                                 value={categoryFormData.icon}
+                                maxLength={4}
                                 onChange={e => setCategoryFormData(prev => ({ ...prev, icon: e.target.value }))}
                                 className="text-2xl text-center w-20"
                             />

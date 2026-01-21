@@ -2,11 +2,13 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTenant } from '@/context/TenantContext';
 import { useAuth } from '@/context/AuthContext';
 import { useOrders } from '@/context/OrderContext';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Store, CreditCard, LayoutDashboard, UtensilsCrossed, Settings, LogOut, ExternalLink, CheckCircle, Palette, Edit, Utensils } from 'lucide-react';
+import { Loader2, Store, CreditCard, LayoutDashboard, UtensilsCrossed, Settings, LogOut, ExternalLink, CheckCircle, Palette, Edit, Utensils, Save, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { MenuManager } from '@/components/admin/MenuManager';
@@ -58,41 +60,52 @@ const Dashboard = () => {
 
     const userRole = profile?.role as UserRole | undefined;
 
-    // Calculate today's sales from paid orders or delivered cash orders
-    const todayStats = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+    // Calculate stats from orders
+    const dashboardStats = useMemo(() => {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        const todayOrders = orders.filter(order => {
-            const orderDate = new Date(order.createdAt);
-            orderDate.setHours(0, 0, 0, 0);
-            return orderDate.getTime() === today.getTime();
-        });
+        // Filter orders by date
+        const todayOrders = orders.filter(order => new Date(order.createdAt) >= today);
+        const weekOrders = orders.filter(order => new Date(order.createdAt) >= weekAgo);
+        const monthOrders = orders.filter(order => new Date(order.createdAt) >= monthStart);
 
-        // Count sales: paid MP orders OR delivered cash orders
-        const paidOrders = todayOrders.filter(order => {
-            // MercadoPago orders that are paid
-            if (order.payment_method === 'mercadopago' && order.payment_status === 'paid') {
-                return true;
-            }
-            // Cash orders that are dispatched (delivered)
-            if (order.payment_method === 'cash' && order.status === 'dispatched') {
-                return true;
-            }
-            return false;
-        });
+        // Count paid orders (MP paid OR cash dispatched)
+        const isPaid = (order: typeof orders[0]) =>
+            (order.payment_method === 'mercadopago' && order.payment_status === 'paid') ||
+            (order.payment_method === 'cash' && order.status === 'dispatched');
 
-        const totalSales = paidOrders.reduce((sum, order) => sum + order.total, 0);
+        const paidTodayOrders = todayOrders.filter(isPaid);
+        const paidWeekOrders = weekOrders.filter(isPaid);
+        const paidMonthOrders = monthOrders.filter(isPaid);
+
+        const todaySales = paidTodayOrders.reduce((sum, o) => sum + o.total, 0);
+        const weekSales = paidWeekOrders.reduce((sum, o) => sum + o.total, 0);
+        const monthSales = paidMonthOrders.reduce((sum, o) => sum + o.total, 0);
+
         const activeOrders = todayOrders.filter(o =>
             o.status !== 'cancelled' && o.status !== 'dispatched'
         ).length;
 
         return {
-            sales: totalSales,
+            todaySales,
+            weekSales,
+            monthSales,
             activeOrders,
-            totalOrders: todayOrders.length
+            todayOrders: todayOrders.length,
+            weekOrders: weekOrders.length,
+            monthOrders: monthOrders.length,
         };
     }, [orders]);
+
+    // Keep todayStats for backward compatibility
+    const todayStats = {
+        sales: dashboardStats.todaySales,
+        activeOrders: dashboardStats.activeOrders,
+        totalOrders: dashboardStats.todayOrders,
+    };
 
     // Handle MercadoPago connection result
     useEffect(() => {
@@ -143,6 +156,59 @@ const Dashboard = () => {
     }, [userRole]);
 
     const [activeTab, setActiveTab] = useState(getDefaultTab);
+
+    // Business info editing state
+    const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
+    const [isSavingBusinessInfo, setIsSavingBusinessInfo] = useState(false);
+    const [businessInfoForm, setBusinessInfoForm] = useState({
+        business_phone: '',
+        business_email: '',
+        business_address: '',
+    });
+
+    // Initialize form when tenant loads or editing starts
+    useEffect(() => {
+        if (tenant && isEditingBusinessInfo) {
+            setBusinessInfoForm({
+                business_phone: tenant.business_phone || '',
+                business_email: tenant.business_email || '',
+                business_address: tenant.business_address || '',
+            });
+        }
+    }, [tenant, isEditingBusinessInfo]);
+
+    const handleSaveBusinessInfo = async () => {
+        if (!tenant) return;
+
+        setIsSavingBusinessInfo(true);
+        try {
+            const { error } = await supabase
+                .from('tenants')
+                .update({
+                    business_phone: businessInfoForm.business_phone || null,
+                    business_email: businessInfoForm.business_email || null,
+                    business_address: businessInfoForm.business_address || null,
+                })
+                .eq('id', tenant.id);
+
+            if (error) throw error;
+
+            toast({
+                title: 'Información actualizada',
+                description: 'Los datos de tu negocio se han guardado correctamente.',
+            });
+            setIsEditingBusinessInfo(false);
+            refreshTenant();
+        } catch (err) {
+            toast({
+                title: 'Error al guardar',
+                description: 'No se pudo actualizar la información. Intenta de nuevo.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsSavingBusinessInfo(false);
+        }
+    };
 
     useEffect(() => {
         const isCurrentTabAllowed = visibleNavItems.some(item => item.id === activeTab);
@@ -282,17 +348,27 @@ const Dashboard = () => {
                                 <p className="text-slate-500 mt-1">Aquí está el resumen de tu negocio</p>
                             </div>
 
-                            <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+                            <div className="grid md:grid-cols-4 gap-4 md:gap-6">
                                 <StatCard
                                     title="Ventas Hoy"
-                                    value={`$${todayStats.sales.toLocaleString()}`}
-                                    subtitle={`${todayStats.totalOrders} pedido${todayStats.totalOrders !== 1 ? 's' : ''} hoy`}
+                                    value={`$${dashboardStats.todaySales.toLocaleString()}`}
+                                    subtitle={`${dashboardStats.todayOrders} pedido${dashboardStats.todayOrders !== 1 ? 's' : ''}`}
+                                />
+                                <StatCard
+                                    title="Ventas Semana"
+                                    value={`$${dashboardStats.weekSales.toLocaleString()}`}
+                                    subtitle={`${dashboardStats.weekOrders} pedidos`}
+                                />
+                                <StatCard
+                                    title="Ventas Mes"
+                                    value={`$${dashboardStats.monthSales.toLocaleString()}`}
+                                    subtitle={`${dashboardStats.monthOrders} pedidos`}
                                 />
                                 <StatCard
                                     title="Pedidos Activos"
-                                    value={todayStats.activeOrders.toString()}
+                                    value={dashboardStats.activeOrders.toString()}
+                                    subtitle="En preparación"
                                 />
-                                <StatCard title="Visitas al Menú" value="0" />
                             </div>
 
                             <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-6 md:p-8 text-white shadow-xl shadow-orange-500/20">
@@ -410,18 +486,84 @@ const Dashboard = () => {
                                             <div className="grid md:grid-cols-2 gap-4">
                                                 <InfoField label="Nombre del Negocio" value={tenant.name} />
                                                 <InfoField label="URL del Menú" value={`optimadelivery.vercel.app/t/${tenant.slug}`} mono />
-                                                <InfoField label="Teléfono" value={tenant.business_phone || 'No configurado'} />
-                                                <InfoField label="Email de Contacto" value={tenant.business_email || 'No configurado'} />
-                                                <div className="md:col-span-2">
-                                                    <InfoField label="Dirección" value={tenant.business_address || 'No configurada'} />
-                                                </div>
+
+                                                {isEditingBusinessInfo ? (
+                                                    <>
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-500">Teléfono</label>
+                                                            <Input
+                                                                value={businessInfoForm.business_phone}
+                                                                onChange={(e) => setBusinessInfoForm(prev => ({ ...prev, business_phone: e.target.value }))}
+                                                                placeholder="Ej: +54 9 11 1234-5678"
+                                                                className="mt-1 rounded-xl"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-sm font-medium text-slate-500">Email de Contacto</label>
+                                                            <Input
+                                                                type="email"
+                                                                value={businessInfoForm.business_email}
+                                                                onChange={(e) => setBusinessInfoForm(prev => ({ ...prev, business_email: e.target.value }))}
+                                                                placeholder="contacto@minegocio.com"
+                                                                className="mt-1 rounded-xl"
+                                                            />
+                                                        </div>
+                                                        <div className="md:col-span-2">
+                                                            <label className="text-sm font-medium text-slate-500">Dirección</label>
+                                                            <Input
+                                                                value={businessInfoForm.business_address}
+                                                                onChange={(e) => setBusinessInfoForm(prev => ({ ...prev, business_address: e.target.value }))}
+                                                                placeholder="Calle 123, Ciudad, Provincia"
+                                                                className="mt-1 rounded-xl"
+                                                            />
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <InfoField label="Teléfono" value={tenant.business_phone || 'No configurado'} />
+                                                        <InfoField label="Email de Contacto" value={tenant.business_email || 'No configurado'} />
+                                                        <div className="md:col-span-2">
+                                                            <InfoField label="Dirección" value={tenant.business_address || 'No configurada'} />
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                         </CardContent>
-                                        <CardFooter>
-                                            <Button variant="outline" disabled className="rounded-xl">
-                                                <Edit className="w-4 h-4 mr-2" />
-                                                Editar Información (Próximamente)
-                                            </Button>
+                                        <CardFooter className="gap-2">
+                                            {isEditingBusinessInfo ? (
+                                                <>
+                                                    <Button
+                                                        onClick={handleSaveBusinessInfo}
+                                                        disabled={isSavingBusinessInfo}
+                                                        className="rounded-xl bg-orange-500 hover:bg-orange-600"
+                                                    >
+                                                        {isSavingBusinessInfo ? (
+                                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                        ) : (
+                                                            <Save className="w-4 h-4 mr-2" />
+                                                        )}
+                                                        Guardar Cambios
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => setIsEditingBusinessInfo(false)}
+                                                        disabled={isSavingBusinessInfo}
+                                                        className="rounded-xl"
+                                                    >
+                                                        <X className="w-4 h-4 mr-2" />
+                                                        Cancelar
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setIsEditingBusinessInfo(true)}
+                                                    className="rounded-xl"
+                                                >
+                                                    <Edit className="w-4 h-4 mr-2" />
+                                                    Editar Información
+                                                </Button>
+                                            )}
                                         </CardFooter>
                                     </Card>
                                 </TabsContent>

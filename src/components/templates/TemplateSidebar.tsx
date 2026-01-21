@@ -1,14 +1,26 @@
+import { useState, useMemo } from 'react';
 import { TemplateProps } from './types';
 import { CartDrawer } from '@/components/CartDrawer';
 import { SocialLinksBar } from '@/components/SocialLinksBar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Clock, MapPin, Star, Plus, ChefHat } from 'lucide-react';
+import { Search, Clock, MapPin, Star, Plus, ChefHat, X } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import { toast } from 'sonner';
 
 export const TemplateSidebar = ({ tenant, menuItems, categories, isPreview }: TemplateProps) => {
     const { addToCart } = useOrders();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Filter menu items based on search query
+    const filteredItems = useMemo(() => {
+        if (!searchQuery.trim()) return null;
+        const query = searchQuery.toLowerCase().trim();
+        return menuItems.filter(item =>
+            item.name.toLowerCase().includes(query) ||
+            (item.description && item.description.toLowerCase().includes(query))
+        );
+    }, [menuItems, searchQuery]);
 
     const handleScrollToCategory = (catId: string) => {
         const el = document.getElementById(`cat-${catId}`);
@@ -47,7 +59,20 @@ export const TemplateSidebar = ({ tenant, menuItems, categories, isPreview }: Te
 
                     <div className="bg-slate-50 border border-slate-200 rounded-xl flex items-center px-4 h-12 mb-6 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary focus-within:bg-white">
                         <Search className="w-5 h-5 text-slate-400 mr-3" />
-                        <input className="bg-transparent w-full text-sm outline-none placeholder:text-slate-400 font-medium" placeholder="Buscar platos..." />
+                        <input
+                            className="bg-transparent w-full text-sm outline-none placeholder:text-slate-400 font-medium"
+                            placeholder="Buscar platos..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                            >
+                                <X className="w-4 h-4 text-slate-400" />
+                            </button>
+                        )}
                     </div>
 
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 pl-1">Categorías</p>
@@ -107,18 +132,35 @@ export const TemplateSidebar = ({ tenant, menuItems, categories, isPreview }: Te
 
                 {/* Menu Feed - Enhanced */}
                 <div className="max-w-5xl mx-auto p-6 md:p-10 pb-32">
-                    {categories.map(cat => {
-                        const categoryItems = menuItems.filter(item => item.category_id === cat.id);
-                        if (categoryItems.length === 0) return null;
-
-                        return (
-                            <div key={cat.id} id={`cat-${cat.id}`} className="mb-14 scroll-mt-8">
-                                <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center">
-                                    {cat.name}
-                                    <span className="ml-4 h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
+                    {/* Search Results */}
+                    {filteredItems !== null ? (
+                        <div className="mb-14">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-2xl font-bold text-slate-900 flex items-center">
+                                    Resultados para "{searchQuery}"
+                                    <span className="ml-3 text-sm font-normal text-slate-500">
+                                        ({filteredItems.length} {filteredItems.length === 1 ? 'resultado' : 'resultados'})
+                                    </span>
                                 </h3>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setSearchQuery('')}
+                                    className="text-slate-500 hover:text-slate-700"
+                                >
+                                    <X className="w-4 h-4 mr-2" />
+                                    Limpiar
+                                </Button>
+                            </div>
+                            {filteredItems.length === 0 ? (
+                                <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+                                    <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                                    <p className="text-slate-500 font-medium">No se encontraron platos</p>
+                                    <p className="text-slate-400 text-sm mt-1">Intenta con otro término de búsqueda</p>
+                                </div>
+                            ) : (
                                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-                                    {categoryItems.map(item => (
+                                    {filteredItems.map(item => (
                                         <div
                                             key={item.id}
                                             className="group bg-white rounded-2xl border border-slate-100 p-5 flex gap-5 hover:shadow-xl hover:border-slate-200 transition-all duration-300 cursor-pointer"
@@ -168,9 +210,75 @@ export const TemplateSidebar = ({ tenant, menuItems, categories, isPreview }: Te
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        );
-                    })}
+                            )}
+                        </div>
+                    ) : (
+                        /* Regular Category Display */
+                        categories.map(cat => {
+                            const categoryItems = menuItems.filter(item => item.category_id === cat.id);
+                            if (categoryItems.length === 0) return null;
+
+                            return (
+                                <div key={cat.id} id={`cat-${cat.id}`} className="mb-14 scroll-mt-8">
+                                    <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                                        {cat.name}
+                                        <span className="ml-4 h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
+                                    </h3>
+                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                                        {categoryItems.map(item => (
+                                            <div
+                                                key={item.id}
+                                                className="group bg-white rounded-2xl border border-slate-100 p-5 flex gap-5 hover:shadow-xl hover:border-slate-200 transition-all duration-300 cursor-pointer"
+                                                onClick={() => handleAddToCart(item)}
+                                            >
+                                                <div className="flex-1 flex flex-col">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <h4 className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">
+                                                            {item.name}
+                                                        </h4>
+                                                        <span className="font-bold text-slate-900 text-lg">
+                                                            ${item.price?.toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-slate-500 line-clamp-2 mb-4 leading-relaxed">
+                                                        {item.description}
+                                                    </p>
+                                                    <div className="mt-auto">
+                                                        <Button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAddToCart(item);
+                                                            }}
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            className="text-primary hover:text-primary hover:bg-primary/5 -ml-3 font-semibold"
+                                                        >
+                                                            <Plus className="w-4 h-4 mr-2" />
+                                                            Agregar al pedido
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                {item.image_url && (
+                                                    <div className="w-28 h-28 shrink-0 rounded-xl overflow-hidden relative shadow-md">
+                                                        <img
+                                                            src={item.image_url}
+                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                            alt={item.name}
+                                                        />
+                                                        {!item.is_available && (
+                                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                                <span className="text-white text-xs font-bold">Agotado</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
 
                     {/* Social Links Footer - Enhanced */}
                     {tenant && (
