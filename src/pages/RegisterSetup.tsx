@@ -244,6 +244,15 @@ const RegisterSetup = () => {
                     window.location.href = '/dashboard';
                     return;
                 }
+                if (result.error_message === 'User not authenticated') {
+                    toast({
+                        title: 'Sesión expirada',
+                        description: 'Por favor inicia sesión nuevamente.',
+                        variant: 'destructive',
+                    });
+                    navigate('/login');
+                    return;
+                }
                 throw new Error(result.error_message || 'Error al crear el negocio');
             }
 

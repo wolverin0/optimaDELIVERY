@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feature Validation Report - Dashboard Settings</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+    h1 { color: #111827; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; }
+    h2 { color: #374151; margin-top: 30px; }
+    h3 { color: #4b5563; }
+    .pass { color: #22c55e; font-weight: bold; }
+    .fail { color: #ef4444; font-weight: bold; }
+    .warn { color: #f59e0b; font-weight: bold; }
+    .fixed { color: #8b5cf6; font-weight: bold; }
+    .summary-box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin: 20px 0;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .summary-item {
+      text-align: center;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f3f4f6;
+    }
+    .summary-item.passed { background: #dcfce7; }
+    .summary-item.failed { background: #fef2f2; }
+    .summary-item.fixed { background: #ede9fe; }
+    .summary-number { font-size: 2em; font-weight: bold; }
+    .test-case {
+      background: white;
+      border: 1px solid #e5e7eb;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .test-case.passed { border-left: 4px solid #22c55e; }
+    .test-case.failed { border-left: 4px solid #ef4444; }
+    .test-case.fixed { border-left: 4px solid #8b5cf6; }
+    .console-error {
+      background: #fef2f2;
+      padding: 15px;
+      border-left: 4px solid #ef4444;
+      margin: 10px 0;
+      border-radius: 0 8px 8px 0;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+    .code-block {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85em;
+      margin: 10px 0;
+    }
+    .steps-list {
+      background: #f9fafb;
+      padding: 15px 15px 15px 35px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .steps-list li { margin: 8px 0; }
+    .file-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .file-tag {
+      background: #e5e7eb;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-family: monospace;
+    }
+    .file-tag.new { background: #dcfce7; color: #166534; }
+    .file-tag.modified { background: #fef3c7; color: #92400e; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75em;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .badge.pass { background: #dcfce7; color: #166534; }
+    .badge.fail { background: #fef2f2; color: #991b1b; }
+    .badge.fixed { background: #ede9fe; color: #6d28d9; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th { background: #f3f4f6; font-weight: 600; }
+    .highlight { background: #fef9c3; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Feature Validation Report</h1>
+
+  <div class="summary-box">
+    <p><strong>Date:</strong> January 18, 2026</p>
+    <p><strong>Phase:</strong> Dashboard Settings Validation</p>
+    <p><strong>Features Tested:</strong> Social Networks (Redes), Theme/Design (Diseno)</p>
+    <p><strong>App URL:</strong> http://localhost:8081</p>
+
+    <div class="summary-grid">
+      <div class="summary-item passed">
+        <div class="summary-number">3</div>
+        <div>Tests Passed</div>
+      </div>
+      <div class="summary-item fixed">
+        <div class="summary-number">1</div>
+        <div>Bug Fixed</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-number">0</div>
+        <div>Tests Failed</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Test Results</h2>
+
+  <!-- Test Case 1: Social Networks Tab -->
+  <div class="test-case passed">
+    <h3>1. Social Networks Settings (Redes) <span class="badge pass">PASS</span></h3>
+    <p><strong>Description:</strong> Test that social network links can be saved and displayed in menu footer</p>
+
+    <p><strong>Steps Performed:</strong></p>
+    <ol class="steps-list">
+      <li>Navigated to Dashboard at http://localhost:8081/dashboard</li>
+      <li>Clicked on "Configuracion" (Settings) tab</li>
+      <li>Clicked on "Redes" sub-tab</li>
+      <li>Verified form fields exist for: Instagram, Facebook, TikTok, WhatsApp, Website</li>
+      <li>Entered test values: Instagram = <code>@testshop</code>, WhatsApp = <code>+5491112345678</code></li>
+      <li>Clicked "Guardar Cambios" button</li>
+      <li>Verified success toast appeared</li>
+      <li>Navigated to public menu page</li>
+      <li>Verified social icons appear in footer</li>
+    </ol>
+
+    <p><strong>Result:</strong> <span class="pass">PASSED</span> - Social network settings save correctly and icons display in menu footer</p>
+
+    <p><strong>Evidence:</strong></p>
+    <ul>
+      <li>Instagram icon visible in menu footer with link to @testshop</li>
+      <li>WhatsApp icon visible in menu footer</li>
+      <li>Values persist after page refresh</li>
+    </ul>
+  </div>
+
+  <!-- Test Case 2: Theme Settings - Initial Failure -->
+  <div class="test-case fixed">
+    <h3>2. Theme/Design Settings (Diseno) - Initial Test <span class="badge fixed">BUG FOUND & FIXED</span></h3>
+    <p><strong>Description:</strong> Test that template selection persists after save</p>
+
+    <p><strong>Steps Performed:</strong></p>
+    <ol class="steps-list">
+      <li>Navigated to Dashboard Settings</li>
+      <li>Clicked on "Diseno" sub-tab</li>
+      <li>Selected "Cuadricula Moderna" template</li>
+      <li>Clicked "Guardar Cambios" button</li>
+      <li>Checked browser console for errors</li>
+    </ol>
+
+    <p><strong>Initial Result:</strong> <span class="fail">FAILED</span></p>
+
+    <div class="console-error">
+      <strong>Console Output:</strong><br>
+      <code>ThemeSettings - Save result: { "error": null, "data": [] }</code>
+    </div>
+
+    <p><strong>Root Cause Analysis:</strong></p>
+    <p>The empty <code>data</code> array with <code>null</code> error indicated that Supabase RLS (Row Level Security)
+    was silently blocking the UPDATE operation. Investigation of <code>simplify_rls.sql</code> revealed:</p>
+
+    <div class="code-block">
+-- Existing policies for tenants table (BEFORE FIX):
+CREATE POLICY "Users can view their own tenant" ON public.tenants FOR SELECT ...
+CREATE POLICY "Allow tenant creation during registration" ON public.tenants FOR INSERT ...
+-- NO UPDATE POLICY EXISTED!</div>
+
+    <p><strong>Bug:</strong> <span class="highlight">Missing RLS UPDATE policy for tenants table</span></p>
+  </div>
+
+  <!-- Test Case 3: Bug Fix Applied -->
+  <div class="test-case fixed">
+    <h3>3. RLS Policy Fix Applied <span class="badge fixed">FIXED</span></h3>
+    <p><strong>Description:</strong> Created and applied missing UPDATE policy for tenants table</p>
+
+    <p><strong>Fix Implementation:</strong></p>
+    <div class="code-block">
+-- fix_tenant_update_rls.sql
+DROP POLICY IF EXISTS "Owners can update their tenant" ON public.tenants;
+
+CREATE POLICY "Owners can update their tenant" ON public.tenants
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM public.users
+            WHERE users.id = auth.uid()
+            AND users.tenant_id = tenants.id
+            AND users.role IN ('owner', 'admin')
+        )
+    );</div>
+
+    <p><strong>Files Created:</strong></p>
+    <div class="file-list">
+      <span class="file-tag new">fix_tenant_update_rls.sql</span>
+      <span class="file-tag new">run_tenant_update_rls.js</span>
+    </div>
+
+    <p><strong>Execution Result:</strong></p>
+    <div class="code-block">
+$ node run_tenant_update_rls.js
+Connected to database
+Running SQL: [policy creation]
+Tenant UPDATE RLS policy added successfully!</div>
+  </div>
+
+  <!-- Test Case 4: Theme Settings - After Fix -->
+  <div class="test-case passed">
+    <h3>4. Theme/Design Settings - After Fix <span class="badge pass">PASS</span></h3>
+    <p><strong>Description:</strong> Re-test template selection after RLS fix</p>
+
+    <p><strong>Steps Performed:</strong></p>
+    <ol class="steps-list">
+      <li>Refreshed dashboard page</li>
+      <li>Selected "Cuadricula Moderna" template in Diseno tab</li>
+      <li>Clicked "Guardar Cambios" button</li>
+      <li>Checked console for save result</li>
+      <li>Navigated to public menu page</li>
+      <li>Verified template changed</li>
+    </ol>
+
+    <p><strong>Console Output (After Fix):</strong></p>
+    <div class="code-block" style="background: #166534;">
+ThemeSettings - Save result: {
+  "error": null,
+  "data": [{
+    "id": "...",
+    "theme": {
+      "name": "Clasico Dorado",
+      "templateId": "modern",  // Changed!
+      "primaryColor": "#D4AF37"
+    }
+  }]
+}</div>
+
+    <p><strong>Menu Page Console:</strong></p>
+    <div class="code-block" style="background: #166534;">
+Menu - tenant theme: { name: "Clasico Dorado", templateId: "modern", primaryColor: "#D4AF37" }
+Menu - templateId: modern</div>
+
+    <p><strong>Result:</strong> <span class="pass">PASSED</span> - Template changes now persist correctly</p>
+
+    <p><strong>Visual Confirmation:</strong></p>
+    <ul>
+      <li>Menu displays grid layout ("Cuadricula Moderna" template)</li>
+      <li>"Mas Populares" section shows product cards in grid</li>
+      <li>"Winter Special" promotional banner visible</li>
+      <li>Social icons (Instagram, WhatsApp) visible in footer</li>
+    </ul>
+  </div>
+
+  <h2>Bug Summary</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Issue</th>
+        <th>Severity</th>
+        <th>Status</th>
+        <th>Resolution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Missing RLS UPDATE policy for tenants table</td>
+        <td><span class="warn">High</span></td>
+        <td><span class="pass">Fixed</span></td>
+        <td>Added "Owners can update their tenant" policy</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Files Changed During Validation</h2>
+
+  <div class="file-list">
+    <span class="file-tag new">fix_tenant_update_rls.sql</span>
+    <span class="file-tag new">run_tenant_update_rls.js</span>
+    <span class="file-tag modified">src/components/admin/ThemeSettings.tsx</span>
+  </div>
+
+  <h2>Console Errors</h2>
+  <p>No JavaScript errors were found during testing. All console output was debug logging.</p>
+
+  <h2>Recommendations</h2>
+  <ul>
+    <li><strong>Remove debug logging:</strong> Remove <code>console.log</code> statements from <code>ThemeSettings.tsx</code> and <code>Menu.tsx</code> before production</li>
+    <li><strong>Add RLS tests:</strong> Consider adding automated tests for RLS policies to catch missing policies earlier</li>
+    <li><strong>Commit the fix:</strong> The <code>fix_tenant_update_rls.sql</code> should be committed as part of the project's migration history</li>
+  </ul>
+
+  <hr style="margin-top: 40px;">
+  <p style="color: #6b7280; font-size: 0.85em;">
+    Generated by Feature Validation Skill | El Braserito / optimaDELIVERY
+  </p>
+</body>
+</html>
