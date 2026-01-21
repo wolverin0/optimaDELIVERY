@@ -255,10 +255,10 @@ const Dashboard = () => {
                                     <div>
                                         <h2 className="text-xl font-bold mb-2">Tu menú está online</h2>
                                         <p className="text-white/80 mb-4">Comparte el link con tus clientes para empezar a vender.</p>
-                                        <div className="flex items-center gap-2 bg-black/20 backdrop-blur px-4 py-2 rounded-xl text-sm font-mono w-fit">
-                                            optimadelivery.vercel.app/t/{tenant.slug}
+                                        <div className="flex items-center gap-2 bg-black/20 backdrop-blur px-3 py-2 rounded-xl text-xs sm:text-sm font-mono max-w-full overflow-hidden">
+                                            <span className="truncate min-w-0">optimadelivery.vercel.app/t/{tenant.slug}</span>
                                             <ExternalLink
-                                                className="w-4 h-4 opacity-70 cursor-pointer hover:opacity-100 transition-opacity"
+                                                className="w-4 h-4 opacity-70 cursor-pointer hover:opacity-100 transition-opacity flex-shrink-0"
                                                 onClick={() => window.open(`/t/${tenant.slug}`, '_blank')}
                                             />
                                         </div>

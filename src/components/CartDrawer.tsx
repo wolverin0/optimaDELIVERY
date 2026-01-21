@@ -84,16 +84,17 @@ export const CartDrawer = () => {
     });
 
     setIsSubmitting(false);
+
+    // For MercadoPago with real payment URL, redirect IMMEDIATELY without showing success
+    if (method === 'mercadopago' && result.paymentUrl && !result.isDemo) {
+      // Redirect to MercadoPago immediately - don't show success yet
+      window.location.href = result.paymentUrl;
+      return;
+    }
+
+    // For cash or demo MercadoPago, show success
     setOrderResult(result);
     setStep('success');
-
-    // If MercadoPago with real payment URL, redirect
-    if (method === 'mercadopago' && result.paymentUrl && !result.isDemo) {
-      // Small delay so user sees success message
-      setTimeout(() => {
-        window.location.href = result.paymentUrl!;
-      }, 1500);
-    }
   };
 
   const handleClose = () => {
@@ -381,14 +382,26 @@ export const CartDrawer = () => {
 
         {/* PAYMENT STEP */}
         {step === 'payment' && (
-          <div className="flex-1 flex flex-col py-6">
+          <div className="flex-1 flex flex-col py-6 relative">
+            {/* Loading overlay */}
+            {isSubmitting && (
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-xl">
+                <div className="w-16 h-16 bg-[#009ee3]/20 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                  <CreditCard className="h-8 w-8 text-[#009ee3]" />
+                </div>
+                <p className="text-lg font-semibold">Procesando...</p>
+                <p className="text-sm text-muted-foreground mt-1">Preparando tu pago</p>
+              </div>
+            )}
+
             <div className="flex-1 space-y-4">
               <p className="text-muted-foreground text-center mb-6">Seleccioná cómo querés pagar</p>
 
               {/* MercadoPago Option */}
               <button
-                className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-[#009ee3] transition-all flex items-center gap-5 group"
+                className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-[#009ee3] transition-all flex items-center gap-5 group disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleSelectPayment('mercadopago')}
+                disabled={isSubmitting}
               >
                 <div className="w-16 h-16 bg-[#009ee3]/10 rounded-full flex items-center justify-center group-hover:bg-[#009ee3]/20 transition-colors">
                   <CreditCard className="h-8 w-8 text-[#009ee3]" />
@@ -407,8 +420,9 @@ export const CartDrawer = () => {
               {/* Cash Option - Only for pickup */}
               {deliveryType === 'pickup' && (
                 <button
-                  className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-green-500 transition-all flex items-center gap-5 group"
+                  className="w-full p-6 bg-card rounded-xl border-2 border-border hover:border-green-500 transition-all flex items-center gap-5 group disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handleSelectPayment('cash')}
+                  disabled={isSubmitting}
                 >
                   <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                     <Banknote className="h-8 w-8 text-green-600" />
@@ -464,10 +478,8 @@ export const CartDrawer = () => {
               <p className="text-lg font-bold text-primary mb-2">Pedido #{orderResult.orderNumber}</p>
             )}
             <p className="text-muted-foreground mb-6 max-w-sm">
-              {paymentMethod === 'mercadopago'
-                ? orderResult?.isDemo
-                  ? 'El negocio aún no tiene MercadoPago conectado. Tu pedido fue registrado.'
-                  : 'Redirigiendo a MercadoPago para completar el pago...'
+              {paymentMethod === 'mercadopago' && orderResult?.isDemo
+                ? 'El negocio aún no tiene MercadoPago conectado. Tu pedido fue registrado.'
                 : deliveryType === 'pickup'
                   ? 'Tu pedido está siendo preparado. Te esperamos en nuestra sucursal.'
                   : 'Tu pedido está siendo preparado y te lo enviaremos pronto.'
@@ -478,16 +490,6 @@ export const CartDrawer = () => {
               <div className="w-full max-w-xs mb-6 p-4 bg-amber-500/10 rounded-xl border border-amber-500/30">
                 <p className="text-sm text-amber-600 font-medium">Pago pendiente</p>
                 <p className="text-xs text-muted-foreground mt-1">Coordina el pago directamente con el negocio</p>
-              </div>
-            )}
-
-            {paymentMethod === 'mercadopago' && !orderResult?.isDemo && orderResult?.paymentUrl && (
-              <div className="w-full max-w-xs mb-6 p-4 bg-[#009ee3]/10 rounded-xl border border-[#009ee3]/30">
-                <p className="text-sm text-[#009ee3] font-medium">Redirigiendo...</p>
-                <p className="text-xs text-muted-foreground mt-1">Si no eres redirigido automáticamente:</p>
-                <a href={orderResult.paymentUrl} className="text-[#009ee3] underline text-sm mt-2 block">
-                  Click aquí para pagar
-                </a>
               </div>
             )}
 
