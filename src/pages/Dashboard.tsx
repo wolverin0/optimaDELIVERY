@@ -19,6 +19,9 @@ import { KDSManager } from '@/components/admin/KDSManager';
 import { KitchenPinSettings } from '@/components/admin/KitchenPinSettings';
 import { SocialNetworksSettings } from '@/components/admin/SocialNetworksSettings';
 import { ChefHat, Share2 } from 'lucide-react';
+import TrialBanner from '@/components/TrialBanner';
+import { getTrialStatus, getDaysRemaining, getSubscriptionMessage } from '@/lib/trial';
+import { Sparkles } from 'lucide-react';
 
 // Environment variables for MercadoPago
 const MP_CLIENT_ID = import.meta.env.VITE_MP_CLIENT_ID || 'YOUR_MP_CLIENT_ID';
@@ -254,7 +257,11 @@ const Dashboard = () => {
     const mpAuthUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${encodeURIComponent(MP_REDIRECT_URI)}&state=${tenant.id}`;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex">
+        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex flex-col">
+            {/* Trial Warning Banner */}
+            <TrialBanner />
+
+            <div className="flex flex-1">
             {/* Sidebar */}
             <aside className="w-64 bg-white/70 backdrop-blur-xl border-r border-orange-100/50 hidden md:flex flex-col">
                 <div className="p-6 border-b border-orange-100/50">
@@ -368,6 +375,62 @@ const Dashboard = () => {
                                     subtitle="En preparación"
                                 />
                             </div>
+
+                            {/* Subscription Status Card */}
+                            <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200 shadow-lg shadow-orange-900/5 rounded-2xl">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center justify-between text-slate-800">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="w-5 h-5 text-orange-500" />
+                                            {getTrialStatus(tenant) === 'active_subscription' ? 'Suscripción Activa' : 'Estado de Prueba'}
+                                        </div>
+                                        {getTrialStatus(tenant) !== 'active_subscription' && (
+                                            <Link to="/checkout">
+                                                <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl">
+                                                    Ver Planes
+                                                </Button>
+                                            </Link>
+                                        )}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {getSubscriptionMessage(tenant)}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {getTrialStatus(tenant) === 'active_subscription' ? (
+                                        <div className="space-y-2">
+                                            <p className="text-sm text-slate-700">
+                                                <span className="font-semibold">Plan:</span>{' '}
+                                                {tenant.plan_type === 'monthly' ? 'Mensual ($25.000/mes)' : 'Anual ($20.000/mes)'}
+                                            </p>
+                                            {tenant.subscription_ends_at && (
+                                                <p className="text-sm text-slate-700">
+                                                    <span className="font-semibold">Renovación:</span>{' '}
+                                                    {new Date(tenant.subscription_ends_at).toLocaleDateString('es-AR', {
+                                                        day: 'numeric',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <p className="text-sm text-slate-700">
+                                                {getTrialStatus(tenant) === 'trial_active'
+                                                    ? 'Disfrutá de todas las funcionalidades durante tu período de prueba.'
+                                                    : 'Tu prueba está por terminar. Suscribite para seguir vendiendo.'}
+                                            </p>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="font-semibold text-slate-800">Días restantes:</span>
+                                                <Badge variant={getTrialStatus(tenant) === 'trial_expiring' ? 'destructive' : 'secondary'}>
+                                                    {getDaysRemaining(tenant)} {getDaysRemaining(tenant) === 1 ? 'día' : 'días'}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
 
                             <Card className="bg-white/70 backdrop-blur-xl border-white/50 shadow-lg shadow-orange-900/5 rounded-2xl">
                                 <CardHeader>
@@ -622,6 +685,7 @@ const Dashboard = () => {
                     {activeTab === 'design' && canEdit(userRole) && <ThemeSettings />}
                 </div>
             </main>
+            </div>
         </div>
     );
 };

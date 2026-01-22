@@ -1,84 +1,94 @@
-import { Tenant } from './supabase';
+// Trial and Subscription Helper Functions
 
-export type TrialStatus = 'active_subscription' | 'trial_active' | 'trial_expiring' | 'trial_expired';
+export type SubscriptionStatus = 'trial' | 'active' | 'past_due' | 'cancelled' | 'expired';
+export type PlanType = 'free' | 'monthly' | 'annual';
+
+export interface Tenant {
+  trial_ends_at: string | null;
+  subscription_status: SubscriptionStatus;
+  plan_type: PlanType;
+  subscription_started_at: string | null;
+  subscription_ends_at: string | null;
+}
 
 /**
- * Check if a tenant's trial has expired (and they don't have an active subscription)
+ * Check if tenant's trial has expired
  */
 export function isTrialExpired(tenant: Tenant | null): boolean {
-    if (!tenant) return true;
+  if (!tenant) return true;
 
-    // If subscription is active, trial doesn't matter
-    if (tenant.subscription_status === 'active') return false;
+  // Active subscription = no trial expiry
+  if (tenant.subscription_status === 'active') return false;
 
-    // If no trial end date set, allow access (shouldn't happen for new tenants)
-    if (!tenant.trial_ends_at) return false;
+  // No trial end date = no expiry
+  if (!tenant.trial_ends_at) return false;
 
-    return new Date(tenant.trial_ends_at) < new Date();
+  // Check if trial end date has passed
+  return new Date(tenant.trial_ends_at) < new Date();
 }
 
 /**
- * Get the number of days remaining in the trial period
+ * Get number of days remaining in trial
  */
 export function getDaysRemaining(tenant: Tenant | null): number {
-    if (!tenant?.trial_ends_at) return 0;
+  if (!tenant?.trial_ends_at) return 0;
 
-    const diff = new Date(tenant.trial_ends_at).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  const diff = new Date(tenant.trial_ends_at).getTime() - Date.now();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
 /**
- * Get the current trial/subscription status for display purposes
+ * Get current trial/subscription status
  */
-export function getTrialStatus(tenant: Tenant | null): TrialStatus {
-    if (!tenant) return 'trial_expired';
+export function getTrialStatus(
+  tenant: Tenant | null
+): 'active_subscription' | 'trial_active' | 'trial_expiring' | 'trial_expired' {
+  if (!tenant) return 'trial_expired';
 
-    // Active paid subscription
-    if (tenant.subscription_status === 'active') return 'active_subscription';
+  // Has active paid subscription
+  if (tenant.subscription_status === 'active') return 'active_subscription';
 
-    const days = getDaysRemaining(tenant);
+  const days = getDaysRemaining(tenant);
 
-    // Trial has ended
-    if (days <= 0) return 'trial_expired';
+  if (days <= 0) return 'trial_expired';
+  if (days <= 2) return 'trial_expiring'; // Warning when <=2 days left
 
-    // Trial is expiring soon (2 days or less)
-    if (days <= 2) return 'trial_expiring';
-
-    // Trial is still active
-    return 'trial_active';
+  return 'trial_active';
 }
 
 /**
- * Format the trial end date for display
+ * Check if tenant has an active paid subscription
  */
-export function formatTrialEndDate(tenant: Tenant | null): string {
-    if (!tenant?.trial_ends_at) return '';
-
-    const date = new Date(tenant.trial_ends_at);
-    return date.toLocaleDateString('es-CL', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+export function hasActiveSubscription(tenant: Tenant | null): boolean {
+  if (!tenant) return false;
+  return tenant.subscription_status === 'active';
 }
 
 /**
- * Get a human-readable description of the current subscription/trial status
+ * Get human-readable subscription status message
  */
-export function getStatusDescription(tenant: Tenant | null): string {
-    const status = getTrialStatus(tenant);
-    const days = getDaysRemaining(tenant);
+export function getSubscriptionMessage(tenant: Tenant | null): string {
+  if (!tenant) return 'No hay información de suscripción';
 
-    switch (status) {
-        case 'active_subscription':
-            return `Plan ${tenant?.plan_type === 'pro' ? 'Pro' : 'Básico'} activo`;
-        case 'trial_active':
-            return `${days} ${days === 1 ? 'día' : 'días'} de prueba restantes`;
-        case 'trial_expiring':
-            return `¡Tu prueba termina ${days === 1 ? 'mañana' : `en ${days} días`}!`;
-        case 'trial_expired':
-            return 'Tu período de prueba ha terminado';
-        default:
-            return '';
-    }
+  const status = getTrialStatus(tenant);
+
+  switch (status) {
+    case 'active_subscription':
+      const planName = tenant.plan_type === 'monthly' ? 'Mensual' : 'Anual';
+      return `Plan ${planName} activo`;
+
+    case 'trial_active':
+      const days = getDaysRemaining(tenant);
+      return `${days} ${days === 1 ? 'día' : 'días'} de prueba restantes`;
+
+    case 'trial_expiring':
+      const remainingDays = getDaysRemaining(tenant);
+      return `⚠️ Tu prueba termina en ${remainingDays} ${remainingDays === 1 ? 'día' : 'días'}`;
+
+    case 'trial_expired':
+      return 'Período de prueba terminado';
+
+    default:
+      return 'Estado desconocido';
+  }
 }
