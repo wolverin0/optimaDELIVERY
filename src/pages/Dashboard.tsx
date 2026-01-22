@@ -156,6 +156,7 @@ const Dashboard = () => {
     }, [userRole]);
 
     const [activeTab, setActiveTab] = useState(getDefaultTab);
+    const [activeConfigSection, setActiveConfigSection] = useState('general');
 
     // Business info editing state
     const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
@@ -413,16 +414,48 @@ const Dashboard = () => {
                                 <p className="text-slate-500">Administra los ajustes de tu negocio</p>
                             </div>
 
-                            <Tabs defaultValue="general" className="w-full">
-                                <TabsList className="mb-6 bg-white/60 backdrop-blur rounded-xl p-1">
-                                    <TabsTrigger value="general" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">General</TabsTrigger>
-                                    {canAccessBilling(userRole) && (
-                                        <TabsTrigger value="payments" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Pagos</TabsTrigger>
-                                    )}
-                                    <TabsTrigger value="kitchen" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Cocina</TabsTrigger>
-                                    <TabsTrigger value="social" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Redes</TabsTrigger>
-                                    <TabsTrigger value="team" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Equipo</TabsTrigger>
-                                </TabsList>
+                            {/* Config Section Cards */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <ConfigCard
+                                    icon={<Store className="w-6 h-6" />}
+                                    title="General"
+                                    description="Información del negocio"
+                                    onClick={() => setActiveConfigSection('general')}
+                                    isActive={activeConfigSection === 'general'}
+                                />
+                                {canAccessBilling(userRole) && (
+                                    <ConfigCard
+                                        icon={<CreditCard className="w-6 h-6" />}
+                                        title="Pagos"
+                                        description="Métodos de cobro"
+                                        onClick={() => setActiveConfigSection('payments')}
+                                        isActive={activeConfigSection === 'payments'}
+                                    />
+                                )}
+                                <ConfigCard
+                                    icon={<ChefHat className="w-6 h-6" />}
+                                    title="Cocina"
+                                    description="PIN y accesos"
+                                    onClick={() => setActiveConfigSection('kitchen')}
+                                    isActive={activeConfigSection === 'kitchen'}
+                                />
+                                <ConfigCard
+                                    icon={<Share2 className="w-6 h-6" />}
+                                    title="Redes"
+                                    description="Redes sociales"
+                                    onClick={() => setActiveConfigSection('social')}
+                                    isActive={activeConfigSection === 'social'}
+                                />
+                                <ConfigCard
+                                    icon={<Settings className="w-6 h-6" />}
+                                    title="Equipo"
+                                    description="Usuarios y roles"
+                                    onClick={() => setActiveConfigSection('team')}
+                                    isActive={activeConfigSection === 'team'}
+                                />
+                            </div>
+
+                            <Tabs value={activeConfigSection} className="w-full">
 
                                 {canAccessBilling(userRole) && (
                                     <TabsContent value="payments" className="space-y-6">
@@ -649,5 +682,32 @@ const RoleBadge = ({ role }: { role: UserRole | undefined }) => {
         </span>
     );
 };
+
+const ConfigCard = ({ icon, title, description, onClick, isActive }: {
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+    onClick: () => void;
+    isActive: boolean;
+}) => (
+    <button
+        onClick={onClick}
+        className={`p-6 rounded-2xl border-2 transition-all text-left ${
+            isActive
+                ? 'bg-gradient-to-br from-orange-50 to-red-50 border-orange-500 shadow-lg shadow-orange-500/20'
+                : 'bg-white/70 backdrop-blur-xl border-white/50 hover:border-orange-200 hover:shadow-lg shadow-orange-900/5'
+        }`}
+    >
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
+            isActive
+                ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white'
+                : 'bg-orange-100 text-orange-600'
+        }`}>
+            {icon}
+        </div>
+        <h3 className="font-semibold text-slate-800 mb-1">{title}</h3>
+        <p className="text-xs text-slate-500">{description}</p>
+    </button>
+);
 
 export default Dashboard;

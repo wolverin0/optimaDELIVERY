@@ -616,22 +616,24 @@ const LandingPage = () => {
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
-                        {/* Plan Emprendedor */}
+                        {/* Plan Mensual */}
                         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer">
-                            <h3 className="text-xl font-bold mb-2 text-slate-900">Emprendedor</h3>
+                            <h3 className="text-xl font-bold mb-2 text-slate-900">Mensual</h3>
                             <div className="flex items-baseline gap-1 mb-4">
-                                <span className="text-5xl font-bold text-slate-900">$15.000</span>
+                                <span className="text-5xl font-bold text-slate-900">$25.000</span>
                                 <span className="text-slate-500">/mes</span>
                             </div>
                             <p className="text-slate-500 mb-8 pb-6 border-b border-slate-100">
-                                Ideal para dark kitchens y locales pequeños
+                                Pago mes a mes, cancelá cuando quieras
                             </p>
                             <ul className="space-y-4 mb-8">
                                 {[
                                     'Menú Digital QR Ilimitado',
                                     'Pedidos por WhatsApp',
-                                    '3 Plantillas de Diseño',
-                                    'Soporte por Email'
+                                    'Cobros con MercadoPago',
+                                    'Panel de Cocina en Tiempo Real',
+                                    '5 Plantillas Premium',
+                                    'Soporte Prioritario WhatsApp'
                                 ].map((item, i) => (
                                     <li key={i} className="flex items-center gap-3 text-slate-700">
                                         <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
@@ -641,34 +643,42 @@ const LandingPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <Link to="/register/setup?plan=basic">
-                                <Button variant="outline" className="w-full h-14 rounded-xl text-lg font-semibold border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
-                                    Empezar 7 Días Gratis
-                                </Button>
-                            </Link>
+                            <div className="space-y-3">
+                                <Link to="/register/setup?plan=monthly">
+                                    <Button variant="outline" className="w-full h-14 rounded-xl text-lg font-semibold border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
+                                        Empezar 7 Días Gratis
+                                    </Button>
+                                </Link>
+                                <Link to="/register/setup?plan=monthly&skip_trial=true">
+                                    <Button className="w-full h-12 rounded-xl font-semibold bg-slate-800 hover:bg-slate-900 text-white">
+                                        Suscribirme Ahora
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
 
-                        {/* Plan PRO */}
+                        {/* Plan Anual */}
                         <div className="relative bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-8 text-white shadow-2xl shadow-orange-500/30 cursor-pointer">
                             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-sm font-bold px-4 py-1 rounded-full shadow-lg">
-                                MAS POPULAR
+                                AHORRÁ 20%
                             </div>
-                            <h3 className="text-xl font-bold mb-2">Profesional</h3>
-                            <div className="flex items-baseline gap-1 mb-4">
-                                <span className="text-5xl font-bold">$25.000</span>
+                            <h3 className="text-xl font-bold mb-2">Anual</h3>
+                            <div className="flex items-baseline gap-1 mb-2">
+                                <span className="text-5xl font-bold">$20.000</span>
                                 <span className="text-white/70">/mes</span>
                             </div>
+                            <p className="text-sm text-white/60 mb-4">Pagás $240.000 por año</p>
                             <p className="text-white/80 mb-8 pb-6 border-b border-white/20">
-                                Para restaurantes que buscan automatizar todo
+                                Ahorrá $60.000 al año pagando anualmente
                             </p>
                             <ul className="space-y-4 mb-8">
                                 {[
-                                    'Todo lo del plan Emprendedor',
-                                    'Cobros con MercadoPago',
-                                    'Panel de Cocina en Tiempo Real',
-                                    'Estadísticas Detalladas',
-                                    '5 Plantillas Premium',
-                                    'Soporte Prioritario WhatsApp'
+                                    'Todo del plan Mensual',
+                                    '20% de descuento',
+                                    'Aviso 1 mes antes de renovación',
+                                    'Estadísticas Avanzadas',
+                                    'Soporte Premium',
+                                    'Acceso anticipado a nuevas features'
                                 ].map((item, i) => (
                                     <li key={i} className="flex items-center gap-3">
                                         <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
@@ -678,16 +688,23 @@ const LandingPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <Link to="/register/setup?plan=pro">
-                                <Button className="w-full h-14 rounded-xl text-lg font-bold bg-white text-orange-600 hover:bg-orange-50 shadow-lg transition-all cursor-pointer">
-                                    Empezar 7 Días Gratis
-                                </Button>
-                            </Link>
+                            <div className="space-y-3">
+                                <Link to="/register/setup?plan=annual">
+                                    <Button className="w-full h-14 rounded-xl text-lg font-bold bg-white text-orange-600 hover:bg-orange-50 shadow-lg transition-all cursor-pointer">
+                                        Empezar 7 Días Gratis
+                                    </Button>
+                                </Link>
+                                <Link to="/register/setup?plan=annual&skip_trial=true">
+                                    <Button variant="outline" className="w-full h-12 rounded-xl font-semibold border-2 border-white text-white hover:bg-white/10">
+                                        Suscribirme Ahora
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
                     <p className="text-center text-slate-500 mt-8 text-sm">
-                        7 días de prueba gratis en ambos planes. Sin tarjeta de crédito.
+                        Probá 7 días gratis o suscribite directamente. Sin comisiones ocultas.
                     </p>
                 </div>
             </section>
