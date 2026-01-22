@@ -46,13 +46,21 @@ const Checkout = () => {
 
         setIsLoading(true);
         try {
+            // Get auth token first
+            const { supabase } = await import('@/lib/supabase');
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session?.access_token) {
+                throw new Error('No se pudo obtener la sesión de autenticación');
+            }
+
             const response = await fetch(
                 `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription-payment`,
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${(await import('@/lib/supabase')).supabase.auth.getSession().then(s => s.data.session?.access_token)}`,
+                        'Authorization': `Bearer ${session.access_token}`,
                     },
                     body: JSON.stringify({
                         tenantId: tenant.id,
