@@ -142,7 +142,7 @@ const Dashboard = () => {
         { id: 'kitchen', icon: <ChefHat className="w-5 h-5" />, label: 'Cocina', allowedRoles: ['owner', 'admin', 'kitchen'] },
         { id: 'orders', icon: <CreditCard className="w-5 h-5" />, label: 'Pedidos', allowedRoles: ['owner', 'admin', 'staff'] },
         { id: 'design', icon: <Palette className="w-5 h-5" />, label: 'Diseño', allowedRoles: ['owner', 'admin'] },
-        { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Config', allowedRoles: ['owner', 'admin'] },
+        { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Configuración', allowedRoles: ['owner', 'admin'] },
     ], []);
 
     const visibleNavItems = useMemo(() => {
@@ -162,7 +162,6 @@ const Dashboard = () => {
     const [isSavingBusinessInfo, setIsSavingBusinessInfo] = useState(false);
     const [businessInfoForm, setBusinessInfoForm] = useState({
         business_phone: '',
-        business_email: '',
         business_address: '',
     });
 
@@ -171,7 +170,6 @@ const Dashboard = () => {
         if (tenant && isEditingBusinessInfo) {
             setBusinessInfoForm({
                 business_phone: tenant.business_phone || '',
-                business_email: tenant.business_email || '',
                 business_address: tenant.business_address || '',
             });
         }
@@ -186,7 +184,6 @@ const Dashboard = () => {
                 .from('tenants')
                 .update({
                     business_phone: businessInfoForm.business_phone || null,
-                    business_email: businessInfoForm.business_email || null,
                     business_address: businessInfoForm.business_address || null,
                 })
                 .eq('id', tenant.id);
@@ -371,27 +368,41 @@ const Dashboard = () => {
                                 />
                             </div>
 
-                            <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-6 md:p-8 text-white shadow-xl shadow-orange-500/20">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                        <h2 className="text-xl font-bold mb-2">Tu menú está online</h2>
-                                        <p className="text-white/80 mb-4">Comparte el link con tus clientes para empezar a vender.</p>
-                                        <div className="flex items-center gap-2 bg-black/20 backdrop-blur px-3 py-2 rounded-xl text-xs sm:text-sm font-mono max-w-full overflow-hidden">
-                                            <span className="truncate min-w-0">optimadelivery.vercel.app/t/{tenant.slug}</span>
-                                            <ExternalLink
-                                                className="w-4 h-4 opacity-70 cursor-pointer hover:opacity-100 transition-opacity flex-shrink-0"
-                                                onClick={() => window.open(`/t/${tenant.slug}`, '_blank')}
-                                            />
-                                        </div>
+                            <Card className="bg-white/70 backdrop-blur-xl border-white/50 shadow-lg shadow-orange-900/5 rounded-2xl">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-slate-800">
+                                        <Share2 className="w-5 h-5 text-orange-500" />
+                                        Compartir Menú
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Copia el enlace de tu menú para compartirlo con tus clientes
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={`optimadelivery.vercel.app/t/${tenant.slug}`}
+                                            disabled
+                                            className="flex-1 font-mono text-sm bg-slate-50 rounded-xl"
+                                        />
+                                        <Button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(`https://optimadelivery.vercel.app/t/${tenant.slug}`);
+                                                toast({
+                                                    title: 'Link copiado',
+                                                    description: 'El enlace se ha copiado al portapapeles',
+                                                });
+                                            }}
+                                            className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 rounded-xl px-6"
+                                        >
+                                            Copiar
+                                        </Button>
                                     </div>
-                                    <Button
-                                        className="bg-white hover:bg-white/90 text-orange-600 font-semibold shadow-lg rounded-xl h-12 px-6"
-                                        onClick={() => window.open(`/t/${tenant.slug}`, '_blank')}
-                                    >
-                                        Ver mi Menú
-                                    </Button>
-                                </div>
-                            </div>
+                                </CardContent>
+                                <CardFooter className="text-sm text-slate-500 border-t pt-4">
+                                    Tu menú está online • Compartelo para empezar a vender
+                                </CardFooter>
+                            </Card>
                         </div>
                     )}
 
@@ -404,13 +415,13 @@ const Dashboard = () => {
 
                             <Tabs defaultValue="general" className="w-full">
                                 <TabsList className="mb-6 bg-white/60 backdrop-blur rounded-xl p-1">
-                                    <TabsTrigger value="general" className="rounded-lg">General</TabsTrigger>
+                                    <TabsTrigger value="general" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">General</TabsTrigger>
                                     {canAccessBilling(userRole) && (
-                                        <TabsTrigger value="payments" className="rounded-lg">Pagos</TabsTrigger>
+                                        <TabsTrigger value="payments" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Pagos</TabsTrigger>
                                     )}
-                                    <TabsTrigger value="kitchen" className="rounded-lg">Cocina</TabsTrigger>
-                                    <TabsTrigger value="social" className="rounded-lg">Redes</TabsTrigger>
-                                    <TabsTrigger value="team" className="rounded-lg">Equipo</TabsTrigger>
+                                    <TabsTrigger value="kitchen" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Cocina</TabsTrigger>
+                                    <TabsTrigger value="social" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Redes</TabsTrigger>
+                                    <TabsTrigger value="team" className="rounded-lg text-sm md:text-base px-4 md:px-6 py-2 md:py-2.5">Equipo</TabsTrigger>
                                 </TabsList>
 
                                 {canAccessBilling(userRole) && (
@@ -454,7 +465,7 @@ const Dashboard = () => {
                                                 </div>
 
                                                 {/* Cash / Efectivo */}
-                                                <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-white/30 opacity-60">
+                                                <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-white/30">
                                                     <div className="flex gap-4 items-center">
                                                         <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
                                                             <span className="text-xl text-slate-600">$</span>
@@ -464,7 +475,6 @@ const Dashboard = () => {
                                                             <p className="text-sm text-slate-500">Habilitado por defecto.</p>
                                                         </div>
                                                     </div>
-                                                    <Button variant="outline" size="sm" disabled className="rounded-lg">Configurar</Button>
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -489,22 +499,12 @@ const Dashboard = () => {
 
                                                 {isEditingBusinessInfo ? (
                                                     <>
-                                                        <div>
+                                                        <div className="md:col-span-2">
                                                             <label className="text-sm font-medium text-slate-500">Teléfono</label>
                                                             <Input
                                                                 value={businessInfoForm.business_phone}
                                                                 onChange={(e) => setBusinessInfoForm(prev => ({ ...prev, business_phone: e.target.value }))}
                                                                 placeholder="Ej: +54 9 11 1234-5678"
-                                                                className="mt-1 rounded-xl"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-sm font-medium text-slate-500">Email de Contacto</label>
-                                                            <Input
-                                                                type="email"
-                                                                value={businessInfoForm.business_email}
-                                                                onChange={(e) => setBusinessInfoForm(prev => ({ ...prev, business_email: e.target.value }))}
-                                                                placeholder="contacto@minegocio.com"
                                                                 className="mt-1 rounded-xl"
                                                             />
                                                         </div>
@@ -611,7 +611,7 @@ const StatCard = ({ title, value, trend, subtitle }: { title: string, value: str
         <h3 className="text-sm font-medium text-slate-500 mb-2">{title}</h3>
         <div className="flex items-end justify-between">
             <div>
-                <span className="text-2xl font-bold text-slate-800">{value}</span>
+                <span className="text-3xl md:text-4xl font-bold text-slate-800">{value}</span>
                 {subtitle && (
                     <p className="text-xs text-slate-400 mt-1">{subtitle}</p>
                 )}
