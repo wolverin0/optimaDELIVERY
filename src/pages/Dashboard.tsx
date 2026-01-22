@@ -288,7 +288,7 @@ const Dashboard = () => {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-orange-100/50">
+                <div className="p-4 border-t border-orange-100/50 space-y-2">
                     <div className="flex items-center gap-3 mb-4 px-2">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center text-sm font-bold text-orange-600">
                             {profile?.full_name?.charAt(0)?.toUpperCase() || profile?.email?.charAt(0)?.toUpperCase() || 'U'}
@@ -298,6 +298,17 @@ const Dashboard = () => {
                             <RoleBadge role={userRole} />
                         </div>
                     </div>
+
+                    {/* Subscription CTA for trial users */}
+                    {getTrialStatus(tenant) !== 'active_subscription' && (
+                        <Link to="/checkout" className="block">
+                            <Button className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl shadow-lg">
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Suscribirme
+                            </Button>
+                        </Link>
+                    )}
+
                     <Button
                         variant="ghost"
                         className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
@@ -318,11 +329,21 @@ const Dashboard = () => {
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
                                 <Utensils className="h-4 w-4 text-white" />
                             </div>
-                            <span className="font-bold text-slate-800">optimaDELIVERY</span>
+                            <span className="font-bold text-slate-800 text-sm">optimaDELIVERY</span>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={signOut}>
-                            <LogOut className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            {getTrialStatus(tenant) !== 'active_subscription' && (
+                                <Link to="/checkout">
+                                    <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg text-xs">
+                                        <Sparkles className="w-3 h-3 mr-1" />
+                                        Suscribirme
+                                    </Button>
+                                </Link>
+                            )}
+                            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={signOut}>
+                                <LogOut className="w-4 h-4" />
+                            </Button>
+                        </div>
                     </div>
                     {/* Mobile Navigation Tabs - 2 rows grid */}
                     <div className="grid grid-cols-3 gap-1 px-2 pb-2">
