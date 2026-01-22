@@ -28,6 +28,7 @@ import Kitchen from "./pages/Kitchen";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import SuperAdmin from "./pages/SuperAdmin";
+import Checkout from "./pages/Checkout";
 import TrialExpired from "./pages/TrialExpired";
 import Upgrade from "./pages/Upgrade";
 
@@ -102,6 +103,12 @@ const App = () => (
                 <Route path="/upgrade" element={
                   <ProtectedRoute skipTrialCheck>
                     <Upgrade />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/checkout" element={
+                  <ProtectedRoute skipTrialCheck>
+                    <Checkout />
                   </ProtectedRoute>
                 } />
 
