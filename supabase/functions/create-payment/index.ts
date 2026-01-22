@@ -3,9 +3,45 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://optimadelivery.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+]
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || ''
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+  }
+}
+
+// Input validation helpers
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(str)
+}
+
+function isValidName(str: string): boolean {
+  if (!str || str.length < 1 || str.length > 100) return false
+  // Allow letters, numbers, spaces, and common Spanish characters
+  // Block potential XSS/SQL injection characters
+  const dangerousChars = /[<>'"`;\\]/
+  return !dangerousChars.test(str)
+}
+
+function isValidPhone(str: string): boolean {
+  if (!str || str.length < 6 || str.length > 20) return false
+  // Allow digits, spaces, hyphens, parentheses, and plus sign
+  const phoneRegex = /^[\d\s\-\(\)\+]+$/
+  return phoneRegex.test(str)
 }
 
 interface PaymentItem {
@@ -32,6 +68,8 @@ interface PaymentRequest {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -40,15 +78,93 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 
     // Parse request body
     const body: PaymentRequest = await req.json()
     const { orderId, tenantId, items, payer, externalReference, backUrls } = body
 
-    console.log('Creating payment for order:', orderId, 'tenant:', tenantId)
+    // Input validation
+    if (!orderId || !isValidUUID(orderId)) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid order ID' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!tenantId || !isValidUUID(tenantId)) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid tenant ID' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!payer?.name || !isValidName(payer.name)) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid payer name' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!payer?.phone || !isValidPhone(payer.phone)) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid phone number' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid items' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Validate each item
+    for (const item of items) {
+      if (!item.name || !isValidName(item.name)) {
+        return new Response(JSON.stringify({ success: false, error: 'Invalid item name' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (typeof item.quantity !== 'number' || item.quantity < 1 || item.quantity > 999) {
+        return new Response(JSON.stringify({ success: false, error: 'Invalid item quantity' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (typeof item.unit_price !== 'number' || item.unit_price < 0 || item.unit_price > 10000000) {
+        return new Response(JSON.stringify({ success: false, error: 'Invalid item price' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
+    console.log('Creating payment for order:', orderId.substring(0, 8) + '...')
 
     // Create Supabase client to get tenant's MercadoPago credentials
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+    // Verify the order exists and belongs to the tenant
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, tenant_id')
+      .eq('id', orderId)
+      .eq('tenant_id', tenantId)
+      .single()
+
+    if (orderError || !order) {
+      console.error('Order not found or does not belong to tenant')
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Order not found',
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
@@ -57,7 +173,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (tenantError || !tenant) {
-      console.error('Tenant not found:', tenantError)
+      console.error('Tenant not found')
       return new Response(JSON.stringify({
         success: false,
         error: 'Tenant not found',
@@ -115,8 +231,7 @@ Deno.serve(async (req) => {
     })
 
     if (!mpResponse.ok) {
-      const errorText = await mpResponse.text()
-      console.error('MercadoPago API error:', mpResponse.status, errorText)
+      console.error('MercadoPago API error:', mpResponse.status)
 
       // If token expired, return demo mode with message
       if (mpResponse.status === 401) {
@@ -141,7 +256,7 @@ Deno.serve(async (req) => {
     }
 
     const preference = await mpResponse.json()
-    console.log('Preference created:', preference.id)
+    console.log('Preference created successfully')
 
     // Update order with preference ID
     await supabase
@@ -171,7 +286,7 @@ Deno.serve(async (req) => {
       demo: true,
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 })

@@ -2,13 +2,100 @@
 // Receives payment notifications and updates order payment_status
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { crypto } from 'https://deno.land/std@0.224.0/crypto/mod.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://optimadelivery.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+]
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || ''
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+  }
+}
+
+// Verify MercadoPago webhook signature
+async function verifyWebhookSignature(
+  req: Request,
+  secret: string
+): Promise<{ valid: boolean; error?: string }> {
+  const xSignature = req.headers.get('x-signature')
+  const xRequestId = req.headers.get('x-request-id')
+
+  if (!xSignature || !xRequestId) {
+    return { valid: false, error: 'Missing signature headers' }
+  }
+
+  // Parse signature header (format: "ts=1234567890,v1=abc123...")
+  const parts: Record<string, string> = {}
+  xSignature.split(',').forEach(part => {
+    const [key, value] = part.split('=')
+    parts[key.trim()] = value.trim()
+  })
+
+  const ts = parts.ts
+  const hash = parts.v1
+
+  if (!ts || !hash) {
+    return { valid: false, error: 'Invalid signature format' }
+  }
+
+  // Check timestamp is recent (within 5 minutes)
+  const now = Date.now()
+  const signatureTime = parseInt(ts) * 1000
+  const timeDiff = Math.abs(now - signatureTime)
+
+  if (timeDiff > 5 * 60 * 1000) {
+    return { valid: false, error: 'Signature expired' }
+  }
+
+  // Get query parameters
+  const url = new URL(req.url)
+  const dataId = url.searchParams.get('data.id') || url.searchParams.get('id')
+
+  // Construct signed data (MercadoPago format)
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`
+
+  // Calculate expected signature
+  const encoder = new TextEncoder()
+  const keyData = encoder.encode(secret)
+  const messageData = encoder.encode(manifest)
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData)
+  const expectedHash = Array.from(new Uint8Array(signature))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+
+  // Compare signatures
+  if (expectedHash !== hash) {
+    console.error('Signature mismatch')
+    return { valid: false, error: 'Invalid signature' }
+  }
+
+  return { valid: true }
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -17,6 +104,20 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const MERCADOPAGO_WEBHOOK_SECRET = Deno.env.get('MERCADOPAGO_WEBHOOK_SECRET')
+
+    // CRITICAL: Verify webhook signature to prevent fake payments
+    if (!MERCADOPAGO_WEBHOOK_SECRET) {
+      console.error('CRITICAL: MERCADOPAGO_WEBHOOK_SECRET not configured')
+      return new Response('Server configuration error', { status: 500, headers: corsHeaders })
+    }
+
+    const verification = await verifyWebhookSignature(req, MERCADOPAGO_WEBHOOK_SECRET)
+    if (!verification.valid) {
+      console.error('Webhook signature verification failed:', verification.error)
+      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+    }
+    console.log('Webhook signature verified ✓')
 
     // Create Supabase client with service role to bypass RLS
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -34,8 +135,7 @@ Deno.serve(async (req) => {
       console.log('Could not parse JSON body, checking query params')
     }
 
-    console.log('Webhook received:', JSON.stringify(body, null, 2))
-    console.log('Query orderId:', orderIdFromQuery)
+    console.log('Webhook received for order:', orderIdFromQuery)
 
     // MercadoPago sends different notification formats:
     // 1. IPN: { topic: 'payment', id: '123' } or { topic: 'merchant_order', id: '123' }
@@ -54,7 +154,6 @@ Deno.serve(async (req) => {
     } else if (body.id && body.topic === 'merchant_order') {
       // IPN format for merchant_order - need to fetch order to get payment
       console.log('Received merchant_order notification, fetching order details...')
-      // For now, we handle this by getting payment from order
     }
 
     // Also check query params (MercadoPago sometimes sends id there)
@@ -91,7 +190,7 @@ Deno.serve(async (req) => {
         .single()
 
       if (orderError || !order) {
-        console.error('Order not found:', orderId, orderError)
+        console.error('Order not found:', orderId)
         return new Response('Order not found', { status: 200, headers: corsHeaders })
       }
 
@@ -112,13 +211,12 @@ Deno.serve(async (req) => {
       )
 
       if (!paymentResponse.ok) {
-        const errorText = await paymentResponse.text()
-        console.error('Error fetching payment:', paymentResponse.status, errorText)
+        console.error('Error fetching payment:', paymentResponse.status)
         return new Response('Payment fetch error', { status: 200, headers: corsHeaders })
       }
 
       const payment = await paymentResponse.json()
-      console.log('Payment status:', payment.status, 'external_reference:', payment.external_reference)
+      console.log('Payment status:', payment.status)
 
       // Use external_reference if we don't have orderId
       const finalOrderId = orderId || payment.external_reference

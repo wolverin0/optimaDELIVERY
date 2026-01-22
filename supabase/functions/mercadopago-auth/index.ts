@@ -3,12 +3,29 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://optimadelivery.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+]
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || ''
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+  }
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -40,10 +57,14 @@ Deno.serve(async (req) => {
       return Response.redirect(`${FRONTEND_URL}/dashboard?mp_error=missing_params`, 302)
     }
 
-    console.log('Exchanging code for tokens, tenant_id:', state)
-    console.log('Using REDIRECT_URI:', REDIRECT_URI)
-    console.log('MP_CLIENT_ID present:', !!MP_CLIENT_ID)
-    console.log('MP_CLIENT_SECRET present:', !!MP_CLIENT_SECRET)
+    // Validate state is a valid UUID format (basic protection)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(state)) {
+      console.error('Invalid state parameter format')
+      return Response.redirect(`${FRONTEND_URL}/dashboard?mp_error=invalid_state`, 302)
+    }
+
+    console.log('Exchanging code for tokens, tenant_id:', state.substring(0, 8) + '...')
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://api.mercadopago.com/oauth/token', {
@@ -64,13 +85,11 @@ Deno.serve(async (req) => {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text()
       console.error('Token exchange failed:', tokenResponse.status, errorData)
-      // Include more details in the redirect for debugging
-      const errorInfo = encodeURIComponent(`${tokenResponse.status}: ${errorData.substring(0, 100)}`)
-      return Response.redirect(`${FRONTEND_URL}/dashboard?mp_error=token_exchange_failed&details=${errorInfo}`, 302)
+      return Response.redirect(`${FRONTEND_URL}/dashboard?mp_error=token_exchange_failed`, 302)
     }
 
     const tokenData = await tokenResponse.json()
-    console.log('Token exchange successful, user_id:', tokenData.user_id)
+    console.log('Token exchange successful')
 
     // Create Supabase client with service role (to bypass RLS)
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -99,9 +118,7 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error('Unexpected error:', err)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://optimadelivery.vercel.app'
+    return Response.redirect(`${FRONTEND_URL}/dashboard?mp_error=internal_error`, 302)
   }
 })

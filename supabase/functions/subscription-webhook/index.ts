@@ -92,18 +92,17 @@ Deno.serve(async (req) => {
     console.log('Subscription webhook received:', { topic, id })
 
     // CRITICAL: Verify webhook signature to prevent fake payments
-    if (MERCADOPAGO_WEBHOOK_SECRET) {
-      const verification = await verifyWebhookSignature(req, MERCADOPAGO_WEBHOOK_SECRET)
-
-      if (!verification.valid) {
-        console.error('Webhook signature verification failed:', verification.error)
-        return new Response('Unauthorized', { status: 401 })
-      }
-
-      console.log('Webhook signature verified ✓')
-    } else {
-      console.warn('WARNING: MERCADOPAGO_WEBHOOK_SECRET not set - webhook verification disabled!')
+    if (!MERCADOPAGO_WEBHOOK_SECRET) {
+      console.error('CRITICAL: MERCADOPAGO_WEBHOOK_SECRET not configured')
+      return new Response('Server configuration error', { status: 500 })
     }
+
+    const verification = await verifyWebhookSignature(req, MERCADOPAGO_WEBHOOK_SECRET)
+    if (!verification.valid) {
+      console.error('Webhook signature verification failed:', verification.error)
+      return new Response('Unauthorized', { status: 401 })
+    }
+    console.log('Webhook signature verified ✓')
 
     if (!topic || !id) {
       return new Response('Missing parameters', { status: 400 })
@@ -195,6 +194,6 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error('Webhook error:', err)
-    return new Response(`Error: ${err.message}`, { status: 500 })
+    return new Response('Internal server error', { status: 500 })
   }
 })

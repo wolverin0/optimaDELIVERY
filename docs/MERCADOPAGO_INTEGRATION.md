@@ -67,7 +67,7 @@ Go to: **Supabase Dashboard > Edge Functions > mercadopago-auth > Secrets**
 Set these secrets:
 | Secret Name | Value | Description |
 |-------------|-------|-------------|
-| `MP_CLIENT_ID` | `8283236698213961` | MercadoPago App Client ID |
+| `MP_CLIENT_ID` | `<your-client-id>` | MercadoPago App Client ID |
 | `MP_CLIENT_SECRET` | `<secret>` | MercadoPago App Client Secret |
 | `FRONTEND_URL` | `https://optimadelivery.vercel.app` | Where to redirect after OAuth |
 | `SUPABASE_SERVICE_ROLE_KEY` | `<service-role-key>` | For bypassing RLS when saving tokens |
@@ -251,5 +251,5 @@ useEffect(() => {
 Supabase Project: nzqnibcdgqjporarwlzx
 Edge Function URL: https://nzqnibcdgqjporarwlzx.supabase.co/functions/v1/mercadopago-auth
 Frontend URL: https://optimadelivery.vercel.app
-MP Client ID: 8283236698213961
+MP Client ID: <your-client-id>
 ```
