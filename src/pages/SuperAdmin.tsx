@@ -49,6 +49,9 @@ interface TenantData {
     mercadopago_access_token: string | null;
     trial_ends_at: string | null;
     subscription_status: string | null;
+    plan_type: string | null;
+    subscription_started_at: string | null;
+    subscription_ends_at: string | null;
     logo_url: string | null;
     theme: string | null;
     primary_color: string | null;
@@ -339,6 +342,55 @@ const SuperAdmin = () => {
             }
         } catch (err) {
             console.error('Error extending trial:', err);
+        }
+    };
+
+    const updateSubscription = async (tenant: TenantData, status: string, planType: string | null, days: number) => {
+        try {
+            const { data: { session } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+            if (!session) return;
+
+            const now = new Date();
+            const subscriptionEnds = days > 0 ? new Date(now.getTime() + days * 24 * 60 * 60 * 1000) : null;
+
+            const updateData: any = {
+                subscription_status: status,
+                plan_type: planType
+            };
+
+            if (status === 'active') {
+                updateData.subscription_started_at = now.toISOString();
+                if (subscriptionEnds) {
+                    updateData.subscription_ends_at = subscriptionEnds.toISOString();
+                }
+            } else if (status === 'cancelled') {
+                updateData.subscription_ends_at = null;
+            }
+
+            const res = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/tenants?id=eq.${tenant.id}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(updateData)
+                }
+            );
+
+            if (res.ok) {
+                setTenants(prev => prev.map(t =>
+                    t.id === tenant.id ? { ...t, ...updateData } : t
+                ));
+                if (selectedTenant?.id === tenant.id) {
+                    setSelectedTenant({ ...selectedTenant, ...updateData });
+                }
+            }
+        } catch (err) {
+            console.error('Error updating subscription:', err);
         }
     };
 
@@ -1393,10 +1445,64 @@ const SuperAdmin = () => {
                                         <span>{new Date(selectedTenant.trial_ends_at).toLocaleDateString('es-AR')}</span>
                                     </div>
                                 )}
+                                <div>
+                                    <span className="text-slate-400">Suscripción: </span>
+                                    <span className={`font-semibold ${
+                                        selectedTenant.subscription_status === 'active' ? 'text-green-400' :
+                                        selectedTenant.subscription_status === 'cancelled' ? 'text-red-400' :
+                                        'text-yellow-400'
+                                    }`}>
+                                        {selectedTenant.subscription_status || 'trial'}
+                                    </span>
+                                    {selectedTenant.subscription_ends_at && (
+                                        <span className="text-slate-500 text-sm ml-2">
+                                            (hasta {new Date(selectedTenant.subscription_ends_at).toLocaleDateString('es-AR')})
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Subscription Management */}
+                            <div className="pt-4 border-t border-slate-700">
+                                <p className="text-slate-400 text-sm mb-3">Gestión de Suscripción</p>
+                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-green-600 text-green-400 hover:bg-green-600/20"
+                                        onClick={() => updateSubscription(selectedTenant, 'active', 'monthly', 30)}
+                                    >
+                                        Activar Mensual
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                                        onClick={() => updateSubscription(selectedTenant, 'active', 'annual', 365)}
+                                    >
+                                        Activar Anual
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-yellow-600 text-yellow-400 hover:bg-yellow-600/20"
+                                        onClick={() => updateSubscription(selectedTenant, 'cancelled', null, 0)}
+                                    >
+                                        Cancelar Plan
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-purple-600 text-purple-400 hover:bg-purple-600/20"
+                                        onClick={() => updateSubscription(selectedTenant, 'active', selectedTenant.plan_type || 'monthly', 30)}
+                                    >
+                                        Renovar 30d
+                                    </Button>
+                                </div>
                             </div>
 
                             {/* Actions */}
-                            <div className="flex gap-2 pt-4 border-t border-slate-700">
+                            <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-700">
                                 <Button
                                     variant="outline"
                                     className="border-slate-600 text-slate-300 hover:bg-slate-700"
@@ -1419,7 +1525,7 @@ const SuperAdmin = () => {
                                     onClick={() => extendTrial(selectedTenant, 7)}
                                 >
                                     <Calendar className="w-4 h-4 mr-2" />
-                                    +7 Días
+                                    +7 Días Trial
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -1427,7 +1533,7 @@ const SuperAdmin = () => {
                                     onClick={() => extendTrial(selectedTenant, 30)}
                                 >
                                     <Calendar className="w-4 h-4 mr-2" />
-                                    +30 Días
+                                    +30 Días Trial
                                 </Button>
                             </div>
                         </div>

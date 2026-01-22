@@ -139,8 +139,7 @@ const LandingPage = () => {
                         </Link>
                         <Link to="/register/setup">
                             <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl px-3 sm:px-6 font-semibold shadow-lg shadow-orange-500/25 transition-all duration-200 cursor-pointer h-9 sm:h-10 text-sm">
-                                <span className="hidden sm:inline">Prueba 7 Días</span>
-                                <span className="sm:hidden">Probar</span>
+                                Comenzar
                             </Button>
                         </Link>
                     </div>
@@ -178,7 +177,7 @@ const LandingPage = () => {
                             <div className="flex flex-col sm:flex-row gap-4 mb-10 justify-center lg:justify-start">
                                 <Link to="/register/setup">
                                     <Button size="lg" className="h-14 px-8 text-lg rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-xl shadow-orange-500/30 w-full sm:w-auto transition-all duration-200 cursor-pointer">
-                                        Empezar Prueba de 7 Días
+                                        Comenzar Ahora
                                         <ArrowRight className="ml-2 w-5 h-5" />
                                     </Button>
                                 </Link>
@@ -194,11 +193,11 @@ const LandingPage = () => {
                             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-sm text-slate-500 justify-center lg:justify-start">
                                 <div className="flex items-center gap-2">
                                     <Check className="w-5 h-5 text-green-500" />
-                                    <span>Sin tarjeta requerida</span>
+                                    <span>Setup en 5 minutos</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Check className="w-5 h-5 text-green-500" />
-                                    <span>Setup en minutos</span>
+                                    <span>Sin comisiones ocultas</span>
                                 </div>
                             </div>
                         </div>
@@ -608,103 +607,88 @@ const LandingPage = () => {
                 <div className="max-w-5xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900">
-                            Planes simples y transparentes
+                            Un plan. Dos formas de pago.
                         </h2>
                         <p className="text-xl text-slate-600">
-                            Sin sorpresas. Sin comisiones ocultas. Cancela cuando quieras.
+                            Todas las funcionalidades incluidas. Elegí cómo querés pagar.
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
                         {/* Plan Mensual */}
-                        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer">
-                            <h3 className="text-xl font-bold mb-2 text-slate-900">Mensual</h3>
-                            <div className="flex items-baseline gap-1 mb-4">
+                        <div className="bg-white rounded-3xl p-8 border-2 border-slate-200 shadow-xl hover:shadow-2xl transition-all cursor-pointer hover:border-slate-300">
+                            <h3 className="text-2xl font-bold mb-3 text-slate-900">Pago Mensual</h3>
+                            <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-5xl font-bold text-slate-900">$25.000</span>
-                                <span className="text-slate-500">/mes</span>
+                                <span className="text-slate-500 text-lg">/mes</span>
                             </div>
-                            <p className="text-slate-500 mb-8 pb-6 border-b border-slate-100">
-                                Pago mes a mes, cancelá cuando quieras
-                            </p>
-                            <ul className="space-y-4 mb-8">
-                                {[
-                                    'Menú Digital QR Ilimitado',
-                                    'Pedidos por WhatsApp',
-                                    'Cobros con MercadoPago',
-                                    'Panel de Cocina en Tiempo Real',
-                                    '5 Plantillas Premium',
-                                    'Soporte Prioritario WhatsApp'
-                                ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-slate-700">
-                                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                                            <Check className="w-3 h-3 text-green-600" />
-                                        </div>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className="space-y-3">
-                                <Link to="/register/setup?plan=monthly">
-                                    <Button variant="outline" className="w-full h-14 rounded-xl text-lg font-semibold border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
-                                        Empezar 7 Días Gratis
-                                    </Button>
-                                </Link>
-                                <Link to="/register/setup?plan=monthly&skip_trial=true">
-                                    <Button className="w-full h-12 rounded-xl font-semibold bg-slate-800 hover:bg-slate-900 text-white">
-                                        Suscribirme Ahora
-                                    </Button>
-                                </Link>
+                            <p className="text-sm text-slate-500 mb-6">Sin compromiso. Cancelá cuando quieras.</p>
+                            <Link to="/register/setup?plan=monthly">
+                                <Button className="w-full h-14 rounded-xl text-lg font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-lg mb-6">
+                                    Comenzar Ahora
+                                    <ArrowRight className="ml-2 w-5 h-5" />
+                                </Button>
+                            </Link>
+                            <div className="pt-6 border-t border-slate-100">
+                                <p className="text-xs text-slate-400 mb-4 uppercase tracking-wide font-semibold">Incluye todo:</p>
+                                <ul className="space-y-3">
+                                    {[
+                                        'Menú Digital QR Ilimitado',
+                                        'Pedidos por WhatsApp',
+                                        'Cobros con MercadoPago',
+                                        'Panel de Cocina',
+                                        '5 Plantillas Premium',
+                                        'Soporte por WhatsApp'
+                                    ].map((item, i) => (
+                                        <li key={i} className="flex items-center gap-3 text-slate-700 text-sm">
+                                            <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </div>
 
                         {/* Plan Anual */}
-                        <div className="relative bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-8 text-white shadow-2xl shadow-orange-500/30 cursor-pointer">
+                        <div className="relative bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-8 text-white shadow-2xl shadow-orange-500/30 border-2 border-orange-400">
                             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-sm font-bold px-4 py-1 rounded-full shadow-lg">
-                                AHORRÁ 20%
+                                AHORRÁ $60.000/AÑO
                             </div>
-                            <h3 className="text-xl font-bold mb-2">Anual</h3>
+                            <h3 className="text-2xl font-bold mb-3">Pago Anual</h3>
                             <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-5xl font-bold">$20.000</span>
-                                <span className="text-white/70">/mes</span>
+                                <span className="text-white/70 text-lg">/mes</span>
                             </div>
-                            <p className="text-sm text-white/60 mb-4">Pagás $240.000 por año</p>
-                            <p className="text-white/80 mb-8 pb-6 border-b border-white/20">
-                                Ahorrá $60.000 al año pagando anualmente
+                            <p className="text-sm text-white/80 mb-6">
+                                <span className="font-semibold">$240.000</span> cobrado una vez al año
                             </p>
-                            <ul className="space-y-4 mb-8">
-                                {[
-                                    'Todo del plan Mensual',
-                                    '20% de descuento',
-                                    'Aviso 1 mes antes de renovación',
-                                    'Estadísticas Avanzadas',
-                                    'Soporte Premium',
-                                    'Acceso anticipado a nuevas features'
-                                ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3">
-                                        <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
-                                            <Check className="w-3 h-3" />
-                                        </div>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className="space-y-3">
-                                <Link to="/register/setup?plan=annual">
-                                    <Button className="w-full h-14 rounded-xl text-lg font-bold bg-white text-orange-600 hover:bg-orange-50 shadow-lg transition-all cursor-pointer">
-                                        Empezar 7 Días Gratis
-                                    </Button>
-                                </Link>
-                                <Link to="/register/setup?plan=annual&skip_trial=true">
-                                    <Button variant="outline" className="w-full h-12 rounded-xl font-semibold border-2 border-white text-white hover:bg-white/10">
-                                        Suscribirme Ahora
-                                    </Button>
-                                </Link>
+                            <Link to="/register/setup?plan=annual">
+                                <Button className="w-full h-14 rounded-xl text-lg font-bold bg-white text-orange-600 hover:bg-orange-50 shadow-xl mb-6">
+                                    Comenzar Ahora
+                                    <ArrowRight className="ml-2 w-5 h-5" />
+                                </Button>
+                            </Link>
+                            <div className="pt-6 border-t border-white/20">
+                                <p className="text-xs text-white/60 mb-4 uppercase tracking-wide font-semibold">Todo lo del plan mensual +</p>
+                                <ul className="space-y-3">
+                                    {[
+                                        '20% de descuento permanente',
+                                        'Recordatorio 30 días antes de renovar',
+                                        'Estadísticas avanzadas',
+                                        'Soporte premium prioritario'
+                                    ].map((item, i) => (
+                                        <li key={i} className="flex items-center gap-3 text-sm">
+                                            <Check className="w-4 h-4 flex-shrink-0" />
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </div>
                     </div>
 
                     <p className="text-center text-slate-500 mt-8 text-sm">
-                        Probá 7 días gratis o suscribite directamente. Sin comisiones ocultas.
+                        Todas las funcionalidades. Sin sorpresas. Sin comisiones ocultas.
                     </p>
                 </div>
             </section>
@@ -724,12 +708,12 @@ const LandingPage = () => {
                     </p>
                     <Link to="/register/setup">
                         <Button size="lg" className="h-16 px-12 text-xl rounded-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 font-bold shadow-2xl shadow-orange-500/40 transition-all duration-200 cursor-pointer">
-                            Empezar Prueba de 7 Días
+                            Comenzar Ahora
                             <ArrowRight className="ml-3 w-6 h-6" />
                         </Button>
                     </Link>
                     <p className="mt-6 text-slate-500 text-sm">
-                        Setup en 5 minutos • 7 días gratis • Sin tarjeta requerida
+                        Setup en 5 minutos • Sin comisiones ocultas • Cancelá cuando quieras
                     </p>
                 </div>
             </section>

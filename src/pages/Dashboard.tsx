@@ -414,7 +414,7 @@ const Dashboard = () => {
                                 <p className="text-slate-500">Administra los ajustes de tu negocio</p>
                             </div>
 
-                            {/* Config Section Cards */}
+                            {/* Config Section Cards - 3x2 Grid */}
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <ConfigCard
                                     icon={<Store className="w-6 h-6" />}
