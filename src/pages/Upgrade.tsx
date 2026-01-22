@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTenant } from "@/context/TenantContext";
 import { useAuth } from "@/context/AuthContext";
-import { getTrialStatus, getDaysRemaining, getStatusDescription } from "@/lib/trial";
+import { getTrialStatus, getDaysRemaining, getSubscriptionMessage } from "@/lib/trial";
 
 const Upgrade = () => {
     const { tenant } = useTenant();
@@ -124,7 +124,7 @@ const Upgrade = () => {
                                         {tenant?.name || 'Tu negocio'}
                                     </p>
                                     <p className="text-sm text-slate-500">
-                                        {getStatusDescription(tenant)}
+                                        {getSubscriptionMessage(tenant)}
                                     </p>
                                 </div>
                             </div>
