@@ -759,28 +759,34 @@ const SuperAdmin = () => {
 
                 {/* Tabs for Tenants, Users, and Design Requests */}
                 <Tabs defaultValue="tenants" className="space-y-6">
-                    <TabsList className="bg-slate-800 border-slate-700">
-                        <TabsTrigger value="tenants" className="data-[state=active]:bg-slate-700">
-                            <Building2 className="w-4 h-4 mr-2" />
-                            Negocios
-                        </TabsTrigger>
-                        <TabsTrigger value="analytics" className="data-[state=active]:bg-slate-700">
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            Analytics
-                        </TabsTrigger>
-                        <TabsTrigger value="users" className="data-[state=active]:bg-slate-700">
-                            <Users className="w-4 h-4 mr-2" />
-                            Usuarios
-                            <Badge className="ml-2 bg-slate-600">{metrics.totalUsers}</Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="design-requests" className="data-[state=active]:bg-slate-700">
-                            <Palette className="w-4 h-4 mr-2" />
-                            Diseños
-                            {metrics.pendingDesignRequests > 0 && (
-                                <Badge className="ml-2 bg-pink-500">{metrics.pendingDesignRequests}</Badge>
-                            )}
-                        </TabsTrigger>
-                    </TabsList>
+                    <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+                        <TabsList className="bg-slate-800 border-slate-700 w-full md:w-auto inline-flex">
+                            <TabsTrigger value="tenants" className="data-[state=active]:bg-slate-700 whitespace-nowrap">
+                                <Building2 className="w-4 h-4 mr-2" />
+                                <span className="hidden sm:inline">Negocios</span>
+                                <span className="sm:hidden">Neg.</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="analytics" className="data-[state=active]:bg-slate-700 whitespace-nowrap">
+                                <BarChart3 className="w-4 h-4 mr-2" />
+                                <span className="hidden sm:inline">Analytics</span>
+                                <span className="sm:hidden">Stats</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 whitespace-nowrap">
+                                <Users className="w-4 h-4 mr-2" />
+                                <span className="hidden sm:inline">Usuarios</span>
+                                <span className="sm:hidden">Users</span>
+                                <Badge className="ml-1 sm:ml-2 bg-slate-600 text-[10px] sm:text-xs">{metrics.totalUsers}</Badge>
+                            </TabsTrigger>
+                            <TabsTrigger value="design-requests" className="data-[state=active]:bg-slate-700 whitespace-nowrap">
+                                <Palette className="w-4 h-4 mr-2" />
+                                <span className="hidden sm:inline">Diseños</span>
+                                <span className="sm:hidden">Design</span>
+                                {metrics.pendingDesignRequests > 0 && (
+                                    <Badge className="ml-1 sm:ml-2 bg-pink-500 text-[10px] sm:text-xs">{metrics.pendingDesignRequests}</Badge>
+                                )}
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>
 
                     <TabsContent value="tenants">
                 {/* Tenants Table */}
@@ -821,10 +827,10 @@ const SuperAdmin = () => {
                                 <thead>
                                     <tr className="border-b border-slate-700 text-left text-sm text-slate-400">
                                         <th className="pb-3 font-medium">Negocio</th>
-                                        <th className="pb-3 font-medium">URL</th>
-                                        <th className="pb-3 font-medium">Estado</th>
-                                        <th className="pb-3 font-medium">Trial</th>
-                                        <th className="pb-3 font-medium">MercadoPago</th>
+                                        <th className="pb-3 font-medium hidden md:table-cell">URL</th>
+                                        <th className="pb-3 font-medium hidden sm:table-cell">Estado</th>
+                                        <th className="pb-3 font-medium hidden lg:table-cell">Trial</th>
+                                        <th className="pb-3 font-medium hidden lg:table-cell">MP</th>
                                         <th className="pb-3 font-medium">Pedidos</th>
                                         <th className="pb-3 font-medium text-right">Acciones</th>
                                     </tr>
@@ -865,12 +871,12 @@ const SuperAdmin = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-4">
+                                            <td className="py-4 hidden md:table-cell">
                                                 <code className="text-xs bg-slate-700 px-2 py-1 rounded">
                                                     /t/{tenant.slug}
                                                 </code>
                                             </td>
-                                            <td className="py-4">
+                                            <td className="py-4 hidden sm:table-cell">
                                                 <Badge
                                                     variant={tenant.is_active ? "default" : "secondary"}
                                                     className={tenant.is_active ? 'bg-green-600 cursor-pointer' : 'bg-red-600 cursor-pointer'}
@@ -879,7 +885,7 @@ const SuperAdmin = () => {
                                                     {tenant.is_active ? 'Activo' : 'Inactivo'}
                                                 </Badge>
                                             </td>
-                                            <td className="py-4">
+                                            <td className="py-4 hidden lg:table-cell">
                                                 {trialDays !== null ? (
                                                     <Badge
                                                         className={
@@ -894,7 +900,7 @@ const SuperAdmin = () => {
                                                     <span className="text-slate-500 text-xs">—</span>
                                                 )}
                                             </td>
-                                            <td className="py-4">
+                                            <td className="py-4 hidden lg:table-cell">
                                                 <Badge variant={tenant.mercadopago_access_token ? "default" : "outline"}
                                                     className={tenant.mercadopago_access_token ? 'bg-green-600' : 'text-slate-400'}>
                                                     {tenant.mercadopago_access_token ? 'Conectado' : 'No'}
