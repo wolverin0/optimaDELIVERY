@@ -611,39 +611,39 @@ const SuperAdmin = () => {
     return (
         <div className="min-h-screen bg-slate-900 text-white">
             {/* Header */}
-            <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <header className="bg-slate-800 border-b border-slate-700 px-4 md:px-6 py-4">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-sm">
                             OD
                         </div>
                         <div>
-                            <h1 className="font-bold text-lg">Super Admin</h1>
+                            <h1 className="font-bold text-base sm:text-lg">Super Admin</h1>
                             <p className="text-xs text-slate-400">optimaDELIVERY</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <span className="text-sm text-slate-400">{user?.email}</span>
+                    <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                        <span className="text-xs sm:text-sm text-slate-400 truncate max-w-[150px] sm:max-w-none">{user?.email}</span>
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="text-slate-400 hover:text-white"
+                            className="text-slate-400 hover:text-white flex-shrink-0"
                             onClick={signOut}
                         >
-                            <LogOut className="w-4 h-4 mr-2" />
-                            Salir
+                            <LogOut className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Salir</span>
                         </Button>
                     </div>
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-6 py-8">
+            <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
                 {/* Time Period Selector */}
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold">Panel de Control</h2>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                    <h2 className="text-lg sm:text-xl font-bold">Panel de Control</h2>
                     <Select value={timePeriod} onValueChange={(v: TimePeriod) => setTimePeriod(v)}>
-                        <SelectTrigger className="w-40 bg-slate-800 border-slate-700">
+                        <SelectTrigger className="w-full sm:w-40 bg-slate-800 border-slate-700">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-800 border-slate-700">
@@ -658,72 +658,72 @@ const SuperAdmin = () => {
                 {/* Platform Overview */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-0">
-                        <CardContent className="p-4">
+                        <CardContent className="p-3 md:p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-blue-200 text-sm">Total Negocios</p>
-                                    <p className="text-3xl font-bold">{metrics.totalTenants}</p>
-                                    <p className="text-blue-200 text-xs mt-1">
+                                    <p className="text-blue-200 text-xs sm:text-sm">Total Negocios</p>
+                                    <p className="text-2xl md:text-3xl font-bold">{metrics.totalTenants}</p>
+                                    <p className="text-blue-200 text-[10px] sm:text-xs mt-1">
                                         <UserPlus className="w-3 h-3 inline mr-1" />
                                         +{platformMetrics.newTenantsThisWeek} esta semana
                                     </p>
                                 </div>
-                                <Building2 className="w-10 h-10 text-blue-300 opacity-80" />
+                                <Building2 className="w-8 h-8 md:w-10 md:h-10 text-blue-300 opacity-80" />
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card className="bg-gradient-to-br from-green-600 to-green-800 border-0">
-                        <CardContent className="p-4">
+                        <CardContent className="p-3 md:p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-green-200 text-sm">Revenue ({timePeriod === 'today' ? 'Hoy' : timePeriod === 'week' ? 'Semana' : timePeriod === 'month' ? 'Mes' : 'Total'})</p>
-                                    <p className="text-3xl font-bold">${platformMetrics.periodRevenue.toLocaleString()}</p>
-                                    <p className="text-green-200 text-xs mt-1">
+                                    <p className="text-green-200 text-xs sm:text-sm">Revenue ({timePeriod === 'today' ? 'Hoy' : timePeriod === 'week' ? 'Semana' : timePeriod === 'month' ? 'Mes' : 'Total'})</p>
+                                    <p className="text-2xl md:text-3xl font-bold">${platformMetrics.periodRevenue.toLocaleString()}</p>
+                                    <p className="text-green-200 text-[10px] sm:text-xs mt-1">
                                         <ShoppingBag className="w-3 h-3 inline mr-1" />
-                                        {platformMetrics.paidPeriodOrders} pedidos pagados
+                                        {platformMetrics.paidPeriodOrders} pagados
                                     </p>
                                 </div>
-                                <DollarSign className="w-10 h-10 text-green-300 opacity-80" />
+                                <DollarSign className="w-8 h-8 md:w-10 md:h-10 text-green-300 opacity-80" />
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card className="bg-gradient-to-br from-purple-600 to-purple-800 border-0">
-                        <CardContent className="p-4">
+                        <CardContent className="p-3 md:p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-purple-200 text-sm">MercadoPago</p>
-                                    <p className="text-3xl font-bold">{platformMetrics.mpConnected}</p>
-                                    <p className="text-purple-200 text-xs mt-1">
+                                    <p className="text-purple-200 text-xs sm:text-sm">MercadoPago</p>
+                                    <p className="text-2xl md:text-3xl font-bold">{platformMetrics.mpConnected}</p>
+                                    <p className="text-purple-200 text-[10px] sm:text-xs mt-1">
                                         <CreditCard className="w-3 h-3 inline mr-1" />
-                                        {platformMetrics.mpConnectionRate.toFixed(0)}% conectados
+                                        {platformMetrics.mpConnectionRate.toFixed(0)}% ok
                                     </p>
                                 </div>
-                                <CreditCard className="w-10 h-10 text-purple-300 opacity-80" />
+                                <CreditCard className="w-8 h-8 md:w-10 md:h-10 text-purple-300 opacity-80" />
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card className="bg-gradient-to-br from-orange-600 to-orange-800 border-0">
-                        <CardContent className="p-4">
+                        <CardContent className="p-3 md:p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-orange-200 text-sm">Actividad</p>
-                                    <p className="text-3xl font-bold">{platformMetrics.tenantsWithOrders}</p>
-                                    <p className="text-orange-200 text-xs mt-1">
+                                    <p className="text-orange-200 text-xs sm:text-sm">Actividad</p>
+                                    <p className="text-2xl md:text-3xl font-bold">{platformMetrics.tenantsWithOrders}</p>
+                                    <p className="text-orange-200 text-[10px] sm:text-xs mt-1">
                                         <Activity className="w-3 h-3 inline mr-1" />
                                         {platformMetrics.activityRate.toFixed(0)}% activos
                                     </p>
                                 </div>
-                                <Activity className="w-10 h-10 text-orange-300 opacity-80" />
+                                <Activity className="w-8 h-8 md:w-10 md:h-10 text-orange-300 opacity-80" />
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Secondary Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                     <MetricCard
                         icon={<Users className="w-5 h-5" />}
                         label="Usuarios"
@@ -793,12 +793,12 @@ const SuperAdmin = () => {
                                     Gestiona todos los tenants de la plataforma
                                 </CardDescription>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="relative">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                                <div className="relative flex-1 sm:flex-none">
                                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <Input
                                         placeholder="Buscar..."
-                                        className="pl-9 bg-slate-700 border-slate-600 text-white w-64"
+                                        className="pl-9 bg-slate-700 border-slate-600 text-white w-full sm:w-64"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
@@ -806,11 +806,11 @@ const SuperAdmin = () => {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                                    className="border-slate-600 text-slate-300 hover:bg-slate-700 whitespace-nowrap"
                                     onClick={exportTenantsCSV}
                                 >
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Exportar
+                                    <Download className="w-4 h-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">Exportar</span>
                                 </Button>
                             </div>
                         </div>
