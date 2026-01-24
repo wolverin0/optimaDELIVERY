@@ -116,7 +116,7 @@ export const ThemeSettings = () => {
             await refreshTenant();
             toast({ title: 'Configuración guardada', description: 'Tu tienda se ha actualizado correctamente.' });
         } catch (error) {
-            console.error('Error saving theme:', error);
+            if (import.meta.env.DEV) console.error('Error saving theme:', error);
             toast({ title: 'Error', description: error instanceof Error ? error.message : 'No se pudo guardar la configuración.', variant: 'destructive' });
         } finally {
             setIsLoading(false);
@@ -149,7 +149,7 @@ export const ThemeSettings = () => {
                 description: 'Nuestro equipo de diseño se pondrá en contacto contigo pronto.',
             });
         } catch (error) {
-            console.error('Error creating design request:', error);
+            if (import.meta.env.DEV) console.error('Error creating design request:', error);
             toast({
                 title: 'Error',
                 description: 'No se pudo enviar la solicitud. Intenta nuevamente.',
@@ -216,7 +216,7 @@ export const ThemeSettings = () => {
             await refreshTenant();
             toast({ title: 'Logo actualizado', description: 'Tu logo se ha subido correctamente.' });
         } catch (error) {
-            console.error('Error uploading logo:', error);
+            if (import.meta.env.DEV) console.error('Error uploading logo:', error);
             toast({ title: 'Error', description: error instanceof Error ? error.message : 'No se pudo subir el logo.', variant: 'destructive' });
         } finally {
             setIsUploadingLogo(false);
@@ -256,7 +256,7 @@ export const ThemeSettings = () => {
             await refreshTenant();
             toast({ title: 'Logo eliminado', description: 'Tu logo ha sido eliminado.' });
         } catch (error) {
-            console.error('Error deleting logo:', error);
+            if (import.meta.env.DEV) console.error('Error deleting logo:', error);
             toast({ title: 'Error', description: error instanceof Error ? error.message : 'No se pudo eliminar el logo.', variant: 'destructive' });
         } finally {
             setIsUploadingLogo(false);
@@ -272,27 +272,29 @@ export const ThemeSettings = () => {
                         <Eye className="w-3 h-3" />
                         Vista Previa
                     </div>
-                    <div className="w-[300px] h-[600px] mx-auto bg-white rounded-[2rem] shadow-xl border-[5px] border-slate-900 relative overflow-hidden">
+                    <div className="w-[280px] h-[560px] mx-auto bg-white rounded-[2rem] shadow-xl border-[5px] border-slate-900 relative overflow-hidden">
                         {/* Mini Notch */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-900 rounded-b-xl z-30"></div>
-                        {/* Screen Content */}
+                        {/* Screen Content - Scaled to fit phone frame */}
                         <div className="w-full h-full overflow-hidden bg-white pt-5">
-                            {previewTenant && (
-                                <TenantContext.Provider value={{
-                                    tenant: previewTenant,
-                                    categories: PREVIEW_CATEGORIES,
-                                    menuItems: PREVIEW_ITEMS,
-                                    isLoading: false,
-                                    error: null,
-                                    tenantSlug: 'preview',
-                                    refreshTenant: async () => { },
-                                    refreshMenu: async () => { }
-                                }}>
-                                    <MockOrderProvider>
-                                        <Menu isPreview={true} />
-                                    </MockOrderProvider>
-                                </TenantContext.Provider>
-                            )}
+                            <div className="transform-gpu origin-top-left" style={{ transform: 'scale(0.72)', width: '375px', height: '750px' }}>
+                                {previewTenant && (
+                                    <TenantContext.Provider value={{
+                                        tenant: previewTenant,
+                                        categories: PREVIEW_CATEGORIES,
+                                        menuItems: PREVIEW_ITEMS,
+                                        isLoading: false,
+                                        error: null,
+                                        tenantSlug: 'preview',
+                                        refreshTenant: async () => { },
+                                        refreshMenu: async () => { }
+                                    }}>
+                                        <MockOrderProvider>
+                                            <Menu isPreview={true} />
+                                        </MockOrderProvider>
+                                    </TenantContext.Provider>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -505,17 +507,18 @@ export const ThemeSettings = () => {
 
                 {/* Mobile Device Frame */}
                 <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
-                    <div className="w-[320px] h-[640px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10">
+                    <div className="w-[300px] h-[650px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10">
                         {/* Notch */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-xl z-30"></div>
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 rounded-b-xl z-30"></div>
 
                         {/* Screen Content - Scaled to fit phone frame */}
-                        <div className="w-full h-full overflow-hidden bg-white relative">
+                        <div className="w-full h-full overflow-hidden bg-white pt-6">
                             <div
-                                className="origin-top-left overflow-y-auto overflow-x-hidden scrollbar-hide pt-6"
+                                className="transform-gpu origin-top-left"
                                 style={{
-                                    width: '308px',
-                                    height: '640px',
+                                    transform: 'scale(0.77)',
+                                    width: '375px',
+                                    height: '812px',
                                 }}
                             >
                                 {previewTenant && (
