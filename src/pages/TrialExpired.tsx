@@ -2,10 +2,14 @@ import { Link } from 'react-router-dom';
 import { useTenant } from '@/context/TenantContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Check, Sparkles, MessageCircle } from 'lucide-react';
+import { Lock, Check, Sparkles, MessageCircle, RefreshCw } from 'lucide-react';
 
 const TrialExpired = () => {
   const { tenant } = useTenant();
+
+  // Determine if this was a subscription expiration or trial expiration
+  const wasSubscribed = tenant?.subscription_status === 'active' ||
+    (tenant?.subscription_started_at !== null && tenant?.subscription_started_at !== undefined);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center p-6">
@@ -18,19 +22,25 @@ const TrialExpired = () => {
       <Card className="relative z-10 max-w-2xl w-full bg-white/90 backdrop-blur-xl border-white/50 shadow-2xl">
         <CardHeader className="text-center pb-6">
           <div className="mx-auto w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-10 h-10 text-white" />
+            {wasSubscribed ? <RefreshCw className="w-10 h-10 text-white" /> : <Lock className="w-10 h-10 text-white" />}
           </div>
           <CardTitle className="text-3xl md:text-4xl font-bold text-slate-800 mb-3">
-            Tu período de prueba ha terminado
+            {wasSubscribed ? 'Tu suscripción ha expirado' : 'Tu período de prueba ha terminado'}
           </CardTitle>
           <p className="text-lg text-slate-600">
             {tenant?.name && (
               <>
-                Gracias por probar <span className="font-semibold">{tenant.name}</span> con optimaDELIVERY.
+                {wasSubscribed ? (
+                  <>Gracias por usar <span className="font-semibold">{tenant.name}</span> con optimaDELIVERY.</>
+                ) : (
+                  <>Gracias por probar <span className="font-semibold">{tenant.name}</span> con optimaDELIVERY.</>
+                )}
                 <br />
               </>
             )}
-            Para seguir vendiendo online, elegí un plan que se adapte a tu negocio.
+            {wasSubscribed
+              ? 'Renová tu plan para seguir recibiendo pedidos online.'
+              : 'Para seguir vendiendo online, elegí un plan que se adapte a tu negocio.'}
           </p>
         </CardHeader>
 
@@ -62,12 +72,15 @@ const TrialExpired = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link to="/checkout" className="flex-1">
               <Button className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg font-bold rounded-xl shadow-lg">
-                <Sparkles className="w-5 h-5 mr-2" />
-                Ver Planes y Precios
+                {wasSubscribed ? <RefreshCw className="w-5 h-5 mr-2" /> : <Sparkles className="w-5 h-5 mr-2" />}
+                {wasSubscribed ? 'Renovar Suscripción' : 'Ver Planes y Precios'}
               </Button>
             </Link>
             <a
-              href="https://wa.me/5491162095432?text=Hola%2C%20mi%20prueba%20gratis%20terminó%20y%20necesito%20ayuda%20para%20suscribirme"
+              href={wasSubscribed
+                ? "https://wa.me/5491162095432?text=Hola%2C%20mi%20suscripción%20expiró%20y%20necesito%20ayuda%20para%20renovarla"
+                : "https://wa.me/5491162095432?text=Hola%2C%20mi%20prueba%20gratis%20terminó%20y%20necesito%20ayuda%20para%20suscribirme"
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1"

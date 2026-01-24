@@ -46,12 +46,23 @@ const Checkout = () => {
 
         setIsLoading(true);
         try {
-            // Get auth token first
+            // Get fresh auth token - refreshSession ensures we have a valid token
             const { supabase } = await import('@/lib/supabase');
-            const { data: { session } } = await supabase.auth.getSession();
+
+            // First try to refresh the session to ensure token is valid
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+
+            // If refresh fails, try getting existing session
+            let session = refreshData?.session;
+            if (!session) {
+                const { data: { session: existingSession } } = await supabase.auth.getSession();
+                session = existingSession;
+            }
 
             if (!session?.access_token) {
-                throw new Error('No se pudo obtener la sesión de autenticación');
+                // Session expired, redirect to login
+                navigate('/login?redirect=/checkout');
+                throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
             }
 
             const response = await fetch(
@@ -60,6 +71,7 @@ const Checkout = () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
                         'Authorization': `Bearer ${session.access_token}`,
                     },
                     body: JSON.stringify({
@@ -81,7 +93,7 @@ const Checkout = () => {
             window.location.href = data.checkoutUrl;
 
         } catch (err) {
-            console.error('Payment error:', err);
+            if (import.meta.env.DEV) console.error('Payment error:', err);
             toast({
                 title: 'Error al procesar el pago',
                 description: err instanceof Error ? err.message : 'Intenta nuevamente',
