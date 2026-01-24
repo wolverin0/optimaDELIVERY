@@ -272,12 +272,16 @@ export const ThemeSettings = () => {
                         <Eye className="w-3 h-3" />
                         Vista Previa
                     </div>
-                    <div className="w-[280px] h-[560px] mx-auto bg-white rounded-[2rem] shadow-xl border-[5px] border-slate-900 relative overflow-hidden">
+                    <div className="w-[260px] h-[520px] mx-auto bg-white rounded-[2rem] shadow-xl border-[5px] border-slate-900 relative overflow-hidden">
                         {/* Mini Notch */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-900 rounded-b-xl z-30"></div>
-                        {/* Screen Content - Scaled to fit phone frame */}
-                        <div className="w-full h-full overflow-hidden bg-white pt-5">
-                            <div className="transform-gpu origin-top-left" style={{ transform: 'scale(0.72)', width: '375px', height: '750px' }}>
+                        {/* Screen Content - Clipping container */}
+                        <div className="absolute inset-0 top-5 overflow-hidden bg-white">
+                            {/* Scaled content: 375x812 * 0.67 = 251x544 */}
+                            <div
+                                className="transform-gpu origin-top-left"
+                                style={{ transform: 'scale(0.67)', width: '375px', height: '812px', overflow: 'hidden' }}
+                            >
                                 {previewTenant && (
                                     <TenantContext.Provider value={{
                                         tenant: previewTenant,
@@ -507,18 +511,20 @@ export const ThemeSettings = () => {
 
                 {/* Mobile Device Frame */}
                 <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
-                    <div className="w-[300px] h-[650px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10">
+                    <div className="w-[288px] h-[624px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10">
                         {/* Notch */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 rounded-b-xl z-30"></div>
 
-                        {/* Screen Content - Scaled to fit phone frame */}
-                        <div className="w-full h-full overflow-hidden bg-white pt-6">
+                        {/* Screen Content - Clipping container matches scaled dimensions */}
+                        <div className="absolute inset-0 top-6 overflow-hidden bg-white">
+                            {/* Scaled content wrapper - 375x812 scaled to 0.74 = 277x601 */}
                             <div
                                 className="transform-gpu origin-top-left"
                                 style={{
-                                    transform: 'scale(0.77)',
+                                    transform: 'scale(0.74)',
                                     width: '375px',
                                     height: '812px',
+                                    overflow: 'hidden',
                                 }}
                             >
                                 {previewTenant && (

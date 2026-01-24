@@ -504,12 +504,16 @@ const LandingPage = () => {
                             <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-3xl p-6 md:p-8 border border-orange-500/20">
                                 {/* Phone mockup with live Menu cycling themes */}
                                 <div className="relative mx-auto">
-                                    <div className="w-[260px] h-[563px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-800 overflow-hidden ring-4 ring-orange-500/20">
+                                    <div className="relative w-[248px] h-[536px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-800 overflow-hidden ring-4 ring-orange-500/20">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-800 rounded-b-xl z-30" />
-                                        {/* Screen Content - LIVE Menu synced with activeFeature, properly scaled */}
-                                        <div className="w-full h-full overflow-hidden bg-white pt-6">
-                                            <div className="transform-gpu origin-top-left" style={{ transform: 'scale(0.66)', width: '375px', height: '812px' }}>
+                                        {/* Screen Content - Clipping container */}
+                                        <div className="absolute inset-0 top-5 overflow-hidden bg-white">
+                                            {/* Scaled content: 375x812 * 0.63 = 236x512 */}
+                                            <div
+                                                className="transform-gpu origin-top-left"
+                                                style={{ transform: 'scale(0.63)', width: '375px', height: '812px', overflow: 'hidden' }}
+                                            >
                                                 <TenantContext.Provider value={{
                                                     tenant: {
                                                         ...BASE_TENANT,
