@@ -121,7 +121,7 @@ const Admin = () => {
         setFormData(prev => ({ ...prev, image: compressedImage }));
         toast({ title: 'Imagen cargada', description: 'La imagen se comprimió para optimizar almacenamiento' });
       } catch (error) {
-        console.error('Error compressing image:', error);
+        if (import.meta.env.DEV) console.error('Error compressing image:', error);
         // Fallback to original if compression fails
         const reader = new FileReader();
         reader.onloadend = () => {

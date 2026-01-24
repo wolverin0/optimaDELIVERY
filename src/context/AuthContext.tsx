@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { Session, User as SupabaseUser, AuthError } from '@supabase/supabase-js';
 import { supabase, User } from '@/lib/supabase';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, getSupabaseProjectRef } from '@/lib/config';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const STORAGE_KEY = 'sb-nzqnibcdgqjporarwlzx-auth-token';
+// Dynamic storage key based on Supabase project reference
+const PROJECT_REF = getSupabaseProjectRef();
+const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
 
 interface AuthContextType {
     session: Session | null;
@@ -53,7 +54,7 @@ async function fetchProfileRaw(userId: string, accessToken: string): Promise<Use
         const data = await res.json();
         return data.length > 0 ? data[0] : null;
     } catch (err) {
-        console.error('Error fetching profile:', err);
+        if (import.meta.env.DEV) console.error('Error fetching profile:', err);
         return null;
     }
 }
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         });
                     }
                 } catch (err) {
-                    console.warn('Could not set supabase session:', err);
+                    if (import.meta.env.DEV) console.warn('Could not set supabase session:', err);
                 }
 
                 // Create minimal session and user objects

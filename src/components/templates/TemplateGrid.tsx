@@ -1,4 +1,5 @@
 import { TemplateProps } from './types';
+import { MenuItem } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, Flame, Clock, Sparkles } from 'lucide-react';
 import { CartDrawer } from '@/components/CartDrawer';
@@ -21,7 +22,7 @@ export const TemplateGrid = ({ tenant, menuItems, categories, isPreview }: Templ
         ? availableItems.filter(item => item.category_id === activeCategory)
         : availableItems;
 
-    const handleAddToCart = (item: any) => {
+    const handleAddToCart = (item: MenuItem) => {
         addToCart(item);
         toast.success(`${item.name} agregado`, {
             position: 'bottom-center',

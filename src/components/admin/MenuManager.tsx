@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit, Save, Image, Camera, PackageX, Package, Loader2, Fo
 import { useTenant } from '@/context/TenantContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { supabaseFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,24 +31,6 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Raw fetch helper
-async function supabaseFetch(path: string, token: string, options: RequestInit = {}) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'apikey': SUPABASE_ANON_KEY,
-            'Prefer': options.method === 'POST' ? 'return=representation' : 'return=minimal',
-            ...options.headers,
-        },
-    });
-    return res;
-}
 
 export const MenuManager = () => {
     const { tenant, menuItems = [], categories = [], isLoading, refreshMenu } = useTenant();
@@ -144,7 +127,7 @@ export const MenuManager = () => {
             setProductFormData(prev => ({ ...prev, image_url: urlData.publicUrl }));
             toast({ title: 'Imagen subida' });
         } catch (error) {
-            console.error('Error uploading image:', error);
+            if (import.meta.env.DEV) console.error('Error uploading image:', error);
             toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' });
         } finally {
             setIsUploadingImage(false);
@@ -191,7 +174,7 @@ export const MenuManager = () => {
             setShowProductForm(false);
             resetProductForm();
         } catch (error) {
-            console.error('Error saving item:', error);
+            if (import.meta.env.DEV) console.error('Error saving item:', error);
             toast({ title: 'Error', description: 'No se pudo guardar el producto', variant: 'destructive' });
         } finally {
             setIsSaving(false);
@@ -205,7 +188,7 @@ export const MenuManager = () => {
             toast({ title: 'Producto eliminado' });
             await refreshMenu();
         } catch (error) {
-            console.error('Error deleting item:', error);
+            if (import.meta.env.DEV) console.error('Error deleting item:', error);
             toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'destructive' });
         }
     };
@@ -220,7 +203,7 @@ export const MenuManager = () => {
             toast({ title: item.is_available ? 'Producto agotado' : 'Producto disponible' });
             await refreshMenu();
         } catch (error) {
-            console.error('Error toggling availability:', error);
+            if (import.meta.env.DEV) console.error('Error toggling availability:', error);
             toast({ title: 'Error', variant: 'destructive' });
         }
     };
@@ -285,7 +268,7 @@ export const MenuManager = () => {
             setShowCategoryForm(false);
             resetCategoryForm();
         } catch (error) {
-            console.error('Error saving category:', error);
+            if (import.meta.env.DEV) console.error('Error saving category:', error);
             toast({ title: 'Error', description: 'No se pudo guardar', variant: 'destructive' });
         } finally {
             setIsSavingCategory(false);
@@ -310,7 +293,7 @@ export const MenuManager = () => {
             toast({ title: 'Categoría eliminada' });
             await refreshMenu();
         } catch (error) {
-            console.error('Error deleting category:', error);
+            if (import.meta.env.DEV) console.error('Error deleting category:', error);
             toast({ title: 'Error', variant: 'destructive' });
         }
     };

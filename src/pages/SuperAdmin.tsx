@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -103,12 +104,6 @@ interface DashboardMetrics {
     totalUsers: number;
 }
 
-// Super admin emails from environment variable (comma-separated)
-const SUPER_ADMIN_EMAILS = (import.meta.env.VITE_SUPER_ADMIN_EMAILS || '')
-    .split(',')
-    .map((email: string) => email.trim())
-    .filter((email: string) => email.length > 0);
-
 const SuperAdmin = () => {
     const navigate = useNavigate();
     const { user, signOut, isLoading: authLoading } = useAuth();
@@ -136,12 +131,46 @@ const SuperAdmin = () => {
     const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
     const [sortField, setSortField] = useState<SortField>('revenue');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+    const [isSuperAdmin, setIsSuperAdmin] = useState<boolean | null>(null);
+    const [superAdminCheckComplete, setSuperAdminCheckComplete] = useState(false);
 
-    // Check if user is super admin
-    const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
+    // Server-side super admin verification
+    useEffect(() => {
+        const checkSuperAdmin = async () => {
+            if (!user) {
+                setIsSuperAdmin(false);
+                setSuperAdminCheckComplete(true);
+                return;
+            }
+
+            try {
+                // Call server-side function to verify super admin status
+                const { data, error } = await supabase.rpc('is_super_admin');
+
+                if (error) {
+                    if (import.meta.env.DEV) console.error('Error checking super admin status:', error);
+                    setIsSuperAdmin(false);
+                } else {
+                    setIsSuperAdmin(data === true);
+                }
+            } catch (err) {
+                if (import.meta.env.DEV) console.error('Failed to verify super admin:', err);
+                setIsSuperAdmin(false);
+            } finally {
+                setSuperAdminCheckComplete(true);
+            }
+        };
+
+        if (!authLoading && user) {
+            checkSuperAdmin();
+        } else if (!authLoading && !user) {
+            setIsSuperAdmin(false);
+            setSuperAdminCheckComplete(true);
+        }
+    }, [user, authLoading]);
 
     useEffect(() => {
-        if (authLoading) return;
+        if (authLoading || !superAdminCheckComplete) return;
 
         if (!user || !isSuperAdmin) {
             navigate('/login');
@@ -149,7 +178,7 @@ const SuperAdmin = () => {
         }
 
         fetchData();
-    }, [user, authLoading, isSuperAdmin, navigate]);
+    }, [user, authLoading, isSuperAdmin, superAdminCheckComplete, navigate]);
 
     const fetchData = async () => {
         try {
@@ -196,9 +225,17 @@ const SuperAdmin = () => {
             }
 
             if (usersRes.ok) {
-                const tenantUsersData = await usersRes.json();
+                interface TenantUserRow {
+                    id: string;
+                    user_id: string;
+                    tenant_id: string;
+                    role: string | null;
+                    created_at: string;
+                    tenants?: { name: string } | null;
+                }
+                const tenantUsersData: TenantUserRow[] = await usersRes.json();
                 // Map tenant_users to UserData format
-                usersData = tenantUsersData.map((tu: any) => ({
+                usersData = tenantUsersData.map((tu) => ({
                     id: tu.user_id,
                     email: '', // Will need separate auth.users query for emails
                     created_at: tu.created_at,
@@ -233,7 +270,7 @@ const SuperAdmin = () => {
                 totalUsers: usersData.length,
             });
         } catch (err) {
-            console.error('Error fetching data:', err);
+            if (import.meta.env.DEV) console.error('Error fetching data:', err);
         } finally {
             setIsLoading(false);
         }
@@ -267,7 +304,7 @@ const SuperAdmin = () => {
                 }));
             }
         } catch (err) {
-            console.error('Error updating design request:', err);
+            if (import.meta.env.DEV) console.error('Error updating design request:', err);
         }
     };
 
@@ -306,7 +343,7 @@ const SuperAdmin = () => {
                 }));
             }
         } catch (err) {
-            console.error('Error toggling tenant status:', err);
+            if (import.meta.env.DEV) console.error('Error toggling tenant status:', err);
         }
     };
 
@@ -341,7 +378,7 @@ const SuperAdmin = () => {
                 }
             }
         } catch (err) {
-            console.error('Error extending trial:', err);
+            if (import.meta.env.DEV) console.error('Error extending trial:', err);
         }
     };
 
@@ -353,7 +390,14 @@ const SuperAdmin = () => {
             const now = new Date();
             const subscriptionEnds = days > 0 ? new Date(now.getTime() + days * 24 * 60 * 60 * 1000) : null;
 
-            const updateData: any = {
+            interface SubscriptionUpdate {
+                subscription_status: string;
+                plan_type: string | null;
+                subscription_started_at?: string;
+                subscription_ends_at?: string | null;
+            }
+
+            const updateData: SubscriptionUpdate = {
                 subscription_status: status,
                 plan_type: planType
             };
@@ -390,7 +434,7 @@ const SuperAdmin = () => {
                 }
             }
         } catch (err) {
-            console.error('Error updating subscription:', err);
+            if (import.meta.env.DEV) console.error('Error updating subscription:', err);
         }
     };
 
@@ -535,7 +579,7 @@ const SuperAdmin = () => {
     // Sort tenant analytics
     const sortedTenantAnalytics = useMemo(() => {
         const sorted = [...tenantAnalytics].sort((a, b) => {
-            let aVal: any, bVal: any;
+            let aVal: string | number, bVal: string | number;
             switch (sortField) {
                 case 'name':
                     aVal = a.name.toLowerCase();
@@ -589,7 +633,7 @@ const SuperAdmin = () => {
         t.slug.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    if (authLoading || isLoading) {
+    if (authLoading || !superAdminCheckComplete || isLoading) {
         return (
             <div className="h-screen w-full flex items-center justify-center bg-slate-900">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
@@ -1550,7 +1594,7 @@ const SuperAdmin = () => {
     );
 };
 
-const MetricCard = ({ icon, label, value, subtext, color }: { icon: any, label: string, value: string | number, subtext?: string, color: string }) => {
+const MetricCard = ({ icon, label, value, subtext, color }: { icon: React.ReactNode, label: string, value: string | number, subtext?: string, color: string }) => {
     const colorClasses: Record<string, string> = {
         blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
         green: 'bg-green-500/10 text-green-400 border-green-500/20',

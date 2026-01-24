@@ -46,7 +46,7 @@ export async function supabaseQuery<T>(
     } catch (err: any) {
         // If it's still an AbortError after retries, return as a handled error
         if (err?.name === 'AbortError' || err?.message?.includes('AbortError')) {
-            console.warn('Supabase query aborted after retries');
+            if (import.meta.env.DEV) console.warn('Supabase query aborted after retries');
             return { data: null, error: null };
         }
         throw err;

@@ -2,9 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { Tenant, Category, MenuItem as DBMenuItem } from '@/lib/supabase';
 import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { fetchFromSupabase } from '@/lib/api';
 
 interface TenantContextType {
     tenant: Tenant | null;
@@ -18,21 +16,6 @@ interface TenantContextType {
 }
 
 export const TenantContext = createContext<TenantContextType | undefined>(undefined);
-
-// Raw fetch helper (no supabase-js client)
-async function fetchFromSupabase<T>(path: string, token?: string): Promise<T[]> {
-    const headers: Record<string, string> = {
-        'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-    };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers });
-    if (!res.ok) return [];
-    return res.json();
-}
 
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
     const [tenant, setTenant] = useState<Tenant | null>(null);
@@ -57,7 +40,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             );
             return data.length > 0 ? data[0] : null;
         } catch (err) {
-            console.error('Error fetching tenant:', err);
+            if (import.meta.env.DEV) console.error('Error fetching tenant:', err);
             return null;
         }
     }, [token]);
@@ -70,7 +53,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
             );
             return data.length > 0 ? data[0] : null;
         } catch (err) {
-            console.error('Error fetching tenant:', err);
+            if (import.meta.env.DEV) console.error('Error fetching tenant:', err);
             return null;
         }
     }, [token]);
@@ -82,7 +65,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
                 token
             );
         } catch (err) {
-            console.error('Error fetching categories:', err);
+            if (import.meta.env.DEV) console.error('Error fetching categories:', err);
             return [];
         }
     }, [token]);
@@ -94,7 +77,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
                 token
             );
         } catch (err) {
-            console.error('Error fetching menu items:', err);
+            if (import.meta.env.DEV) console.error('Error fetching menu items:', err);
             return [];
         }
     }, [token]);
@@ -153,10 +136,10 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
                 } else if (tenantSlug) {
                     setError('Negocio no encontrado');
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (isMounted) {
                     setError('Error cargando datos');
-                    console.error(err);
+                    if (import.meta.env.DEV) console.error(err);
                 }
             } finally {
                 if (isMounted) {

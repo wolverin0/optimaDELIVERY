@@ -60,8 +60,62 @@ const Dashboard = () => {
     const { orders } = useOrders();
     const [searchParams, setSearchParams] = useSearchParams();
     const { toast } = useToast();
+    const [isConnectingMP, setIsConnectingMP] = useState(false);
 
     const userRole = profile?.role as UserRole | undefined;
+
+    // SECURITY: Create OAuth state token before redirecting to MercadoPago
+    const handleConnectMercadoPago = async () => {
+        if (!tenant?.id) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'No se pudo obtener la informacion del negocio.',
+            });
+            return;
+        }
+
+        setIsConnectingMP(true);
+        try {
+            // Create OAuth state token server-side for CSRF protection
+            const { data: stateToken, error: stateError } = await supabase.rpc('create_oauth_state', {
+                p_tenant_id: tenant.id,
+                p_provider: 'mercadopago',
+            });
+
+            if (stateError) {
+                if (import.meta.env.DEV) console.error('Error creating OAuth state:', stateError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'No se pudo iniciar la conexion con MercadoPago. Intenta de nuevo.',
+                });
+                return;
+            }
+
+            if (!stateToken) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'No se pudo generar el token de seguridad.',
+                });
+                return;
+            }
+
+            // Redirect to MercadoPago OAuth with secure state token
+            const mpAuthUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${encodeURIComponent(MP_REDIRECT_URI)}&state=${stateToken}`;
+            window.location.href = mpAuthUrl;
+        } catch (err) {
+            if (import.meta.env.DEV) console.error('Error connecting to MercadoPago:', err);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Ocurrio un error al conectar con MercadoPago.',
+            });
+        } finally {
+            setIsConnectingMP(false);
+        }
+    };
 
     // Calculate stats from orders
     const dashboardStats = useMemo(() => {
@@ -254,7 +308,6 @@ const Dashboard = () => {
     }
 
     const isMpConnected = !!tenant.mercadopago_access_token;
-    const mpAuthUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${encodeURIComponent(MP_REDIRECT_URI)}&state=${tenant.id}`;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex flex-col">
@@ -574,8 +627,19 @@ const Dashboard = () => {
                                                                 Conectado
                                                             </Badge>
                                                         ) : (
-                                                            <Button asChild className="bg-[#009EE3] hover:bg-[#008ED0] text-white rounded-xl">
-                                                                <a href={mpAuthUrl}>Conectar Cuenta</a>
+                                                            <Button
+                                                                onClick={handleConnectMercadoPago}
+                                                                disabled={isConnectingMP}
+                                                                className="bg-[#009EE3] hover:bg-[#008ED0] text-white rounded-xl"
+                                                            >
+                                                                {isConnectingMP ? (
+                                                                    <>
+                                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                        Conectando...
+                                                                    </>
+                                                                ) : (
+                                                                    'Conectar Cuenta'
+                                                                )}
                                                             </Button>
                                                         )}
                                                     </div>
@@ -711,7 +775,7 @@ const Dashboard = () => {
     );
 };
 
-const NavItem = ({ icon, label, isActive, onClick }: { icon: any, label: string, isActive: boolean, onClick: () => void }) => (
+const NavItem = ({ icon, label, isActive, onClick }: { icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }) => (
     <button
         onClick={onClick}
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${isActive

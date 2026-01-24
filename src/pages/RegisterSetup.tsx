@@ -110,7 +110,7 @@ const RegisterSetup = () => {
             );
 
             if (!response.ok) {
-                console.error('Slug check failed:', response.status);
+                if (import.meta.env.DEV) console.error('Slug check failed:', response.status);
                 setSlugStatus('idle');
                 return;
             }
@@ -121,7 +121,7 @@ const RegisterSetup = () => {
                 setSlugStatus(data.length > 0 ? 'taken' : 'available');
             }
         } catch (error) {
-            console.error('Error checking slug availability:', error);
+            if (import.meta.env.DEV) console.error('Error checking slug availability:', error);
             if (isMounted.current) {
                 setSlugStatus('idle');
             }
@@ -218,7 +218,7 @@ const RegisterSetup = () => {
             });
 
             if (error) {
-                console.error('RPC Error:', error);
+                if (import.meta.env.DEV) console.error('RPC Error:', error);
                 throw new Error(error.message || 'Error al crear el negocio');
             }
 
@@ -265,16 +265,18 @@ const RegisterSetup = () => {
             // Hard redirect immediately
             window.location.href = '/dashboard';
 
-        } catch (error: any) {
-            console.error('Error creating business:', error);
+        } catch (error: unknown) {
+            if (import.meta.env.DEV) console.error('Error creating business:', error);
             // Ignore AbortError if it happens at the very end
-            if (error?.name === 'AbortError' || error?.message?.includes('AbortError')) {
+            const errorObj = error as { name?: string; message?: string };
+            if (errorObj?.name === 'AbortError' || errorObj?.message?.includes('AbortError')) {
                 return;
             }
 
+            const message = error instanceof Error ? error.message : 'Hubo un error al crear tu negocio';
             toast({
                 title: 'Error',
-                description: error.message || 'Hubo un error al crear tu negocio',
+                description: message,
                 variant: 'destructive',
             });
         } finally {

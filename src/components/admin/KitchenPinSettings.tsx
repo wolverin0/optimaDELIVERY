@@ -67,7 +67,7 @@ export const KitchenPinSettings = () => {
             // Refresh tenant to get updated data
             if (refreshTenant) refreshTenant();
         } catch (error) {
-            console.error('Error saving PIN:', error);
+            if (import.meta.env.DEV) console.error('Error saving PIN:', error);
             toast({ title: 'Error', description: 'No se pudo guardar el PIN.', variant: 'destructive' });
         } finally {
             setIsSaving(false);
@@ -99,7 +99,7 @@ export const KitchenPinSettings = () => {
 
             if (refreshTenant) refreshTenant();
         } catch (error) {
-            console.error('Error removing PIN:', error);
+            if (import.meta.env.DEV) console.error('Error removing PIN:', error);
             toast({ title: 'Error', variant: 'destructive' });
         } finally {
             setIsSaving(false);

@@ -1,4 +1,5 @@
 import { TemplateProps } from './types';
+import { MenuItem } from '@/lib/supabase';
 import { CartDrawer } from '@/components/CartDrawer';
 import { SocialLinksBar } from '@/components/SocialLinksBar';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { toast } from 'sonner';
 export const TemplateVisual = ({ tenant, menuItems }: TemplateProps) => {
     const { addToCart } = useOrders();
 
-    const handleAddToCart = (item: any) => {
+    const handleAddToCart = (item: MenuItem) => {
         addToCart(item);
         toast.success(`${item.name} agregado`, {
             position: 'bottom-center',

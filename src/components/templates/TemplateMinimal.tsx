@@ -1,4 +1,5 @@
 import { TemplateProps } from './types';
+import { MenuItem } from '@/lib/supabase';
 import { CartDrawer } from '@/components/CartDrawer';
 import { SocialLinksBar } from '@/components/SocialLinksBar';
 import { Plus, Scale, Minus, Utensils } from 'lucide-react';
@@ -12,10 +13,10 @@ import { Input } from '@/components/ui/input';
 export const TemplateMinimal = ({ tenant, menuItems }: TemplateProps) => {
     const { addToCart } = useOrders();
     const { toast } = useToast();
-    const [weightDialog, setWeightDialog] = useState<{ open: boolean; item: any }>({ open: false, item: null });
+    const [weightDialog, setWeightDialog] = useState<{ open: boolean; item: MenuItem | null }>({ open: false, item: null });
     const [weight, setWeight] = useState('1');
 
-    const handleAddItem = (item: any) => {
+    const handleAddItem = (item: MenuItem) => {
         if (!item.is_available) return;
         if (item.sold_by_weight) {
             setWeightDialog({ open: true, item });

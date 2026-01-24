@@ -82,7 +82,7 @@ export const TeamManager = () => {
                 setTeamMembers(data);
             }
         } catch (err) {
-            console.error('Error fetching team:', err);
+            if (import.meta.env.DEV) console.error('Error fetching team:', err);
         }
     };
 
@@ -138,7 +138,7 @@ export const TeamManager = () => {
             await fetchInvitations();
             setInviteFormData({ email: '', role: 'staff' });
         } catch (error) {
-            console.error('Error inviting:', error);
+            if (import.meta.env.DEV) console.error('Error inviting:', error);
             toast({ title: 'Error', description: 'No se pudo crear la invitación', variant: 'destructive' });
         } finally {
             setIsInviting(false);
@@ -174,7 +174,7 @@ export const TeamManager = () => {
             toast({ title: 'Miembro eliminado' });
             await fetchTeamMembers();
         } catch (error) {
-            console.error('Error removing:', error);
+            if (import.meta.env.DEV) console.error('Error removing:', error);
             toast({ title: 'Error', variant: 'destructive' });
         }
     };
@@ -208,7 +208,7 @@ export const TeamManager = () => {
             toast({ title: 'Rol actualizado' });
             await fetchTeamMembers();
         } catch (error) {
-            console.error('Error updating role:', error);
+            if (import.meta.env.DEV) console.error('Error updating role:', error);
             toast({ title: 'Error', variant: 'destructive' });
         }
     };

@@ -22,7 +22,6 @@ const AuthCallback = () => {
                 const refreshToken = hashParams.get('refresh_token');
 
                 if (!accessToken) {
-                    console.error('No access token in URL');
                     navigate('/login?error=no_token', { replace: true });
                     return;
                 }
@@ -33,9 +32,6 @@ const AuthCallback = () => {
                 // Decode JWT to get user ID (basic decode, no verification needed for client-side use)
                 const payload = JSON.parse(atob(accessToken.split('.')[1]));
                 const userId = payload.sub;
-
-                console.error('DEBUG AuthCallback: userId =', userId);
-                console.error('DEBUG AuthCallback: email =', payload.email);
 
                 // Store session in localStorage for supabase client
                 const session = {
@@ -48,7 +44,6 @@ const AuthCallback = () => {
 
                 // Check if user has a profile/tenant using raw fetch
                 const profileUrl = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?id=eq.${userId}&select=tenant_id`;
-                console.error('DEBUG AuthCallback: fetching', profileUrl);
 
                 const res = await fetch(profileUrl, {
                     headers: {
@@ -57,15 +52,11 @@ const AuthCallback = () => {
                     }
                 });
 
-                console.error('DEBUG AuthCallback: response status =', res.status);
                 const data = res.ok ? await res.json() : [];
-                console.error('DEBUG AuthCallback: data =', JSON.stringify(data));
 
                 const profile = data.length > 0 ? data[0] : null;
-                console.error('DEBUG AuthCallback: profile =', profile, 'tenant_id =', profile?.tenant_id);
 
                 if (profile?.tenant_id) {
-                    console.error('DEBUG: User has tenant, redirecting to dashboard');
                     // Clear any pending invitation token since user already has a tenant
                     localStorage.removeItem('pending_invitation_token');
                     window.location.href = '/dashboard';
@@ -73,16 +64,16 @@ const AuthCallback = () => {
                     // Check if user was accepting an invitation
                     const pendingInvitationToken = localStorage.getItem('pending_invitation_token');
                     if (pendingInvitationToken) {
-                        console.error('DEBUG: Found pending invitation, redirecting to join page');
                         localStorage.removeItem('pending_invitation_token');
                         window.location.href = `/join/${pendingInvitationToken}`;
                     } else {
-                        console.error('DEBUG: No tenant, redirecting to setup');
                         window.location.href = '/register/setup';
                     }
                 }
             } catch (err) {
-                console.error('Auth callback error:', err);
+                if (import.meta.env.DEV) {
+                    console.error('Auth callback error:', err);
+                }
                 navigate('/login?error=auth_failed', { replace: true });
             }
         };
@@ -93,7 +84,6 @@ const AuthCallback = () => {
         // Safety timeout
         const timeout = setTimeout(() => {
             if (!hasProcessed.current) {
-                console.warn('Auth callback timeout, forcing redirect');
                 navigate('/login?error=timeout', { replace: true });
             }
         }, 5000);

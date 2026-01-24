@@ -1,4 +1,5 @@
 import { useOrders } from '@/context/OrderContext';
+import { Order, CartItem, OrderStatus } from '@/types/order';
 import { ChefHat, Clock, CheckCircle, Timer, AlertTriangle, Bell, Scale, Store, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ export const KDSManager = () => {
     );
 };
 
-const KDSCard = ({ order, onUpdateStatus }: { order: any, onUpdateStatus: any }) => {
+const KDSCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (orderId: string, status: OrderStatus) => Promise<void> }) => {
     const [elapsed, setElapsed] = useState(0);
 
     useEffect(() => {
@@ -94,7 +95,7 @@ const KDSCard = ({ order, onUpdateStatus }: { order: any, onUpdateStatus: any })
 
             <CardContent className="p-4 flex-1 flex flex-col gap-4">
                 <div className="space-y-3">
-                    {order.items.map((item: any, idx: number) => (
+                    {order.items.map((item: CartItem, idx: number) => (
                         <div key={idx} className="flex items-start gap-4">
                             <div className="bg-slate-900 text-white w-10 h-10 rounded-xl flex items-center justify-center text-xl font-black shrink-0">
                                 {item.quantity}

@@ -73,9 +73,26 @@ interface MockOrder {
     time: string;
 }
 
+// Cart item for demo purposes
+interface DemoCartItem extends MenuItem {
+    quantity: number;
+    weight?: number;
+}
+
+// Customer data for demo
+interface DemoCustomerData {
+    name?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    notes?: string;
+    deliveryType?: 'pickup' | 'delivery';
+    paymentMethod?: 'cash' | 'mercadopago';
+}
+
 // --- MOCK ORDER PROVIDER ---
 const MockOrderProvider = ({ children, onNewOrder }: { children: ReactNode, onNewOrder: (order: MockOrder) => void }) => {
-    const [cart, setCart] = useState<any[]>([]);
+    const [cart, setCart] = useState<DemoCartItem[]>([]);
 
     const addToCart = (item: MenuItem, weight?: number) => {
         setCart(prev => {
@@ -106,7 +123,7 @@ const MockOrderProvider = ({ children, onNewOrder }: { children: ReactNode, onNe
 
     const clearCart = () => setCart([]);
 
-    const submitOrder = async (customer: any) => {
+    const submitOrder = async (customer: DemoCustomerData) => {
         const orderId = Math.floor(Math.random() * 9000 + 1000).toString();
         const newOrder: MockOrder = {
             id: orderId,

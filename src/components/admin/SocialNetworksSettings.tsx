@@ -128,7 +128,7 @@ export const SocialNetworksSettings = () => {
             await refreshTenant();
             toast({ title: 'Redes sociales guardadas', description: 'Tus clientes ahora pueden encontrarte en redes.' });
         } catch (error) {
-            console.error('Error saving social networks:', error);
+            if (import.meta.env.DEV) console.error('Error saving social networks:', error);
             toast({ title: 'Error', description: 'No se pudieron guardar las redes sociales.', variant: 'destructive' });
         } finally {
             setIsLoading(false);

@@ -150,7 +150,7 @@ export const KitchenPinProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newSession));
             return true;
         } catch (err) {
-            console.error('PIN validation error:', err);
+            if (import.meta.env.DEV) console.error('PIN validation error:', err);
             setError('Error al validar PIN');
             return false;
         } finally {

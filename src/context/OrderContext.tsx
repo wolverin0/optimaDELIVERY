@@ -1,11 +1,22 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
+import { z } from 'zod';
 import { useTenant } from './TenantContext';
 import { useAuth } from './AuthContext';
 import { Order, CartItem, CustomerData, OrderStatus } from '@/types/order';
 import { supabase } from '@/lib/supabase';
+import { supabaseFetch } from '@/lib/api';
+import { SUPABASE_URL } from '@/lib/config';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Customer data validation schema
+const CustomerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
+  phone: z.string().min(6, 'Phone must be at least 6 characters').max(20, 'Phone must be less than 20 characters'),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  deliveryType: z.enum(['pickup', 'delivery']),
+  address: z.string().max(500, 'Address must be less than 500 characters').optional().or(z.literal('')),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional().or(z.literal('')),
+  paymentMethod: z.enum(['cash', 'mercadopago']),
+});
 
 interface SubmitOrderResult {
   success: boolean;
@@ -16,11 +27,54 @@ interface SubmitOrderResult {
   error?: string;
 }
 
+// Database order item shape from Supabase
+interface DbOrderItem {
+  id: string;
+  menu_item_id: string | null;
+  name: string;
+  description?: string;
+  price: number;
+  quantity: number;
+  weight?: number | null;
+  weight_unit?: string | null;
+}
+
+// Database order shape from Supabase
+interface DbOrder {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  delivery_address: string | null;
+  notes: string | null;
+  delivery_type: 'pickup' | 'delivery';
+  payment_method: 'cash' | 'mercadopago' | null;
+  payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded';
+  order_items: DbOrderItem[];
+  total: number;
+  status: string;
+  created_at: string;
+  status_changed_at: string | null;
+  snoozed_until: string | null;
+  mercadopago_preference_id: string | null;
+  mercadopago_payment_id: string | null;
+}
+
+// Menu item shape for cart operations (from MenuItem database type)
+interface AddToCartItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  image_url?: string | null;
+  sold_by_weight?: boolean;
+  weight_unit?: string;
+}
+
 interface OrderContextType {
   cart: CartItem[];
   orders: Order[];
   isLoadingOrders: boolean;
-  addToCart: (item: any, weight?: number) => void;
+  addToCart: (item: AddToCartItem, weight?: number) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   updateWeight: (itemId: string, weight: number) => void;
@@ -34,22 +88,6 @@ interface OrderContextType {
 }
 
 export const OrderContext = createContext<OrderContextType | undefined>(undefined);
-
-// Raw fetch helper
-async function supabaseFetch(path: string, token: string | null, options: RequestInit = {}) {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'apikey': SUPABASE_ANON_KEY as string,
-    ...(options.headers as Record<string, string>),
-  };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    ...options,
-    headers,
-  });
-  return res;
-}
 
 // Helper to get cart storage key per tenant
 const getCartStorageKey = (tenantId: string | undefined) =>
@@ -103,7 +141,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [cart, tenant?.id]);
 
-  const mapDbOrderToOrder = (dbOrder: any): Order => {
+  const mapDbOrderToOrder = (dbOrder: DbOrder): Order => {
     return {
       id: dbOrder.id,
       customer: {
@@ -114,7 +152,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         deliveryType: dbOrder.delivery_type,
         paymentMethod: dbOrder.payment_method || 'cash',
       },
-      items: (dbOrder.order_items || []).map((item: any) => ({
+      items: (dbOrder.order_items || []).map((item: DbOrderItem) => ({
         id: item.menu_item_id || item.id,
         name: item.name,
         description: item.description || '',
@@ -153,7 +191,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         setOrders(data.map(mapDbOrderToOrder));
       }
     } catch (err) {
-      console.error('Error fetching orders:', err);
+      if (import.meta.env.DEV) console.error('Error fetching orders:', err);
     } finally {
       setIsLoadingOrders(false);
     }
@@ -192,7 +230,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [tenant?.id, refreshOrders]);
 
-  const addToCart = useCallback((item: any, weight?: number) => {
+  const addToCart = useCallback((item: AddToCartItem, weight?: number) => {
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
@@ -258,9 +296,17 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       return { success: false, error: 'No tenant selected' };
     }
 
+    // Validate customer data
+    const validationResult = CustomerSchema.safeParse(customer);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(e => e.message).join(', ');
+      return { success: false, error: `Validation error: ${errors}` };
+    }
+    const validatedCustomer = validationResult.data;
+
     try {
       const subtotal = cartTotal;
-      const deliveryFee = customer.deliveryType === 'delivery' ? 0 : 0;
+      const deliveryFee = validatedCustomer.deliveryType === 'delivery' ? 0 : 0;
       const total = subtotal + deliveryFee;
 
       // 1. Create Order
@@ -269,15 +315,15 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         headers: { 'Prefer': 'return=representation' },
         body: JSON.stringify({
           tenant_id: tenant.id,
-          customer_name: customer.name,
-          customer_phone: customer.phone,
-          customer_email: customer.email || null,
-          delivery_type: customer.deliveryType,
-          delivery_address: customer.deliveryType === 'delivery' ? customer.address : 'Retiro en sucursal',
-          notes: customer.notes || null,
+          customer_name: validatedCustomer.name,
+          customer_phone: validatedCustomer.phone,
+          customer_email: validatedCustomer.email || null,
+          delivery_type: validatedCustomer.deliveryType,
+          delivery_address: validatedCustomer.deliveryType === 'delivery' ? validatedCustomer.address : 'Retiro en sucursal',
+          notes: validatedCustomer.notes || null,
           status: 'pending',
-          payment_method: customer.paymentMethod,
-          payment_status: customer.paymentMethod === 'cash' ? 'pending' : 'processing',
+          payment_method: validatedCustomer.paymentMethod,
+          payment_status: validatedCustomer.paymentMethod === 'cash' ? 'pending' : 'processing',
           subtotal,
           delivery_fee: deliveryFee,
           discount: 0,
@@ -312,7 +358,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       let paymentUrl: string | undefined;
       let isDemo = false;
 
-      if (customer.paymentMethod === 'mercadopago') {
+      if (validatedCustomer.paymentMethod === 'mercadopago') {
         try {
           const paymentRes = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
             method: 'POST',
@@ -327,7 +373,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
                   ? Number(item.price) * item.weight
                   : Number(item.price),
               })),
-              payer: { name: customer.name, phone: customer.phone, email: customer.email },
+              payer: { name: validatedCustomer.name, phone: validatedCustomer.phone, email: validatedCustomer.email },
               externalReference: orderData.id,
               backUrls: {
                 success: `${window.location.origin}/order/${orderData.id}?status=success`,
@@ -342,7 +388,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
             isDemo = paymentData.demo || false;
           }
         } catch (pErr) {
-          console.error('Payment error:', pErr);
+          if (import.meta.env.DEV) console.error('Payment error:', pErr);
         }
       }
 
@@ -357,7 +403,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         isDemo,
       };
     } catch (err) {
-      console.error('Error submitting order:', err);
+      if (import.meta.env.DEV) console.error('Error submitting order:', err);
       return { success: false, error: 'Error al enviar el pedido' };
     }
   }, [tenant?.id, cart, cartTotal, clearCart, token, refreshOrders]);
@@ -375,7 +421,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       if (!res.ok) throw new Error('Failed to update status');
       refreshOrders();
     } catch (err) {
-      console.error('Error updating order status:', err);
+      if (import.meta.env.DEV) console.error('Error updating order status:', err);
     }
   }, [token, refreshOrders]);
 
@@ -393,7 +439,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       if (!res.ok) throw new Error('Failed to snooze');
       refreshOrders();
     } catch (err) {
-      console.error('Error snoozing order:', err);
+      if (import.meta.env.DEV) console.error('Error snoozing order:', err);
     }
   }, [token, refreshOrders]);
 

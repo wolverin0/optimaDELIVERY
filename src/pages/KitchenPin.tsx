@@ -93,13 +93,42 @@ const PinEntry = ({ slug }: { slug: string }) => {
     );
 };
 
+// Database order item shape from Supabase
+interface DbOrderItem {
+    id: string;
+    menu_item_id: string | null;
+    name: string;
+    description?: string;
+    price: number;
+    quantity: number;
+    weight?: number | null;
+    weight_unit?: string | null;
+}
+
+// Database order shape from Supabase
+interface DbOrder {
+    id: string;
+    customer_name: string;
+    customer_phone: string;
+    delivery_address: string | null;
+    notes: string | null;
+    delivery_type: 'pickup' | 'delivery';
+    payment_method: 'cash' | 'mercadopago' | null;
+    order_items: DbOrderItem[];
+    total: number;
+    status: string;
+    created_at: string;
+    status_changed_at: string | null;
+    snoozed_until: string | null;
+}
+
 // Kitchen Display Component (for PIN-authenticated users)
 const KitchenDisplay = () => {
     const { session, logout } = useKitchenPin();
     const [orders, setOrders] = useState<Order[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const mapDbOrderToOrder = (dbOrder: any): Order => ({
+    const mapDbOrderToOrder = (dbOrder: DbOrder): Order => ({
         id: dbOrder.id,
         customer: {
             name: dbOrder.customer_name,
@@ -109,7 +138,7 @@ const KitchenDisplay = () => {
             deliveryType: dbOrder.delivery_type,
             paymentMethod: dbOrder.payment_method || 'cash',
         },
-        items: (dbOrder.order_items || []).map((item: any) => ({
+        items: (dbOrder.order_items || []).map((item: DbOrderItem) => ({
             id: item.menu_item_id || item.id,
             name: item.name,
             description: item.description || '',
@@ -146,7 +175,7 @@ const KitchenDisplay = () => {
                 setOrders(data.map(mapDbOrderToOrder));
             }
         } catch (err) {
-            console.error('Error fetching orders:', err);
+            if (import.meta.env.DEV) console.error('Error fetching orders:', err);
         } finally {
             setIsLoading(false);
         }
@@ -173,7 +202,7 @@ const KitchenDisplay = () => {
                 fetchOrders();
             }
         } catch (err) {
-            console.error('Error updating order:', err);
+            if (import.meta.env.DEV) console.error('Error updating order:', err);
         }
     };
 

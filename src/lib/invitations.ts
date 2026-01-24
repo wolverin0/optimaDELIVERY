@@ -79,7 +79,7 @@ export async function createTeamInvitation(
             inviteUrl
         };
     } catch (err) {
-        console.error('Error creating invitation:', err);
+        if (import.meta.env.DEV) console.error('Error creating invitation:', err);
         return {
             success: false,
             error: 'Error al crear la invitación'
@@ -100,7 +100,7 @@ export async function getTenantInvitations(tenantId: string): Promise<TeamInvita
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Error fetching invitations:', error);
+        if (import.meta.env.DEV) console.error('Error fetching invitations:', error);
         return [];
     }
 
@@ -117,7 +117,7 @@ export async function deleteInvitation(invitationId: string): Promise<boolean> {
         .eq('id', invitationId);
 
     if (error) {
-        console.error('Error deleting invitation:', error);
+        if (import.meta.env.DEV) console.error('Error deleting invitation:', error);
         return false;
     }
 
@@ -189,7 +189,7 @@ export async function acceptTeamInvitation(token: string): Promise<AcceptInvitat
             message: result.message
         };
     } catch (err) {
-        console.error('Error accepting invitation:', err);
+        if (import.meta.env.DEV) console.error('Error accepting invitation:', err);
         return {
             success: false,
             message: 'Error al aceptar la invitación'
