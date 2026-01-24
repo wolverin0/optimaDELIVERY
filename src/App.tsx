@@ -8,6 +8,7 @@ import { TenantProvider } from "@/context/TenantContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { KitchenPinProvider } from "@/context/KitchenPinContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Public pages
 import LandingPage from "./pages/LandingPage";
@@ -32,11 +33,6 @@ import Checkout from "./pages/Checkout";
 import TrialExpired from "./pages/TrialExpired";
 import Upgrade from "./pages/Upgrade";
 
-// Luxury Design Variants (legacy)
-import MenuTest1 from "./test1/Menu";
-import MenuTest2 from "./test2/Menu";
-import MenuTest3 from "./test3/Menu";
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -49,79 +45,80 @@ const App = () => (
               <TooltipProvider>
               <Toaster />
               <Sonner />
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<LandingPage />} />
-                {/* Playground removed - use /demo */}
-                <Route path="/demo" element={<Demo />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route path="/terminos" element={<Terms />} />
-                <Route path="/privacidad" element={<Privacy />} />
-                <Route path="/join/:token" element={<JoinTeam />} />
+              <ErrorBoundary>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<LandingPage />} />
+                  {/* Playground removed - use /demo */}
+                  <Route path="/demo" element={<Demo />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/terminos" element={<Terms />} />
+                  <Route path="/privacidad" element={<Privacy />} />
+                  <Route path="/join/:token" element={<JoinTeam />} />
 
-                {/* Tenant Menu (public) - /t/{tenant-slug} */}
-                <Route path="/t/:tenantSlug" element={<Menu />} />
-                <Route path="/t/:tenantSlug/menu" element={<Menu />} />
+                  {/* Tenant Menu (public) - /t/{tenant-slug} */}
+                  <Route path="/t/:tenantSlug" element={<Menu />} />
+                  <Route path="/t/:tenantSlug/menu" element={<Menu />} />
 
-                {/* Kitchen PIN Access (public) - /cocina/{tenant-slug} */}
-                <Route path="/cocina/:slug" element={<KitchenPin />} />
+                  {/* Kitchen PIN Access (public) - /cocina/{tenant-slug} */}
+                  <Route path="/cocina/:slug" element={<KitchenPin />} />
 
-                {/* Protected Routes - require authentication */}
-                <Route path="/register/setup" element={
-                  <ProtectedRoute>
-                    <RegisterSetup />
-                  </ProtectedRoute>
-                } />
+                  {/* Protected Routes - require authentication */}
+                  <Route path="/register/setup" element={
+                    <ProtectedRoute>
+                      <RegisterSetup />
+                    </ProtectedRoute>
+                  } />
 
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
 
-                <Route path="/cocina" element={
-                  <ProtectedRoute>
-                    <Kitchen />
-                  </ProtectedRoute>
-                } />
+                  <Route path="/cocina" element={
+                    <ProtectedRoute>
+                      <Kitchen />
+                    </ProtectedRoute>
+                  } />
 
-                <Route path="/admin" element={
-                  <ProtectedRoute requiredRoles={['owner', 'admin']}>
-                    <Admin />
-                  </ProtectedRoute>
-                } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute requiredRoles={['owner', 'admin']}>
+                      <Admin />
+                    </ProtectedRoute>
+                  } />
 
-                {/* Trial/Subscription Routes - skip trial check */}
-                <Route path="/trial-expired" element={
-                  <ProtectedRoute skipTrialCheck>
-                    <TrialExpired />
-                  </ProtectedRoute>
-                } />
+                  {/* Trial/Subscription Routes - skip trial check */}
+                  <Route path="/trial-expired" element={
+                    <ProtectedRoute skipTrialCheck>
+                      <TrialExpired />
+                    </ProtectedRoute>
+                  } />
 
-                <Route path="/upgrade" element={
-                  <ProtectedRoute skipTrialCheck>
-                    <Upgrade />
-                  </ProtectedRoute>
-                } />
+                  <Route path="/upgrade" element={
+                    <ProtectedRoute skipTrialCheck>
+                      <Upgrade />
+                    </ProtectedRoute>
+                  } />
 
-                <Route path="/checkout" element={
-                  <ProtectedRoute skipTrialCheck>
-                    <Checkout />
-                  </ProtectedRoute>
-                } />
+                  <Route path="/checkout" element={
+                    <ProtectedRoute skipTrialCheck>
+                      <Checkout />
+                    </ProtectedRoute>
+                  } />
 
-                {/* Luxury Design Test Variants (legacy) */}
-                <Route path="/test1" element={<MenuTest1 />} />
-                <Route path="/test2" element={<MenuTest2 />} />
-                <Route path="/test3" element={<MenuTest3 />} />
+                  {/* Super Admin (protected by auth + server-side is_super_admin check) */}
+                  <Route path="/super-admin" element={
+                    <ProtectedRoute skipTrialCheck>
+                      <SuperAdmin />
+                    </ProtectedRoute>
+                  } />
 
-                {/* Super Admin (protected by email whitelist in component) */}
-                <Route path="/super-admin" element={<SuperAdmin />} />
-
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ErrorBoundary>
               </TooltipProvider>
             </KitchenPinProvider>
           </OrderProvider>

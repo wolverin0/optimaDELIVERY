@@ -21,7 +21,15 @@ function getCorsHeaders(req: Request) {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   }
+}
+
+// Secure logging - only log details in development
+const isDev = Deno.env.get('ENVIRONMENT') === 'development'
+
+function secureLog(message: string) {
+  console.log(message)
 }
 
 interface SubscriptionPaymentRequest {
@@ -91,7 +99,7 @@ Deno.serve(async (req) => {
     // Validate auth token first
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      console.error('No Authorization header')
+      secureLog('No Authorization header')
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -114,21 +122,21 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
 
     if (authError || !user) {
-      console.error('Auth verification failed:', authError)
+      secureLog('Auth verification failed')
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    console.log('User authenticated:', user.id)
+    secureLog('User authenticated')
 
     // Parse and validate request body
     const body: SubscriptionPaymentRequest = await req.json()
 
     const validation = validatePaymentRequest(body)
     if (!validation.valid) {
-      console.error('Validation failed:', validation.error)
+      secureLog('Validation failed')
       return new Response(JSON.stringify({ error: validation.error }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -137,7 +145,7 @@ Deno.serve(async (req) => {
 
     const { tenantId, planType, email, name } = body
 
-    console.log('Creating subscription payment:', { tenantId, planType, userId: user.id })
+    secureLog('Creating subscription payment')
 
     // Create Supabase client with service role for database operations
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -152,11 +160,7 @@ Deno.serve(async (req) => {
       .gte('created_at', oneHourAgo)
 
     if (!attemptsError && recentAttempts && recentAttempts.length >= 5) {
-      console.error('Rate limit exceeded:', {
-        userId: user.id,
-        tenantId,
-        attempts: recentAttempts.length,
-      })
+      secureLog('Rate limit exceeded')
       return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -171,7 +175,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (profileError || !userProfile) {
-      console.error('User profile not found:', profileError)
+      secureLog('User profile not found')
       return new Response(JSON.stringify({ error: 'Forbidden' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -179,11 +183,7 @@ Deno.serve(async (req) => {
     }
 
     if (userProfile.tenant_id !== tenantId) {
-      console.error('Authorization failed: User does not own tenant', {
-        userId: user.id,
-        userTenantId: userProfile.tenant_id,
-        requestedTenantId: tenantId,
-      })
+      secureLog('Authorization failed: User does not own tenant')
       return new Response(JSON.stringify({ error: 'Forbidden' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (tenantError || !tenant) {
-      console.error('Tenant not found:', tenantError)
+      secureLog('Tenant not found')
       return new Response(JSON.stringify({ error: 'Tenant not found' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
       },
     }
 
-    console.log('Creating MercadoPago preference with platform credentials...')
+    secureLog('Creating MercadoPago preference with platform credentials')
 
     const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
@@ -257,7 +257,7 @@ Deno.serve(async (req) => {
 
     if (!mpResponse.ok) {
       const errorText = await mpResponse.text()
-      console.error('MercadoPago API error:', mpResponse.status, errorText)
+      secureLog('MercadoPago API error')
 
       // Do NOT expose internal API errors to client
       return new Response(JSON.stringify({
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
     }
 
     const preference = await mpResponse.json()
-    console.log('Subscription preference created:', preference.id)
+    secureLog('Subscription preference created')
 
     // Store pending subscription payment
     await supabase
@@ -294,7 +294,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (err) {
-    console.error('Unexpected error:', err)
+    secureLog('Unexpected error')
 
     // Do NOT expose internal error messages to client
     return new Response(JSON.stringify({

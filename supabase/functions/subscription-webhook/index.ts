@@ -2,7 +2,36 @@
 // Handles MercadoPago payment notifications for platform subscriptions
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+// Secure logging - only log details in development
+const isDev = Deno.env.get('ENVIRONMENT') === 'development'
+
+function secureLog(message: string) {
+  console.log(message)
+}
 import { crypto } from 'https://deno.land/std@0.224.0/crypto/mod.ts'
+
+// Constant-time string comparison to prevent timing attacks
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    // Still do comparison to maintain constant time for same-length check
+    // but return false for length mismatch
+    let result = 1
+    const maxLen = Math.max(a.length, b.length)
+    for (let i = 0; i < maxLen; i++) {
+      const charA = i < a.length ? a.charCodeAt(i) : 0
+      const charB = i < b.length ? b.charCodeAt(i) : 0
+      result |= charA ^ charB
+    }
+    return false
+  }
+
+  let result = 0
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return result === 0
+}
 
 // Verify MercadoPago webhook signature
 async function verifyWebhookSignature(
@@ -64,13 +93,9 @@ async function verifyWebhookSignature(
     .map(b => b.toString(16).padStart(2, '0'))
     .join('')
 
-  // Compare signatures
-  if (expectedHash !== hash) {
-    console.error('Signature mismatch:', {
-      expected: expectedHash,
-      received: hash,
-      manifest,
-    })
+  // SECURITY: Use constant-time comparison to prevent timing attacks
+  if (!timingSafeEqual(expectedHash, hash)) {
+    secureLog('Signature mismatch')
     return { valid: false, error: 'Invalid signature' }
   }
 
@@ -89,33 +114,57 @@ Deno.serve(async (req) => {
     const topic = url.searchParams.get('topic')
     const id = url.searchParams.get('id')
 
-    console.log('Subscription webhook received:', { topic, id })
+    secureLog('Subscription webhook received')
 
     // CRITICAL: Verify webhook signature to prevent fake payments
     if (!MERCADOPAGO_WEBHOOK_SECRET) {
-      console.error('CRITICAL: MERCADOPAGO_WEBHOOK_SECRET not configured')
-      return new Response('Server configuration error', { status: 500 })
+      secureLog('CRITICAL: Webhook secret not configured')
+      return new Response('Server configuration error', {
+        status: 500,
+        headers: {
+          'X-XSS-Protection': '1; mode=block',
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        },
+      })
     }
 
     const verification = await verifyWebhookSignature(req, MERCADOPAGO_WEBHOOK_SECRET)
     if (!verification.valid) {
-      console.error('Webhook signature verification failed:', verification.error)
-      return new Response('Unauthorized', { status: 401 })
+      secureLog('Webhook signature verification failed')
+      return new Response('Unauthorized', {
+        status: 401,
+        headers: {
+          'X-XSS-Protection': '1; mode=block',
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        },
+      })
     }
-    console.log('Webhook signature verified ✓')
+    secureLog('Webhook signature verified')
 
     if (!topic || !id) {
-      return new Response('Missing parameters', { status: 400 })
+      return new Response('Missing parameters', {
+        status: 400,
+        headers: {
+          'X-XSS-Protection': '1; mode=block',
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        },
+      })
     }
 
     // We only care about payment notifications
     if (topic !== 'payment') {
-      console.log('Ignoring non-payment topic:', topic)
-      return new Response('OK', { status: 200 })
+      secureLog('Ignoring non-payment topic')
+      return new Response('OK', {
+        status: 200,
+        headers: {
+          'X-XSS-Protection': '1; mode=block',
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        },
+      })
     }
 
     // Get payment details from MercadoPago
-    console.log('Fetching payment details from MercadoPago...')
+    secureLog('Fetching payment details from MercadoPago')
     const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
       headers: {
         'Authorization': `Bearer ${PLATFORM_MP_ACCESS_TOKEN}`,
@@ -123,16 +172,18 @@ Deno.serve(async (req) => {
     })
 
     if (!mpResponse.ok) {
-      console.error('Failed to fetch payment:', await mpResponse.text())
-      return new Response('Failed to fetch payment', { status: 500 })
+      secureLog('Failed to fetch payment')
+      return new Response('Failed to fetch payment', {
+        status: 500,
+        headers: {
+          'X-XSS-Protection': '1; mode=block',
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        },
+      })
     }
 
     const payment = await mpResponse.json()
-    console.log('Payment details:', {
-      id: payment.id,
-      status: payment.status,
-      external_reference: payment.external_reference,
-    })
+    secureLog('Payment details received')
 
     // Create Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -143,8 +194,14 @@ Deno.serve(async (req) => {
     const externalRef = payment.external_reference
 
     if (!tenantId || !planType) {
-      console.error('Missing tenant or plan info in payment metadata')
-      return new Response('Invalid payment metadata', { status: 400 })
+      secureLog('Missing tenant or plan info in payment metadata')
+      return new Response('Invalid payment metadata', {
+        status: 400,
+        headers: {
+          'X-XSS-Protection': '1; mode=block',
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        },
+      })
     }
 
     // Update subscription payment record
@@ -161,12 +218,12 @@ Deno.serve(async (req) => {
       .eq('external_reference', externalRef)
 
     if (updateError) {
-      console.error('Error updating subscription payment:', updateError)
+      secureLog('Error updating subscription payment')
     }
 
     // If payment approved, activate subscription
     if (payment.status === 'approved') {
-      console.log('Payment approved! Activating subscription...')
+      secureLog('Payment approved, activating subscription')
 
       const now = new Date()
       const subscriptionEnds = planType === 'monthly'
@@ -184,16 +241,28 @@ Deno.serve(async (req) => {
         .eq('id', tenantId)
 
       if (tenantError) {
-        console.error('Error activating subscription:', tenantError)
+        secureLog('Error activating subscription')
       } else {
-        console.log('Subscription activated successfully!')
+        secureLog('Subscription activated successfully')
       }
     }
 
-    return new Response('OK', { status: 200 })
+    return new Response('OK', {
+      status: 200,
+      headers: {
+        'X-XSS-Protection': '1; mode=block',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+    })
 
   } catch (err) {
-    console.error('Webhook error:', err)
-    return new Response('Internal server error', { status: 500 })
+    secureLog('Webhook error occurred')
+    return new Response('Internal server error', {
+      status: 500,
+      headers: {
+        'X-XSS-Protection': '1; mode=block',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+    })
   }
 })

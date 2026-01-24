@@ -20,6 +20,20 @@ function getCorsHeaders(req: Request) {
     'Access-Control-Allow-Credentials': 'true',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  }
+}
+
+// Check if we're in development mode
+const isDev = Deno.env.get('ENVIRONMENT') === 'development'
+
+function secureLog(message: string, data?: Record<string, unknown>) {
+  if (isDev) {
+    console.log(message, data || '')
+  } else {
+    // In production, only log non-sensitive info
+    console.log(message)
   }
 }
 
@@ -142,26 +156,58 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('Creating payment for order:', orderId.substring(0, 8) + '...')
+    secureLog('Creating payment for order', { orderId: orderId.substring(0, 8) + '...' })
 
     // Create Supabase client to get tenant's MercadoPago credentials
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
+    // RATE LIMITING: Check recent payment attempts per tenant (max 20 per hour)
+    const oneHourAgo = new Date(Date.now() - 3600000).toISOString()
+    const { data: recentOrders, error: rateError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .not('mercadopago_preference_id', 'is', null)
+      .gte('created_at', oneHourAgo)
+
+    if (!rateError && recentOrders && recentOrders.length >= 20) {
+      secureLog('Rate limit exceeded for tenant')
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Too many payment requests. Please try again later.',
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // Verify the order exists and belongs to the tenant
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, tenant_id')
+      .select('id, tenant_id, mercadopago_preference_id')
       .eq('id', orderId)
       .eq('tenant_id', tenantId)
       .single()
 
     if (orderError || !order) {
-      console.error('Order not found or does not belong to tenant')
+      secureLog('Order validation failed')
       return new Response(JSON.stringify({
         success: false,
         error: 'Order not found',
       }), {
         status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Prevent duplicate payment preference creation
+    if (order.mercadopago_preference_id) {
+      secureLog('Payment preference already exists for order')
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Payment already initiated for this order',
+      }), {
+        status: 409,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -173,7 +219,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (tenantError || !tenant) {
-      console.error('Tenant not found')
+      secureLog('Tenant not found')
       return new Response(JSON.stringify({
         success: false,
         error: 'Tenant not found',
@@ -186,7 +232,7 @@ Deno.serve(async (req) => {
 
     // If tenant doesn't have MercadoPago connected, return demo mode
     if (!tenant.mercadopago_access_token) {
-      console.log('Tenant has no MercadoPago connected, returning demo mode')
+      secureLog('Tenant has no MercadoPago connected, returning demo mode')
       return new Response(JSON.stringify({
         success: true,
         demo: true,
@@ -200,7 +246,7 @@ Deno.serve(async (req) => {
     }
 
     // Create MercadoPago preference using tenant's access token
-    console.log('Creating MercadoPago preference...')
+    secureLog('Creating MercadoPago preference')
 
     const preferenceData = {
       items: items.map(item => ({
@@ -231,7 +277,7 @@ Deno.serve(async (req) => {
     })
 
     if (!mpResponse.ok) {
-      console.error('MercadoPago API error:', mpResponse.status)
+      secureLog('MercadoPago API error', { status: mpResponse.status })
 
       // If token expired, return demo mode with message
       if (mpResponse.status === 401) {
@@ -256,7 +302,7 @@ Deno.serve(async (req) => {
     }
 
     const preference = await mpResponse.json()
-    console.log('Preference created successfully')
+    secureLog('Preference created successfully')
 
     // Update order with preference ID
     await supabase
@@ -279,7 +325,12 @@ Deno.serve(async (req) => {
     })
 
   } catch (err) {
-    console.error('Unexpected error:', err)
+    // Log error details only in development
+    if (isDev) {
+      console.error('Unexpected error:', err)
+    } else {
+      console.error('Payment creation failed')
+    }
     return new Response(JSON.stringify({
       success: false,
       error: 'Internal server error',

@@ -21,7 +21,38 @@ function getCorsHeaders(req: Request) {
     'Access-Control-Allow-Credentials': 'true',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   }
+}
+
+// Secure logging - only log details in development
+const isDev = Deno.env.get('ENVIRONMENT') === 'development'
+
+function secureLog(message: string) {
+  console.log(message)
+}
+
+// Constant-time string comparison to prevent timing attacks
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    // Still do comparison to maintain constant time for same-length check
+    // but return false for length mismatch
+    let result = 1
+    const maxLen = Math.max(a.length, b.length)
+    for (let i = 0; i < maxLen; i++) {
+      const charA = i < a.length ? a.charCodeAt(i) : 0
+      const charB = i < b.length ? b.charCodeAt(i) : 0
+      result |= charA ^ charB
+    }
+    return false
+  }
+
+  let result = 0
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return result === 0
 }
 
 // Verify MercadoPago webhook signature
@@ -84,9 +115,9 @@ async function verifyWebhookSignature(
     .map(b => b.toString(16).padStart(2, '0'))
     .join('')
 
-  // Compare signatures
-  if (expectedHash !== hash) {
-    console.error('Signature mismatch')
+  // SECURITY: Use constant-time comparison to prevent timing attacks
+  if (!timingSafeEqual(expectedHash, hash)) {
+    secureLog('Signature mismatch')
     return { valid: false, error: 'Invalid signature' }
   }
 
@@ -108,16 +139,16 @@ Deno.serve(async (req) => {
 
     // CRITICAL: Verify webhook signature to prevent fake payments
     if (!MERCADOPAGO_WEBHOOK_SECRET) {
-      console.error('CRITICAL: MERCADOPAGO_WEBHOOK_SECRET not configured')
+      secureLog('CRITICAL: Webhook secret not configured')
       return new Response('Server configuration error', { status: 500, headers: corsHeaders })
     }
 
     const verification = await verifyWebhookSignature(req, MERCADOPAGO_WEBHOOK_SECRET)
     if (!verification.valid) {
-      console.error('Webhook signature verification failed:', verification.error)
+      secureLog('Webhook signature verification failed')
       return new Response('Unauthorized', { status: 401, headers: corsHeaders })
     }
-    console.log('Webhook signature verified ✓')
+    secureLog('Webhook signature verified')
 
     // Create Supabase client with service role to bypass RLS
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -132,10 +163,10 @@ Deno.serve(async (req) => {
       body = await req.json()
     } catch (e) {
       // Some notifications come as form data
-      console.log('Could not parse JSON body, checking query params')
+      secureLog('Could not parse JSON body, checking query params')
     }
 
-    console.log('Webhook received for order:', orderIdFromQuery)
+    secureLog('Webhook received')
 
     // MercadoPago sends different notification formats:
     // 1. IPN: { topic: 'payment', id: '123' } or { topic: 'merchant_order', id: '123' }
@@ -153,7 +184,7 @@ Deno.serve(async (req) => {
       paymentId = body.id
     } else if (body.id && body.topic === 'merchant_order') {
       // IPN format for merchant_order - need to fetch order to get payment
-      console.log('Received merchant_order notification, fetching order details...')
+      secureLog('Received merchant_order notification')
     }
 
     // Also check query params (MercadoPago sometimes sends id there)
@@ -161,10 +192,10 @@ Deno.serve(async (req) => {
       paymentId = url.searchParams.get('data.id') || url.searchParams.get('id')
     }
 
-    console.log('Payment ID:', paymentId, 'Topic:', topic)
+    secureLog('Payment ID received')
 
     if (!paymentId) {
-      console.log('No payment ID found, returning OK')
+      secureLog('No payment ID found, returning OK')
       return new Response('OK', {
         status: 200,
         headers: corsHeaders
@@ -176,7 +207,7 @@ Deno.serve(async (req) => {
 
     if (!orderId) {
       // If no orderId in query, we need to fetch payment to get external_reference
-      console.log('No orderId in query, will try to find from payment data')
+      secureLog('No orderId in query, will try to find from payment data')
     }
 
     // If we have orderId, get the tenant's access token
@@ -190,7 +221,7 @@ Deno.serve(async (req) => {
         .single()
 
       if (orderError || !order) {
-        console.error('Order not found:', orderId)
+        secureLog('Order not found')
         return new Response('Order not found', { status: 200, headers: corsHeaders })
       }
 
@@ -199,7 +230,7 @@ Deno.serve(async (req) => {
 
     // Fetch payment details from MercadoPago
     if (accessToken && paymentId) {
-      console.log('Fetching payment details from MercadoPago...')
+      secureLog('Fetching payment details from MercadoPago')
 
       const paymentResponse = await fetch(
         `https://api.mercadopago.com/v1/payments/${paymentId}`,
@@ -211,18 +242,18 @@ Deno.serve(async (req) => {
       )
 
       if (!paymentResponse.ok) {
-        console.error('Error fetching payment:', paymentResponse.status)
+        secureLog('Error fetching payment')
         return new Response('Payment fetch error', { status: 200, headers: corsHeaders })
       }
 
       const payment = await paymentResponse.json()
-      console.log('Payment status:', payment.status)
+      secureLog('Payment status received')
 
       // Use external_reference if we don't have orderId
       const finalOrderId = orderId || payment.external_reference
 
       if (!finalOrderId) {
-        console.error('Could not determine order ID')
+        secureLog('Could not determine order ID')
         return new Response('Order ID unknown', { status: 200, headers: corsHeaders })
       }
 
@@ -249,7 +280,7 @@ Deno.serve(async (req) => {
       }
 
       if (newPaymentStatus) {
-        console.log('Updating order', finalOrderId, 'payment_status to:', newPaymentStatus)
+        secureLog('Updating order payment status')
 
         const { error: updateError } = await supabase
           .from('orders')
@@ -260,9 +291,9 @@ Deno.serve(async (req) => {
           .eq('id', finalOrderId)
 
         if (updateError) {
-          console.error('Error updating order:', updateError)
+          secureLog('Error updating order')
         } else {
-          console.log('Order payment status updated successfully!')
+          secureLog('Order payment status updated successfully')
         }
       }
     }
@@ -274,7 +305,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (err) {
-    console.error('Webhook error:', err)
+    secureLog('Webhook error occurred')
     // Still return 200 to avoid MercadoPago retrying
     return new Response('Error processed', {
       status: 200,

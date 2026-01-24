@@ -318,6 +318,7 @@ export const CartDrawer = () => {
                   className="h-12 text-base border-primary/20 focus:border-primary bg-card"
                   value={customerData.name}
                   onChange={e => setCustomerData(prev => ({ ...prev, name: e.target.value }))}
+                  maxLength={100}
                 />
               </div>
               <div className="space-y-2">
@@ -331,6 +332,7 @@ export const CartDrawer = () => {
                   className="h-12 text-base border-primary/20 focus:border-primary bg-card"
                   value={customerData.phone}
                   onChange={e => setCustomerData(prev => ({ ...prev, phone: e.target.value }))}
+                  maxLength={20}
                 />
               </div>
 
@@ -345,6 +347,7 @@ export const CartDrawer = () => {
                     className="min-h-24 text-base border-primary/20 focus:border-primary bg-card resize-none"
                     value={customerData.address}
                     onChange={e => setCustomerData(prev => ({ ...prev, address: e.target.value }))}
+                    maxLength={500}
                   />
                 </div>
               )}
@@ -359,6 +362,7 @@ export const CartDrawer = () => {
                   className="min-h-20 text-base border-primary/20 focus:border-primary bg-card resize-none"
                   value={customerData.notes}
                   onChange={e => setCustomerData(prev => ({ ...prev, notes: e.target.value }))}
+                  maxLength={1000}
                 />
               </div>
             </div>
