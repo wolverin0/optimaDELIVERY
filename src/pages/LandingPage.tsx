@@ -236,13 +236,14 @@ const LandingPage = () => {
                                             <button
                                                 key={theme.templateId}
                                                 onClick={() => setCurrentThemeIndex(idx)}
-                                                className={`w-7 h-7 rounded-full border-2 transition-all duration-200 ${
+                                                className={`w-7 h-7 rounded-full border-2 transition-all duration-200 cursor-pointer ${
                                                     currentThemeIndex === idx
                                                         ? 'border-slate-900 scale-110 shadow-lg'
                                                         : 'border-white shadow hover:scale-105'
                                                 }`}
                                                 style={{ backgroundColor: theme.primaryColor }}
                                                 title={theme.name}
+                                                aria-label={`Ver diseño ${theme.name}`}
                                             />
                                         ))}
                                     </div>

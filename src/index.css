@@ -256,6 +256,24 @@ body::before {
     display: none !important;
   }
 
+  /* Crisp rendering for scaled phone mockups */
+  .phone-mockup-preview {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  /* Ensure text and images inside mockup render crisply */
+  .phone-mockup-preview img {
+    image-rendering: auto;
+  }
+
+  .phone-mockup-preview * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   /* Animation keyframes */
   @keyframes fade-in-up {
     from {

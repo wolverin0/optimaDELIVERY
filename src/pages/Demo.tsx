@@ -644,9 +644,11 @@ const Demo = () => {
                                             setViewMode('consumer');
                                             toast.info(`Diseño cambiado a: ${theme.name}`, { position: 'bottom-center' });
                                         }}
+                                        aria-label={`Seleccionar diseño ${theme.name}`}
+                                        title={theme.name}
                                     >
                                         <div
-                                            className="w-4 h-4 rounded-full mr-3 border-2 border-white shadow-sm"
+                                            className="w-4 h-4 rounded-full mr-3 md:mr-3 border-2 border-white shadow-sm flex-shrink-0"
                                             style={{ backgroundColor: theme.primaryColor }}
                                         />
                                         <span className="hidden md:inline capitalize text-sm">{theme.name}</span>
