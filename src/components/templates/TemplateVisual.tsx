@@ -50,7 +50,7 @@ export const TemplateVisual = ({ tenant, menuItems }: TemplateProps) => {
                 {/* Intro Slide - Enhanced */}
                 <section className="h-full w-full relative snap-start flex items-center justify-center bg-zinc-900">
                     <div className="absolute inset-0 opacity-30">
-                        <img src="https://images.unsplash.com/photo-1544025162-d76690b6d029?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale" />
+                        <img src="https://images.unsplash.com/photo-1544025162-d76690b6d029?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale" alt="Fondo culinario decorativo" />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
                     <div className="relative z-10 text-center p-8">

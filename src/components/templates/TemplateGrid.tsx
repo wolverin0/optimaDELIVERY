@@ -188,15 +188,16 @@ export const TemplateGrid = ({ tenant, menuItems, categories, isPreview }: Templ
                                             <ShoppingBag className="w-8 h-8 opacity-50" />
                                         </div>
                                     )}
-                                    {/* Quick Add Overlay */}
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                    {/* Quick Add Overlay - visible on mobile, hover on desktop */}
+                                    <div className="absolute inset-0 bg-black/50 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
                                         <Button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleAddToCart(item);
                                             }}
                                             variant="secondary"
-                                            className="rounded-full shadow-xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+                                            className="rounded-full shadow-xl font-bold md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300 min-h-[44px] px-6"
+                                            aria-label={`Agregar ${item.name} al carrito`}
                                         >
                                             Agregar
                                         </Button>

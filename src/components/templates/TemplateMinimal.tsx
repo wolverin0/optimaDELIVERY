@@ -104,9 +104,10 @@ export const TemplateMinimal = ({ tenant, menuItems }: TemplateProps) => {
                                                     e.stopPropagation();
                                                     handleAddItem(item);
                                                 }}
-                                                className="opacity-0 group-hover:opacity-100 transition-all duration-300 bg-stone-800 text-white rounded-full w-9 h-9 flex items-center justify-center hover:bg-stone-700 hover:scale-110 shadow-lg shadow-stone-900/20"
+                                                className="md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 bg-stone-800 text-white rounded-full w-11 h-11 md:w-9 md:h-9 flex items-center justify-center hover:bg-stone-700 hover:scale-110 shadow-lg shadow-stone-900/20"
+                                                aria-label={`Agregar ${item.name} al carrito`}
                                             >
-                                                <Plus className="w-4 h-4" />
+                                                <Plus className="w-5 h-5 md:w-4 md:h-4" />
                                             </button>
                                         )}
                                     </div>

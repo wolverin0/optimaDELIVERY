@@ -28,7 +28,7 @@
     --secondary-foreground: 30 33% 14%;
 
     --muted: 40 20% 94%;
-    --muted-foreground: 30 15% 50%;
+    --muted-foreground: 30 15% 40%; /* Darkened from 50% for WCAG AA contrast */
 
     --accent: 43 72% 46%;
     --accent-foreground: 0 0% 100%;
@@ -83,7 +83,7 @@
     --secondary-foreground: 40 20% 95%;
 
     --muted: 30 15% 15%;
-    --muted-foreground: 40 15% 55%;
+    --muted-foreground: 40 15% 65%; /* Lightened from 55% for WCAG AA contrast */
 
     --accent: 43 72% 50%;
     --accent-foreground: 30 20% 8%;
@@ -135,6 +135,14 @@
   /* Elegant serif for headings */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+
+  /* Global focus indicators for keyboard navigation accessibility */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
   }
 }
 
@@ -450,6 +458,7 @@ body::before {
     @apply border-2 border-primary flex items-center justify-center;
     @apply text-white cursor-pointer z-50;
     @apply transition-all duration-300;
+    @apply focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/50 focus-visible:ring-offset-2;
     background: linear-gradient(145deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
     box-shadow: 0 8px 30px hsla(var(--gold), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
@@ -468,6 +477,7 @@ body::before {
     @apply w-full h-14 rounded-xl border-none text-white;
     @apply text-sm font-semibold tracking-widest uppercase;
     @apply cursor-pointer transition-all duration-300;
+    @apply focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/50 focus-visible:ring-offset-2;
     background: linear-gradient(145deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
     box-shadow: 0 8px 24px hsla(var(--gold), 0.35);
   }
@@ -477,11 +487,12 @@ body::before {
     box-shadow: 0 12px 36px hsla(var(--gold), 0.45);
   }
 
-  /* Quantity button */
+  /* Quantity button - min 44px touch target for accessibility */
   .qty-btn {
-    @apply w-8 h-8 rounded-full border border-border bg-card;
+    @apply w-11 h-11 sm:w-9 sm:h-9 rounded-full border border-border bg-card;
     @apply flex items-center justify-center cursor-pointer;
     @apply transition-all duration-200;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
   }
 
   .qty-btn:hover {
@@ -493,6 +504,7 @@ body::before {
     @apply w-11 h-11 rounded-full border-2 border-primary bg-transparent;
     @apply text-primary flex items-center justify-center cursor-pointer;
     @apply transition-all duration-300;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
   }
 
   .add-btn:hover {

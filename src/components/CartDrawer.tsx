@@ -132,7 +132,7 @@ export const CartDrawer = () => {
       if (!open) setTimeout(resetCheckout, 300);
     }}>
       <SheetTrigger asChild>
-        <button className="gold-fab">
+        <button className="gold-fab" aria-label="Ver carrito de compras">
           <ShoppingBag className="h-7 w-7" strokeWidth={1.5} />
           {cart.length > 0 && (
             <span className="absolute -top-1 -right-1 w-6 h-6 bg-white text-primary text-xs font-bold rounded-full flex items-center justify-center border-2 border-primary shadow-md">
@@ -177,10 +177,11 @@ export const CartDrawer = () => {
                       <div className="flex items-start justify-between">
                         <h4 className="font-semibold text-lg tracking-wide">{item.name}</h4>
                         <button
-                          className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-full hover:bg-destructive/10"
+                          className="p-2.5 min-w-[44px] min-h-[44px] text-muted-foreground hover:text-destructive transition-colors rounded-full hover:bg-destructive/10 flex items-center justify-center"
                           onClick={() => removeFromCart(item.id)}
+                          aria-label={`Eliminar ${item.name} del carrito`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                       <p className="text-primary font-bold text-lg mt-0.5">
@@ -208,15 +209,17 @@ export const CartDrawer = () => {
                             <button
                               className="qty-btn"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              aria-label={`Reducir cantidad de ${item.name}`}
                             >
-                              <Minus className="h-3.5 w-3.5" />
+                              <Minus className="h-4 w-4" />
                             </button>
                             <span className="w-8 text-center font-bold text-lg">{item.quantity}</span>
                             <button
                               className="qty-btn"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              aria-label={`Aumentar cantidad de ${item.name}`}
                             >
-                              <Plus className="h-3.5 w-3.5" />
+                              <Plus className="h-4 w-4" />
                             </button>
                           </>
                         )}

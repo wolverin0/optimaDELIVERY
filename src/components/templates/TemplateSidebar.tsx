@@ -193,7 +193,8 @@ export const TemplateSidebar = ({ tenant, menuItems, categories, isPreview }: Te
                                                         }}
                                                         size="sm"
                                                         variant="ghost"
-                                                        className="text-primary hover:text-primary hover:bg-primary/5 -ml-3 font-semibold"
+                                                        className="text-primary hover:text-primary hover:bg-primary/5 -ml-3 font-semibold min-h-[44px]"
+                                                        aria-label={`Agregar ${item.name} al pedido`}
                                                     >
                                                         <Plus className="w-4 h-4 mr-2" />
                                                         Agregar al pedido

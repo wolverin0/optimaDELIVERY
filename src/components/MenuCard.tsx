@@ -131,7 +131,7 @@ export const MenuCard = ({ item, index = 0 }: MenuCardProps) => {
             </div>
 
             {item.is_available && (
-              <button onClick={handleAdd} className="add-btn">
+              <button onClick={handleAdd} className="add-btn" aria-label={`Agregar ${item.name} al carrito`}>
                 <Plus size={20} strokeWidth={2} />
               </button>
             )}
