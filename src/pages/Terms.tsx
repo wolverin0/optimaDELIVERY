@@ -1,12 +1,26 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Utensils } from 'lucide-react';
 
+const SECTIONS = [
+    { id: 'aceptacion', title: '1. Aceptación' },
+    { id: 'servicio', title: '2. Servicio' },
+    { id: 'registro', title: '3. Registro' },
+    { id: 'prueba', title: '4. Prueba' },
+    { id: 'pagos', title: '5. Pagos' },
+    { id: 'uso', title: '6. Uso Aceptable' },
+    { id: 'propiedad', title: '7. Propiedad' },
+    { id: 'responsabilidad', title: '8. Responsabilidad' },
+    { id: 'cancelacion', title: '9. Cancelación' },
+    { id: 'modificaciones', title: '10. Modificaciones' },
+    { id: 'contacto', title: '11. Contacto' },
+];
+
 const Terms = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-orange-50">
             {/* Header */}
             <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-orange-100">
-                <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
                         <ArrowLeft className="w-5 h-5" />
                         <span>Volver</span>
@@ -20,27 +34,48 @@ const Terms = () => {
                 </div>
             </header>
 
-            {/* Content */}
-            <main className="max-w-4xl mx-auto px-6 py-12">
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">
-                    Términos y Condiciones
-                </h1>
+            {/* Content with TOC sidebar */}
+            <div className="max-w-6xl mx-auto px-6 py-12 flex gap-12">
+                {/* Table of Contents - Desktop only */}
+                <aside className="hidden lg:block w-56 flex-shrink-0">
+                    <nav className="sticky top-24">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Contenido</p>
+                        <ul className="space-y-2">
+                            {SECTIONS.map((section) => (
+                                <li key={section.id}>
+                                    <a
+                                        href={`#${section.id}`}
+                                        className="text-sm text-slate-500 hover:text-orange-600 transition-colors block py-1"
+                                    >
+                                        {section.title}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                </aside>
 
-                <div className="prose prose-slate max-w-none">
-                    <p className="text-slate-600 mb-6">
-                        Última actualización: Enero 2026
-                    </p>
+                {/* Main Content */}
+                <main className="flex-1 min-w-0">
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">
+                        Términos y Condiciones
+                    </h1>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">1. Aceptación de los Términos</h2>
+                    <div className="prose prose-slate max-w-none">
+                        <p className="text-slate-600 mb-6">
+                            Última actualización: Enero 2026
+                        </p>
+
+                        <section id="aceptacion" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">1. Aceptación de los Términos</h2>
                         <p className="text-slate-600 mb-4">
                             Al acceder y utilizar optimaDELIVERY, usted acepta estar sujeto a estos Términos y Condiciones.
                             Si no está de acuerdo con alguna parte de estos términos, no podrá acceder al servicio.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">2. Descripción del Servicio</h2>
+                        <section id="servicio" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">2. Descripción del Servicio</h2>
                         <p className="text-slate-600 mb-4">
                             optimaDELIVERY es una plataforma de gestión de menús digitales y pedidos para restaurantes
                             y negocios gastronómicos. Nuestro servicio incluye:
@@ -54,8 +89,8 @@ const Terms = () => {
                         </ul>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">3. Registro y Cuenta</h2>
+                        <section id="registro" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">3. Registro y Cuenta</h2>
                         <p className="text-slate-600 mb-4">
                             Para utilizar nuestros servicios, debe registrar una cuenta proporcionando información
                             veraz y completa. Usted es responsable de mantener la confidencialidad de su cuenta
@@ -63,8 +98,8 @@ const Terms = () => {
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">4. Período de Prueba</h2>
+                        <section id="prueba" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">4. Período de Prueba</h2>
                         <p className="text-slate-600 mb-4">
                             Ofrecemos un período de prueba gratuito de 7 días. Durante este período, tendrá acceso
                             completo a las funcionalidades del plan seleccionado. Al finalizar el período de prueba,
@@ -72,16 +107,16 @@ const Terms = () => {
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">5. Pagos y Facturación</h2>
+                        <section id="pagos" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">5. Pagos y Facturación</h2>
                         <p className="text-slate-600 mb-4">
                             Los pagos se procesan mensualmente. Aceptamos transferencias bancarias y MercadoPago.
                             Los precios pueden estar sujetos a cambios con previo aviso de 30 días.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">6. Uso Aceptable</h2>
+                        <section id="uso" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">6. Uso Aceptable</h2>
                         <p className="text-slate-600 mb-4">
                             Usted se compromete a utilizar el servicio únicamente para fines legales y de acuerdo
                             con estos términos. Está prohibido:
@@ -94,16 +129,16 @@ const Terms = () => {
                         </ul>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">7. Propiedad Intelectual</h2>
+                        <section id="propiedad" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">7. Propiedad Intelectual</h2>
                         <p className="text-slate-600 mb-4">
                             Todo el contenido, diseño y código de optimaDELIVERY son propiedad exclusiva de
                             la empresa. Usted conserva todos los derechos sobre el contenido que suba a la plataforma.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">8. Limitación de Responsabilidad</h2>
+                        <section id="responsabilidad" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">8. Limitación de Responsabilidad</h2>
                         <p className="text-slate-600 mb-4">
                             optimaDELIVERY no será responsable por daños indirectos, incidentales o consecuentes
                             derivados del uso del servicio. Nuestra responsabilidad máxima estará limitada al
@@ -111,8 +146,8 @@ const Terms = () => {
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">9. Cancelación</h2>
+                        <section id="cancelacion" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">9. Cancelación</h2>
                         <p className="text-slate-600 mb-4">
                             Puede cancelar su suscripción en cualquier momento. La cancelación será efectiva
                             al final del período de facturación actual. Sus datos se mantendrán por 30 días
@@ -120,16 +155,16 @@ const Terms = () => {
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">10. Modificaciones</h2>
+                        <section id="modificaciones" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">10. Modificaciones</h2>
                         <p className="text-slate-600 mb-4">
                             Nos reservamos el derecho de modificar estos términos en cualquier momento.
                             Los cambios serán notificados por email con al menos 15 días de anticipación.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-4">11. Contacto</h2>
+                        <section id="contacto" className="mb-8 scroll-mt-24">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-4">11. Contacto</h2>
                         <p className="text-slate-600 mb-4">
                             Para cualquier consulta sobre estos términos, puede contactarnos a través de:
                         </p>
@@ -137,13 +172,14 @@ const Terms = () => {
                             <li>Email: soporte@optimadelivery.com</li>
                             <li>WhatsApp: +54 9 2477 509998</li>
                         </ul>
-                    </section>
-                </div>
-            </main>
+                        </section>
+                    </div>
+                </main>
+            </div>
 
             {/* Footer */}
             <footer className="py-8 border-t border-orange-100 bg-white/50">
-                <div className="max-w-4xl mx-auto px-6 text-center text-sm text-slate-500">
+                <div className="max-w-6xl mx-auto px-6 text-center text-sm text-slate-500">
                     © 2026 optimaDELIVERY. Todos los derechos reservados.
                 </div>
             </footer>

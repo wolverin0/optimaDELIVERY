@@ -14,6 +14,7 @@ interface AuthContextType {
     isLoading: boolean;
     isAuthenticated: boolean;
     signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+    signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
     signOut: () => Promise<void>;
     refreshProfile: () => Promise<void>;
 }
@@ -151,6 +152,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
     };
 
+    const signInWithEmail = async (email: string, password: string) => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        return { error };
+    };
+
     const signOut = async () => {
         localStorage.removeItem(STORAGE_KEY);
         setSession(null);
@@ -169,6 +178,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 isLoading,
                 isAuthenticated: !!session && !!user,
                 signInWithGoogle,
+                signInWithEmail,
                 signOut,
                 refreshProfile,
             }}
