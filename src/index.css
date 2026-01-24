@@ -236,6 +236,18 @@ body::before {
     display: none;
   }
 
+  /* Hide ALL scrollbars inside phone mockup previews */
+  .phone-mockup-preview,
+  .phone-mockup-preview * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  .phone-mockup-preview::-webkit-scrollbar,
+  .phone-mockup-preview *::-webkit-scrollbar {
+    display: none !important;
+  }
+
   /* Animation keyframes */
   @keyframes fade-in-up {
     from {

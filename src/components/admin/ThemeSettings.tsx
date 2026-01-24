@@ -272,7 +272,7 @@ export const ThemeSettings = () => {
                         <Eye className="w-3 h-3" />
                         Vista Previa
                     </div>
-                    <div className="w-[260px] h-[520px] mx-auto bg-white rounded-[2rem] shadow-xl border-[5px] border-slate-900 relative overflow-hidden">
+                    <div className="w-[260px] h-[520px] mx-auto bg-white rounded-[2rem] shadow-xl border-[5px] border-slate-900 relative overflow-hidden phone-mockup-preview">
                         {/* Mini Notch */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-900 rounded-b-xl z-30"></div>
                         {/* Screen Content - Clipping container */}
@@ -511,7 +511,7 @@ export const ThemeSettings = () => {
 
                 {/* Mobile Device Frame */}
                 <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
-                    <div className="w-[288px] h-[624px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10">
+                    <div className="w-[288px] h-[624px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10 phone-mockup-preview">
                         {/* Notch */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 rounded-b-xl z-30"></div>
 

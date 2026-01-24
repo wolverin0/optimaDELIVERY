@@ -207,7 +207,7 @@ const LandingPage = () => {
                             <div className="relative flex items-center justify-center">
                                 {/* Phone mockup - matching RegisterSetup style with LIVE Menu */}
                                 <div className="relative transform-gpu will-change-transform" style={{ transform: 'scale(0.7)' }}>
-                                    <div className="w-[375px] h-[812px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10 rotate-3 hover:rotate-0 transition-transform duration-500">
+                                    <div className="w-[375px] h-[812px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-slate-900 relative overflow-hidden ring-4 ring-slate-900/10 rotate-3 hover:rotate-0 transition-transform duration-500 phone-mockup-preview">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-slate-900 rounded-b-2xl z-30" />
                                         {/* Screen Content - LIVE Menu Component */}
@@ -285,7 +285,7 @@ const LandingPage = () => {
                     </p>
                     <div className="relative flex flex-col items-center">
                         {/* Phone mockup - larger for mobile view */}
-                        <div className="w-[220px] h-[476px] bg-white rounded-[2rem] shadow-2xl border-[5px] border-slate-900 overflow-hidden transform-gpu">
+                        <div className="w-[220px] h-[476px] bg-white rounded-[2rem] shadow-2xl border-[5px] border-slate-900 overflow-hidden transform-gpu phone-mockup-preview">
                             {/* Notch */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-b-xl z-30" />
                             {/* Screen Content - Scaled Menu */}
@@ -504,7 +504,7 @@ const LandingPage = () => {
                             <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-3xl p-6 md:p-8 border border-orange-500/20">
                                 {/* Phone mockup with live Menu cycling themes */}
                                 <div className="relative mx-auto">
-                                    <div className="relative w-[248px] h-[536px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-800 overflow-hidden ring-4 ring-orange-500/20">
+                                    <div className="relative w-[248px] h-[536px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-slate-800 overflow-hidden ring-4 ring-orange-500/20 phone-mockup-preview">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-800 rounded-b-xl z-30" />
                                         {/* Screen Content - Clipping container */}
