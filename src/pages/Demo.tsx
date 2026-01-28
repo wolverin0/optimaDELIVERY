@@ -365,7 +365,7 @@ const AdminView = ({ orders, revenue }: { orders: MockOrder[], revenue: number }
 
     const navItems = [
         { id: 'overview', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Resumen' },
-        { id: 'menu', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Menu' },
+        { id: 'menu', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Menú' },
         { id: 'orders', icon: <CreditCard className="w-5 h-5" />, label: 'Pedidos' },
         { id: 'design', icon: <Palette className="w-5 h-5" />, label: 'Diseño' },
         { id: 'settings', icon: <Settings className="w-5 h-5" />, label: 'Config' },

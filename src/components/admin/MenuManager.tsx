@@ -161,18 +161,35 @@ export const MenuManager = () => {
                 });
                 if (!res.ok) throw new Error('Failed to update');
                 toast({ title: 'Producto actualizado' });
+                await refreshMenu();
+                setShowProductForm(false);
+                resetProductForm();
             } else {
                 const res = await supabaseFetch('menu_items', token, {
                     method: 'POST',
                     body: JSON.stringify(itemData),
                 });
                 if (!res.ok) throw new Error('Failed to create');
-                toast({ title: 'Producto agregado' });
+                toast({
+                    title: 'Producto agregado',
+                    description: '¿Deseas agregar otro producto?',
+                    action: (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                                resetProductForm();
+                                setShowProductForm(true);
+                            }}
+                        >
+                            Sí, agregar otro
+                        </Button>
+                    ),
+                });
+                await refreshMenu();
+                setShowProductForm(false);
+                resetProductForm();
             }
-
-            await refreshMenu();
-            setShowProductForm(false);
-            resetProductForm();
         } catch (error) {
             if (import.meta.env.DEV) console.error('Error saving item:', error);
             toast({ title: 'Error', description: 'No se pudo guardar el producto', variant: 'destructive' });

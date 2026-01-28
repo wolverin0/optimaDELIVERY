@@ -195,7 +195,7 @@ const Dashboard = () => {
 
     const navItems: NavItemConfig[] = useMemo(() => [
         { id: 'overview', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Resumen', allowedRoles: ['owner', 'admin', 'staff'] },
-        { id: 'menu', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Menu', allowedRoles: ['owner', 'admin'] },
+        { id: 'menu', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Menú', allowedRoles: ['owner', 'admin'] },
         { id: 'kitchen', icon: <ChefHat className="w-5 h-5" />, label: 'Cocina', allowedRoles: ['owner', 'admin', 'kitchen'] },
         { id: 'orders', icon: <CreditCard className="w-5 h-5" />, label: 'Pedidos', allowedRoles: ['owner', 'admin', 'staff'] },
         { id: 'design', icon: <Palette className="w-5 h-5" />, label: 'Diseño', allowedRoles: ['owner', 'admin'] },

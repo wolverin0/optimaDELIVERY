@@ -31,10 +31,10 @@ const TrialBanner = () => {
         </div>
         <Link to="/checkout">
           <Button
-            size="sm"
-            className="bg-white text-orange-600 hover:bg-orange-50 font-bold shadow-lg whitespace-nowrap"
+            size="lg"
+            className="bg-white text-orange-600 hover:bg-orange-50 font-bold shadow-lg whitespace-nowrap h-12 px-8 text-base rounded-xl"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Sparkles className="w-5 h-5 mr-2" />
             Ver Planes
           </Button>
         </Link>

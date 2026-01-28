@@ -16,7 +16,7 @@ import {
     BarChart3,
     Eye
 } from 'lucide-react';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { TenantContext } from '@/context/TenantContext';
 import { OrderContext } from '@/context/OrderContext';
 import Menu from '@/pages/Menu';
@@ -95,6 +95,7 @@ const MockOrderProvider = ({ children }: { children: ReactNode }) => {
 const LandingPage = () => {
     const [activeFeature, setActiveFeature] = useState(0);
     const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
+    const themeIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-rotate features every 4 seconds
     useEffect(() => {
@@ -104,13 +105,31 @@ const LandingPage = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // Auto-rotate themes every 2 seconds for hero phone mockup
-    useEffect(() => {
-        const interval = setInterval(() => {
+    // Function to start/restart the theme auto-rotate timer
+    const startThemeInterval = useCallback(() => {
+        if (themeIntervalRef.current) {
+            clearInterval(themeIntervalRef.current);
+        }
+        themeIntervalRef.current = setInterval(() => {
             setCurrentThemeIndex((prev) => (prev + 1) % THEMES.length);
         }, 2000);
-        return () => clearInterval(interval);
     }, []);
+
+    // Auto-rotate themes every 2 seconds for hero phone mockup
+    useEffect(() => {
+        startThemeInterval();
+        return () => {
+            if (themeIntervalRef.current) {
+                clearInterval(themeIntervalRef.current);
+            }
+        };
+    }, [startThemeInterval]);
+
+    // Handle manual theme selection - reset timer so user can see their choice
+    const handleThemeSelect = useCallback((idx: number) => {
+        setCurrentThemeIndex(idx);
+        startThemeInterval(); // Restart the 2-second timer from now
+    }, [startThemeInterval]);
 
     const previewTenant = {
         ...BASE_TENANT,
@@ -235,7 +254,7 @@ const LandingPage = () => {
                                         {THEMES.map((theme, idx) => (
                                             <button
                                                 key={theme.templateId}
-                                                onClick={() => setCurrentThemeIndex(idx)}
+                                                onClick={() => handleThemeSelect(idx)}
                                                 className={`w-7 h-7 rounded-full border-2 transition-all duration-200 cursor-pointer ${
                                                     currentThemeIndex === idx
                                                         ? 'border-slate-900 scale-110 shadow-lg'
@@ -315,7 +334,7 @@ const LandingPage = () => {
                             {THEMES.map((theme, idx) => (
                                 <button
                                     key={theme.templateId}
-                                    onClick={() => setCurrentThemeIndex(idx)}
+                                    onClick={() => handleThemeSelect(idx)}
                                     className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
                                         currentThemeIndex === idx
                                             ? 'border-slate-900 scale-110 shadow-lg'
@@ -323,6 +342,7 @@ const LandingPage = () => {
                                     }`}
                                     style={{ backgroundColor: theme.primaryColor }}
                                     title={theme.name}
+                                    aria-label={`Ver diseño ${theme.name}`}
                                 />
                             ))}
                         </div>
@@ -681,8 +701,7 @@ const LandingPage = () => {
                                     {[
                                         '20% de descuento permanente',
                                         'Recordatorio 30 días antes de renovar',
-                                        'Estadísticas avanzadas',
-                                        'Soporte premium prioritario'
+                                        'Estadísticas avanzadas'
                                     ].map((item, i) => (
                                         <li key={i} className="flex items-center gap-3 text-sm">
                                             <Check className="w-4 h-4 flex-shrink-0" />
