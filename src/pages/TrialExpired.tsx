@@ -95,18 +95,22 @@ const TrialExpired = () => {
             </a>
           </div>
 
-          {/* Plans summary */}
+          {/* Plans summary - clickable */}
           <div className="grid sm:grid-cols-2 gap-4 pt-4">
-            <div className="bg-white rounded-xl p-4 border-2 border-slate-200">
-              <p className="text-sm text-slate-500 mb-1">Pago Mensual</p>
-              <p className="text-3xl font-bold text-slate-900">$25.000</p>
-              <p className="text-xs text-slate-500 mt-1">Sin compromiso</p>
-            </div>
-            <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-4 text-white border-2 border-orange-400">
-              <p className="text-sm text-white/80 mb-1">Pago Anual</p>
-              <p className="text-3xl font-bold">$20.000/mes</p>
-              <p className="text-xs text-white/80 mt-1">Ahorrá $60.000/año</p>
-            </div>
+            <Link to="/checkout?plan=monthly" className="block">
+              <div className="bg-white rounded-xl p-4 border-2 border-slate-200 hover:border-orange-400 hover:shadow-lg transition-all cursor-pointer h-full">
+                <p className="text-sm text-slate-500 mb-1">Pago Mensual</p>
+                <p className="text-3xl font-bold text-slate-900">$25.000</p>
+                <p className="text-xs text-slate-500 mt-1">Sin compromiso</p>
+              </div>
+            </Link>
+            <Link to="/checkout?plan=annual" className="block">
+              <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-4 text-white border-2 border-orange-400 hover:from-orange-600 hover:to-red-700 hover:shadow-lg transition-all cursor-pointer h-full">
+                <p className="text-sm text-white/80 mb-1">Pago Anual</p>
+                <p className="text-3xl font-bold">$20.000/mes</p>
+                <p className="text-xs text-white/80 mt-1">Ahorrá $60.000/año</p>
+              </div>
+            </Link>
           </div>
 
           <p className="text-center text-sm text-slate-500 pt-2">
